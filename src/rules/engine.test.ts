@@ -620,8 +620,8 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
     canSelect('greater-weapon-specialization-lightsabers', bare, db).met, false);
   check('nor for the forms', canSelect('juyo', bare, db).met, false);
 
-  // The generic route must keep working: the talents taken with lightsabers satisfy it too,
-  // so a Soldier or Elite Trooper multiclass is not shut out.
+  // The lightsaber talent pairs only with the other lightsaber talents. The Elite Trooper
+  // ones taken with lightsabers are a different chain and do not stand in for them.
   const generic = structuredClone(knight);
   generic.selections = [
     { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
@@ -629,9 +629,35 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
     { key: talentSlots[1], choiceId: 'talent', featureId: 'greater-weapon-focus', spec: 'lightsabers' },
   ];
   const dg = computeCharacter(generic);
-  check('the generic talents taken with lightsabers also qualify',
-    canSelect('greater-weapon-specialization-lightsabers', generic, dg).met, true);
-  check('and open the forms as well', canSelect('juyo', generic, dg).met, true);
+  check('the generic Elite Trooper talents do not substitute',
+    canSelect('greater-weapon-specialization-lightsabers', generic, dg).met, false);
+  check('nor for the forms', canSelect('juyo', generic, dg).met, false);
+
+  // The Elite Trooper chain is untouched and still works on its own terms.
+  const trooper = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 16, dex: 14, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(12).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+  });
+  const troopSlots = computeCharacter(trooper).slots.filter(s => s.kind === 'talent').map(s => s.key);
+  trooper.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
+    { key: troopSlots[0], choiceId: 'talent', featureId: 'weapon-specialization', spec: 'rifles' },
+    { key: troopSlots[1], choiceId: 'talent', featureId: 'greater-weapon-focus', spec: 'rifles' },
+  ];
+  const dt = computeCharacter(trooper);
+  check('the generic Greater Weapon Specialization still takes rifles',
+    canSelect('greater-weapon-specialization', trooper, dt, 'rifles').met, true);
+  check('and still asks which weapon group',
+    specOptionsFor(FEATURES['greater-weapon-specialization'], dt).length > 0, true);
+
+  // The Duelist entry is the lightsaber talent, not a copy of the Elite Trooper one.
+  const gwsl = FEATURES['greater-weapon-specialization-lightsabers'];
+  check('it is named for lightsabers', gwsl.name, 'Greater Weapon Specialization (lightsabers)');
+  check('and its text is the lightsaber text',
+    gwsl.description?.[0].includes('melee damage rolls with Lightsabers'), true);
+  check('not the generic weapon-group text',
+    gwsl.description?.[0].includes('Choose one Exotic Weapon'), false);
 }
 
 // ---------------------------------------------------------------------------
