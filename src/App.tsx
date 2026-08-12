@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Character } from './types';
+import type { Character, FeatureType } from './types';
 import { computeCharacter } from './rules/engine';
 import { loadAll, saveAll, newCharacter, exportCharacter, importCharacterFile } from './storage';
-import { DATA_GAPS, DATA_REPAIRS, SPECIES, CLASSES } from './data';
+import {
+  DATA_GAPS, DATA_REPAIRS, SPECIES, CLASSES, FEATURES, SKILLS, EQUIPMENT, ALL_BOOKS,
+} from './data';
 import { Overview } from './components/Overview';
 import { EditCharacter, outstandingCount } from './components/EditCharacter';
 import { Sheet } from './components/Sheet';
@@ -11,12 +13,30 @@ import { Panel, Portrait } from './components/ui';
 
 type Tab = 'overview' | 'edit' | 'sheet';
 
+// Counted from the data rather than written down. These figures were hardcoded and had
+// drifted badly out of date (674 features, 22 species), which is the failure this avoids.
+// Hidden entries are excluded, since they never appear in a picker.
+const VISIBLE = Object.values(FEATURES).filter(f => !f.hidden);
+const ofType = (type: FeatureType) => VISIBLE.filter(f => f.type === type).length;
+const COUNTS = {
+  feats: ofType('feat'),
+  talents: ofType('talent'),
+  powers: ofType('force-power'),
+  traits: ofType('trait'),
+  books: ALL_BOOKS.length,
+  classes: Object.keys(CLASSES).length,
+  species: Object.values(SPECIES).filter(s => !s.hidden).length,
+  skills: Object.keys(SKILLS).length,
+  equipment: Object.keys(EQUIPMENT).length,
+};
+
 // Levels, feats, abilities and skills all move together when you gain a level, so they
 // live on one page rather than four tabs the player has to remember to visit.
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'overview', label: 'Character' },
-  { id: 'edit', label: 'Edit character' },
-  { id: 'sheet', label: 'Sheet' },
+// `short` is what shows on a phone, where the full labels scrolled off the edge.
+const TABS: { id: Tab; label: string; short: string }[] = [
+  { id: 'overview', label: 'Character', short: 'Character' },
+  { id: 'edit', label: 'Edit character', short: 'Edit' },
+  { id: 'sheet', label: 'Sheet', short: 'Sheet' },
 ];
 
 export default function App() {
@@ -160,7 +180,8 @@ export default function App() {
               className={tab === t.id ? 'active' : ''}
               onClick={() => setTab(t.id)}
             >
-              {t.label}
+              <span className="tab-full">{t.label}</span>
+              <span className="tab-short">{t.short}</span>
               {t.id === 'edit' && derived && outstandingCount(active!, derived) > 0 && (
                 <span className="badge accent">{outstandingCount(active!, derived)}</span>
               )}
@@ -270,15 +291,17 @@ function CharacterList({
 
       <Panel title="About this data">
         <p className="dim">
-          Rules content covers <strong>674 feats, talents, Force powers and traits</strong> across 14 sourcebooks,
-          plus 21 classes, 22 species and 25 skills. Characters are stored in this browser only —
+          Rules content covers <strong>{COUNTS.feats} feats, {COUNTS.talents} talents,{' '}
+          {COUNTS.powers} Force powers and {COUNTS.traits} traits</strong> across {COUNTS.books} sourcebooks,
+          plus {COUNTS.classes} classes, {COUNTS.species} species, {COUNTS.skills} skills and{' '}
+          {COUNTS.equipment} equipment items. Characters are stored in this browser only —
           use <strong>Export</strong> to back one up or move it to another machine.
         </p>
         <p className="hint">
           {DATA_GAPS.length} entries are referenced by the rules data but have no text of their own.
           They are still selectable and are marked <span className="badge red">?</span> where they appear —
-          look those up in your sourcebook. Equipment was written by hand from the Core Rulebook,
-          so check anything that matters against your books.
+          look those up in your sourcebook. Equipment is imported from the Foundry compendium
+          rather than transcribed by hand, but check anything that matters against your books.
         </p>
 
         <details style={{ marginTop: 10 }}>

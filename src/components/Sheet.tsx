@@ -176,32 +176,34 @@ export function Sheet({
       <div className="grid g2">
         <div>
           <Panel title="Skills">
-            <table>
-              <tbody>
-                {derived.skills.map(sk => (
-                  <tr key={sk.id}>
-                    <td style={{ width: 20 }}>{sk.trained ? '●' : <span className="faint">○</span>}</td>
-                    <td>
-                      <Tip content={
-                        <TipRows
-                          title={sk.name}
-                          rows={sk.parts}
-                          total={signed(sk.total)}
-                          footer={sk.classSkill ? undefined : 'Not a class skill — you can only train it through a feat.'}
-                        />
-                      }>
-                        <span className="breakdown">{sk.name}</span>
-                      </Tip>
-                      {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
-                    </td>
-                    <td className="faint">{sk.ability.toUpperCase()}</td>
-                    <td className="num" style={{ fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
-                      {signed(sk.total)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-scroll">
+              <table>
+                <tbody>
+                  {derived.skills.map(sk => (
+                    <tr key={sk.id}>
+                      <td style={{ width: 20 }}>{sk.trained ? '●' : <span className="faint">○</span>}</td>
+                      <td>
+                        <Tip content={
+                          <TipRows
+                            title={sk.name}
+                            rows={sk.parts}
+                            total={signed(sk.total)}
+                            footer={sk.classSkill ? undefined : 'Not a class skill — you can only train it through a feat.'}
+                          />
+                        }>
+                          <span className="breakdown">{sk.name}</span>
+                        </Tip>
+                        {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
+                      </td>
+                      <td className="faint">{sk.ability.toUpperCase()}</td>
+                      <td className="num" style={{ fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
+                        {signed(sk.total)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             {(derived.languages.automatic.length > 0 || derived.languages.chosen.length > 0) && (
               <div className="row" style={{ marginTop: 10, flexWrap: 'wrap', gap: 6 }}>
                 <span className="hint nowrap">Languages</span>

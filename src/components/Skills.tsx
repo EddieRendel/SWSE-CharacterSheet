@@ -35,59 +35,61 @@ export function Skills({
           You may only train skills on your class list. Being trained grants +5; Skill Focus adds another +5.
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: 40 }} />
-              <th>Skill</th>
-              <th>Ability</th>
-              <th className="num">Total</th>
-              <th>Breakdown</th>
-            </tr>
-          </thead>
-          <tbody>
-            {derived.skills.map(sk => {
-              const manual = char.trainedSkills.includes(sk.id);
-              const granted = sk.trained && !manual;
-              const parts = [
-                `${Math.floor(derived.level / 2)} ½ level`,
-                `${signed(derived.mods[sk.ability])} ${RULES.abilities[sk.ability].name.slice(0, 3)}`,
-                ...(sk.trained ? ['+5 trained'] : []),
-                ...(sk.focused ? ['+5 focus'] : []),
-                ...(sk.sizeMod ? [`${signed(sk.sizeMod)} size`] : []),
-                ...(sk.armorPenalty ? [`${signed(sk.armorPenalty)} armor`] : []),
-                ...(derived.conditionPenalty ? [`${signed(derived.conditionPenalty)} condition`] : []),
-                ...(derived.carrying.penalisedSkills.includes(sk.id)
-                  ? [`${RULES.carryingCapacity.heavyLoadPenalty} heavy load`] : []),
-              ];
-              return (
-                <tr key={sk.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={sk.trained}
-                      disabled={granted}
-                      title={granted ? 'Granted by a feat or talent' : undefined}
-                      onChange={() => toggle(sk.id)}
-                    />
-                  </td>
-                  <td>
-                    <strong>{sk.name}</strong>
-                    {sk.classSkill && <span className="badge accent" style={{ marginLeft: 6 }}>class</span>}
-                    {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
-                    {granted && <span className="badge blue" style={{ marginLeft: 6 }}>granted</span>}
-                    {manual && !sk.classSkill && <span className="badge red" style={{ marginLeft: 6 }}>not a class skill</span>}
-                  </td>
-                  <td className="faint">{RULES.abilities[sk.ability].name}</td>
-                  <td className="num" style={{ fontSize: 15, fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
-                    {signed(sk.total)}
-                  </td>
-                  <td className="faint" style={{ fontSize: 11 }}>{parts.join('  ')}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: 40 }} />
+                <th>Skill</th>
+                <th>Ability</th>
+                <th className="num">Total</th>
+                <th>Breakdown</th>
+              </tr>
+            </thead>
+            <tbody>
+              {derived.skills.map(sk => {
+                const manual = char.trainedSkills.includes(sk.id);
+                const granted = sk.trained && !manual;
+                const parts = [
+                  `${Math.floor(derived.level / 2)} ½ level`,
+                  `${signed(derived.mods[sk.ability])} ${RULES.abilities[sk.ability].name.slice(0, 3)}`,
+                  ...(sk.trained ? ['+5 trained'] : []),
+                  ...(sk.focused ? ['+5 focus'] : []),
+                  ...(sk.sizeMod ? [`${signed(sk.sizeMod)} size`] : []),
+                  ...(sk.armorPenalty ? [`${signed(sk.armorPenalty)} armor`] : []),
+                  ...(derived.conditionPenalty ? [`${signed(derived.conditionPenalty)} condition`] : []),
+                  ...(derived.carrying.penalisedSkills.includes(sk.id)
+                    ? [`${RULES.carryingCapacity.heavyLoadPenalty} heavy load`] : []),
+                ];
+                return (
+                  <tr key={sk.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={sk.trained}
+                        disabled={granted}
+                        title={granted ? 'Granted by a feat or talent' : undefined}
+                        onChange={() => toggle(sk.id)}
+                      />
+                    </td>
+                    <td>
+                      <strong>{sk.name}</strong>
+                      {sk.classSkill && <span className="badge accent" style={{ marginLeft: 6 }}>class</span>}
+                      {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
+                      {granted && <span className="badge blue" style={{ marginLeft: 6 }}>granted</span>}
+                      {manual && !sk.classSkill && <span className="badge red" style={{ marginLeft: 6 }}>not a class skill</span>}
+                    </td>
+                    <td className="faint">{RULES.abilities[sk.ability].name}</td>
+                    <td className="num" style={{ fontSize: 15, fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
+                      {signed(sk.total)}
+                    </td>
+                    <td className="faint" style={{ fontSize: 11 }}>{parts.join('  ')}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Panel>
 
       <Languages derived={derived} update={update} />

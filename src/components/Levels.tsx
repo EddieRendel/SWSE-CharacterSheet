@@ -64,52 +64,54 @@ export function Levels({
             </div>
           </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th className="num">Lvl</th>
-                <th>Class</th>
-                <th className="num">Class lvl</th>
-                <th className="num">HP gained</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {char.levels.map((entry, i) => {
-                const cls = CLASSES[entry.classId];
-                const classLevel = char.levels.slice(0, i + 1).filter(l => l.classId === entry.classId).length;
-                const hp = derived.hitPointBreakdown[i];
-                return (
-                  <tr key={i}>
-                    <td className="num">{i + 1}</td>
-                    <td>
-                      <strong>{cls?.name ?? entry.classId}</strong>
-                      {cls?.prestige && <span className="badge purple" style={{ marginLeft: 6 }}>prestige</span>}
-                    </td>
-                    <td className="num">{classLevel}</td>
-                    <td className="num">
-                      {i === 0 ? (
-                        <span title="Your first level grants your class's fixed starting hit points.">
-                          {hp?.gained} <span className="faint">(fixed)</span>
-                        </span>
-                      ) : (
-                        <div className="row" style={{ justifyContent: 'flex-end', gap: 6 }}>
-                          <input
-                            className="mono center"
-                            style={{ width: 56, padding: '2px 4px' }}
-                            value={entry.hitPoints ?? ''}
-                            onChange={e => setHp(i, parseInt(e.target.value, 10))}
-                          />
-                          <span className="faint nowrap">→ {hp?.gained}</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="faint">d{cls?.hitDie}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th className="num">Lvl</th>
+                  <th>Class</th>
+                  <th className="num">Class lvl</th>
+                  <th className="num">HP gained</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {char.levels.map((entry, i) => {
+                  const cls = CLASSES[entry.classId];
+                  const classLevel = char.levels.slice(0, i + 1).filter(l => l.classId === entry.classId).length;
+                  const hp = derived.hitPointBreakdown[i];
+                  return (
+                    <tr key={i}>
+                      <td className="num">{i + 1}</td>
+                      <td>
+                        <strong>{cls?.name ?? entry.classId}</strong>
+                        {cls?.prestige && <span className="badge purple" style={{ marginLeft: 6 }}>prestige</span>}
+                      </td>
+                      <td className="num">{classLevel}</td>
+                      <td className="num">
+                        {i === 0 ? (
+                          <span title="Your first level grants your class's fixed starting hit points.">
+                            {hp?.gained} <span className="faint">(fixed)</span>
+                          </span>
+                        ) : (
+                          <div className="row" style={{ justifyContent: 'flex-end', gap: 6 }}>
+                            <input
+                              className="mono center"
+                              style={{ width: 56, padding: '2px 4px' }}
+                              value={entry.hitPoints ?? ''}
+                              onChange={e => setHp(i, parseInt(e.target.value, 10))}
+                            />
+                            <span className="faint nowrap">→ {hp?.gained}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="faint">d{cls?.hitDie}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {char.levels.length > 1 && (

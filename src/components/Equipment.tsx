@@ -182,68 +182,70 @@ export function Equipment({
             return (
               <div key={cat} style={{ marginBottom: 14 }}>
                 <h3 style={{ marginBottom: 6 }}>{CATEGORY_LABELS[cat]}</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th style={{ width: 44 }}>Worn</th>
-                      <th>Item</th>
-                      {!compact && (
-                        <th>{cat === 'weapon' ? 'Damage' : cat === 'armor' ? 'Ref / Fort / Max Dex' : 'Notes'}</th>
-                      )}
-                      <th className="num">Qty</th>
-                      <th className="num">Weight</th>
-                      {!compact && <th className="num">Cost</th>}
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {list.map(({ entry, item }) => (
-                      <tr key={entry.uid}>
-                        <td>
-                          <input type="checkbox" checked={entry.equipped} onChange={() => toggleEquip(entry.uid)} />
-                        </td>
-                        <td>
-                          <Tip content={
-                            <ItemTipBody
-                              item={item}
-                              note={entry.equipped
-                                ? 'Worn or wielded — weapons appear in the Actions tab and armor is applied to your defenses.'
-                                : 'Not worn, so it has no effect on your attacks or defenses.'}
-                            />
-                          }>
-                            <strong className="breakdown">{item.name}</strong>
-                          </Tip>
-                          {item.custom && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}
-                          {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}</div>}
-                          {item.armorType && <div className="meta faint">{item.armorType} armor</div>}
-                        </td>
+                <div className="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 44 }}>Worn</th>
+                        <th>Item</th>
                         {!compact && (
-                          <td className="faint">
-                            {cat === 'weapon' && <>{item.damage} {item.damageType}{item.stun ? ' · stun' : ''}{item.area ? ` · ${item.area}` : ''}</>}
-                            {cat === 'armor' && <>+{item.reflex} / +{item.fortitude} / +{item.maxDex}</>}
-                            {cat === 'gear' && (item.notes ?? '—')}
-                          </td>
+                          <th>{cat === 'weapon' ? 'Damage' : cat === 'armor' ? 'Ref / Fort / Max Dex' : 'Notes'}</th>
                         )}
-                        <td className="num">
-                          <input
-                            className="mono center"
-                            style={{ width: 50, padding: '2px 4px' }}
-                            value={entry.quantity}
-                            onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
-                          />
-                        </td>
-                        <td className="num faint">{(item.weight * entry.quantity).toFixed(1)}</td>
-                        {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}
-                        <td>
-                          <div className="row">
-                            {item.custom && <button className="sm ghost" onClick={() => setEditing(item)}>✎</button>}
-                            <button className="sm ghost" onClick={() => remove(entry.uid)}>✕</button>
-                          </div>
-                        </td>
+                        <th className="num">Qty</th>
+                        <th className="num">Weight</th>
+                        {!compact && <th className="num">Cost</th>}
+                        <th />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {list.map(({ entry, item }) => (
+                        <tr key={entry.uid}>
+                          <td>
+                            <input type="checkbox" checked={entry.equipped} onChange={() => toggleEquip(entry.uid)} />
+                          </td>
+                          <td>
+                            <Tip content={
+                              <ItemTipBody
+                                item={item}
+                                note={entry.equipped
+                                  ? 'Worn or wielded — weapons appear in the Actions tab and armor is applied to your defenses.'
+                                  : 'Not worn, so it has no effect on your attacks or defenses.'}
+                              />
+                            }>
+                              <strong className="breakdown">{item.name}</strong>
+                            </Tip>
+                            {item.custom && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}
+                            {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}</div>}
+                            {item.armorType && <div className="meta faint">{item.armorType} armor</div>}
+                          </td>
+                          {!compact && (
+                            <td className="faint">
+                              {cat === 'weapon' && <>{item.damage} {item.damageType}{item.stun ? ' · stun' : ''}{item.area ? ` · ${item.area}` : ''}</>}
+                              {cat === 'armor' && <>+{item.reflex} / +{item.fortitude} / +{item.maxDex}</>}
+                              {cat === 'gear' && (item.notes ?? '—')}
+                            </td>
+                          )}
+                          <td className="num">
+                            <input
+                              className="mono center"
+                              style={{ width: 50, padding: '2px 4px' }}
+                              value={entry.quantity}
+                              onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
+                            />
+                          </td>
+                          <td className="num faint">{(item.weight * entry.quantity).toFixed(1)}</td>
+                          {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}
+                          <td>
+                            <div className="row">
+                              {item.custom && <button className="sm ghost" onClick={() => setEditing(item)}>✎</button>}
+                              <button className="sm ghost" onClick={() => remove(entry.uid)}>✕</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })
