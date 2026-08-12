@@ -651,6 +651,19 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
   check('and still asks which weapon group',
     specOptionsFor(FEATURES['greater-weapon-specialization'], dt).length > 0, true);
 
+  // The Elite Trooper chain is not a lightsaber route; Duelist is. Both Weapon Master
+  // talents offer the same five groups, so you cannot focus in lightsabers there and then
+  // find nothing to specialize into.
+  const groupsFor = (id: string) => specOptionsFor(FEATURES[id], dt).map(o => o.id);
+  check('Weapon Master Greater Weapon Focus excludes lightsabers',
+    groupsFor('greater-weapon-focus').includes('lightsabers'), false);
+  check('as does Greater Weapon Specialization',
+    groupsFor('greater-weapon-specialization').includes('lightsabers'), false);
+  check('and the two offer the same groups',
+    groupsFor('greater-weapon-focus'), groupsFor('greater-weapon-specialization'));
+  check('while the Weapon Focus feat still allows lightsabers, being open to anyone proficient',
+    specOptionsFor(FEATURES['weapon-focus'], dt).map(o => o.id).includes('lightsabers'), true);
+
   // The Duelist entry is the lightsaber talent, not a copy of the Elite Trooper one.
   const gwsl = FEATURES['greater-weapon-specialization-lightsabers'];
   check('it is named for lightsabers', gwsl.name, 'Greater Weapon Specialization (lightsabers)');

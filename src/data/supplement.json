@@ -43,9 +43,17 @@
     "greater-weapon-focus-lightsabers already read.",
     "",
     "Juyo, Tràkata and Vaapad named the generic Weapon Specialization the same way, so the",
-    "lightsaber forms were shut too. They now name the lightsaber talent."
+    "lightsaber forms were shut too. They now name the lightsaber talent.",
+    "",
+    "The Elite Trooper chain is not for lightsabers — that is what the Duelist tree is for.",
+    "Greater Weapon Specialization already listed the five groups without lightsabers, but its",
+    "tree-mate Greater Weapon Focus offered all seven, so an Elite Trooper could focus in",
+    "lightsabers and then never specialize. Both now offer the same five."
   ],
   "features": {
+    "greater-weapon-focus": {
+      "allowedSpecs": ["advanced-melee-weapons", "heavy-weapons", "pistols", "rifles", "simple-weapons"]
+    },
     "greater-weapon-specialization-lightsabers": {
       "name": "Greater Weapon Specialization (lightsabers)",
       "specType": null,
