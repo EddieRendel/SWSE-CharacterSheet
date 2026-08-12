@@ -32,5 +32,6 @@ dist
 *.pdf
 ~$*
 
-# downloaded icon artwork
-public/icons/
+# NOTE: public/icons/ is deliberately NOT ignored. src/data/icons.json names an
+# exact file for all 384 entries, and the app renders an <img> for every one of
+# them, so a build without the artwork present shows broken images.
