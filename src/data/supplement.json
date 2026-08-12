@@ -28,7 +28,81 @@
     "  \"icons\": { \"features\": { \"my-talent\": \"my-talent.jpg\" } }",
     "Only listed icons are rendered, so a missing file can never show as a broken image."
   ],
-  "features": {},
+  "_comment_lightsaber_chain": [
+    "Saga Edition splits these talents in two. The Jedi and Jedi Knight versions are",
+    "lightsaber-only and are imported under their own ids — weapon-specialization-lightsabers",
+    "in Lightsaber Combat, greater-weapon-focus-lightsabers in Duelist. The Elite Trooper",
+    "versions in Weapon Master are the ones that choose a weapon group.",
+    "",
+    "The import wired the Jedi Knight talents' prerequisites to the generic Elite Trooper ids",
+    "with a lightsabers spec, which nothing on the Jedi path ever grants — so a Jedi 7 /",
+    "Jedi Knight 5 holding the whole lightsaber chain was told it was missing Weapon",
+    "Specialization and Greater Weapon Focus. Each requirement below accepts either the",
+    "lightsaber-scoped talent or the generic one taken with lightsabers, so a Soldier or",
+    "Elite Trooper multiclass still qualifies.",
+    "",
+    "greater-weapon-specialization-lightsabers also inherited specType/allowedSpecs from the",
+    "generic entry, so it asked for a weapon group from a list that excluded lightsabers.",
+    "Both are nulled: a lightsaber-only talent has nothing to choose."
+  ],
+  "features": {
+    "greater-weapon-specialization-lightsabers": {
+      "specType": null,
+      "allowedSpecs": null,
+      "requirements": {
+        "features": [{ "id": "weapon-focus", "spec": "lightsabers" }],
+        "anyOf": [
+          [
+            { "features": [{ "id": "weapon-specialization-lightsabers" }] },
+            { "features": [{ "id": "weapon-specialization", "spec": "lightsabers" }] }
+          ],
+          [
+            { "features": [{ "id": "greater-weapon-focus-lightsabers" }] },
+            { "features": [{ "id": "greater-weapon-focus", "spec": "lightsabers" }] }
+          ]
+        ]
+      }
+    },
+    "juyo": {
+      "requirements": {
+        "baseAttackBonus": 10,
+        "features": [{ "id": "weapon-focus", "spec": "lightsabers" }],
+        "anyOf": [
+          [
+            { "features": [{ "id": "weapon-specialization-lightsabers" }] },
+            { "features": [{ "id": "weapon-specialization", "spec": "lightsabers" }] }
+          ]
+        ]
+      }
+    },
+    "trakata": {
+      "requirements": {
+        "baseAttackBonus": 12,
+        "features": [{ "id": "weapon-focus", "spec": "lightsabers" }],
+        "anyOf": [
+          [
+            { "features": [{ "id": "weapon-specialization-lightsabers" }] },
+            { "features": [{ "id": "weapon-specialization", "spec": "lightsabers" }] }
+          ]
+        ]
+      }
+    },
+    "vaapad": {
+      "requirements": {
+        "baseAttackBonus": 12,
+        "features": [
+          { "id": "juyo" },
+          { "id": "weapon-focus", "spec": "lightsabers" }
+        ],
+        "anyOf": [
+          [
+            { "features": [{ "id": "weapon-specialization-lightsabers" }] },
+            { "features": [{ "id": "weapon-specialization", "spec": "lightsabers" }] }
+          ]
+        ]
+      }
+    }
+  },
   "talentTrees": {},
   "icons": {
     "classes": {},

@@ -571,6 +571,70 @@ console.log('\n▸ matchingSpec prerequisites require the same specialization');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper one');
+// ---------------------------------------------------------------------------
+{
+  // Saga Edition splits these talents. The Jedi and Jedi Knight versions are lightsaber-only
+  // and carry their own ids; the Elite Trooper ones in Weapon Master choose a weapon group.
+  // The import pointed the Jedi Knight prerequisites at the generic ids with a lightsabers
+  // spec, which nothing on the Jedi path grants, so a Jedi 7 / Jedi Knight 5 holding the
+  // whole chain was told it lacked the two talents it had.
+  const knight = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 16, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = [
+      ...Array(7).fill(null).map(() => ({ classId: 'jedi', hitPoints: 6 })),
+      ...Array(5).fill(null).map(() => ({ classId: 'jedi-knight', hitPoints: 6 })),
+    ];
+  });
+  const talentSlots = computeCharacter(knight).slots.filter(s => s.kind === 'talent').map(s => s.key);
+  const withChain = structuredClone(knight);
+  withChain.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
+    { key: talentSlots[0], choiceId: 'talent', featureId: 'weapon-specialization-lightsabers' },
+    { key: talentSlots[1], choiceId: 'talent', featureId: 'greater-weapon-focus-lightsabers' },
+  ];
+  const dc = computeCharacter(withChain);
+  check('Jedi 7 / Jedi Knight 5 has base attack bonus 12', dc.baseAttackBonus, 12);
+  check('the lightsaber talents are the ones held',
+    ['weapon-specialization-lightsabers', 'greater-weapon-focus-lightsabers']
+      .every(id => hasFeature(dc.features, id)), true);
+  check('and not the generic Elite Trooper ones',
+    hasFeature(dc.features, 'weapon-specialization', 'lightsabers'), false);
+
+  check('Greater Weapon Specialization (lightsabers) is available',
+    canSelect('greater-weapon-specialization-lightsabers', withChain, dc).met, true);
+  check('and asks for no weapon group, being lightsaber-only',
+    specOptionsFor(FEATURES['greater-weapon-specialization-lightsabers'], dc).length, 0);
+
+  // The lightsaber forms carried the same broken reference.
+  check('Juyo is available', canSelect('juyo', withChain, dc).met, true);
+  check('Trakata is available', canSelect('trakata', withChain, dc).met, true);
+  check('Vaapad still wants Juyo first', canSelect('vaapad', withChain, dc).met, false);
+
+  // Nothing was loosened: without the chain they all stay shut.
+  const bare = structuredClone(knight);
+  bare.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' }];
+  const db = computeCharacter(bare);
+  check('Weapon Focus alone is not enough',
+    canSelect('greater-weapon-specialization-lightsabers', bare, db).met, false);
+  check('nor for the forms', canSelect('juyo', bare, db).met, false);
+
+  // The generic route must keep working: the talents taken with lightsabers satisfy it too,
+  // so a Soldier or Elite Trooper multiclass is not shut out.
+  const generic = structuredClone(knight);
+  generic.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
+    { key: talentSlots[0], choiceId: 'talent', featureId: 'weapon-specialization', spec: 'lightsabers' },
+    { key: talentSlots[1], choiceId: 'talent', featureId: 'greater-weapon-focus', spec: 'lightsabers' },
+  ];
+  const dg = computeCharacter(generic);
+  check('the generic talents taken with lightsabers also qualify',
+    canSelect('greater-weapon-specialization-lightsabers', generic, dg).met, true);
+  check('and open the forms as well', canSelect('juyo', generic, dg).met, true);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ Prestige entry: requirements are checked before the level is added');
 // ---------------------------------------------------------------------------
 {
