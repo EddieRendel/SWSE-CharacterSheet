@@ -78,7 +78,7 @@ export default function App() {
     <div className="app">
       <div className="topbar">
         <div className="brand" onClick={() => setActiveId(null)}>
-          ⬢ Saga Forge <small>Star Wars Saga Edition</small>
+          ⬢ SWSE Character Sheet <small>Star Wars Saga Edition</small>
         </div>
         <div className="spacer" />
         {active && derived && (

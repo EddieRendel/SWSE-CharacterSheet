@@ -1,4 +1,4 @@
-# Saga Forge
+# SWSE Character Sheet
 
 A character builder for **Star Wars Roleplaying Game: Saga Edition** — species, classes,
 multiclassing, feats, talents, Force powers, skills, equipment and a printable sheet, with
