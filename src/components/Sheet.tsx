@@ -6,7 +6,7 @@ import { RULES, SPECIES, FEATURES, groupRefs } from '../data';
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { forcePointDice } from '../rules/attacks';
-import { Panel, Stat, Descriptors, PortraitButton } from './ui';
+import { Panel, Stat, Descriptors, PortraitButton, Field } from './ui';
 import { Tip, FeatureTip, TipRows } from './Tip';
 import type { TipRow } from './Tip';
 import { Attacks } from './Attacks';
@@ -172,6 +172,74 @@ export function Sheet({
             </StatTip>
           )}
       </div>
+
+      {/* Everything that changes during play rather than while building the character. It
+          used to sit on the Character tab, which is for the build. The tiles above show the
+          resulting numbers; these are the controls behind them. */}
+      <Panel title="Condition &amp; resources">
+        <div className="grid g2">
+          <Field label="Damage taken">
+            <div className="row">
+              <button className="sm" title="Take a point of damage"
+                onClick={() => update(c => { c.damage = Math.min(derived.maxHitPoints, c.damage + 1); })}>−1 hp</button>
+              <input
+                className="mono center" style={{ width: 64 }}
+                value={char.damage}
+                onChange={e => update(c => { c.damage = Math.max(0, parseInt(e.target.value, 10) || 0); })}
+              />
+              <button className="sm" title="Heal a point"
+                onClick={() => update(c => { c.damage = Math.max(0, c.damage - 1); })}>+1 hp</button>
+              <button className="sm ghost" disabled={char.damage <= 0} title="Back to full"
+                onClick={() => update(c => { c.damage = 0; })}>Full</button>
+              <span className="hint nowrap">
+                {derived.maxHitPoints - char.damage} / {derived.maxHitPoints}
+              </span>
+            </div>
+          </Field>
+
+          <Field label="Condition track">
+            <div className="row" style={{ flexWrap: 'wrap' }}>
+              {RULES.conditionTrack.map(step => (
+                <button
+                  key={step.index}
+                  className={`sm ${char.conditionIndex === step.index ? 'primary' : ''}`}
+                  onClick={() => update(c => { c.conditionIndex = step.index; })}
+                >
+                  {step.name}
+                </button>
+              ))}
+            </div>
+            {derived.conditionPenalty !== 0 && (
+              <p className="hint warn" style={{ marginTop: 6 }}>
+                {signed(derived.conditionPenalty)} to all defenses, attack rolls, skill checks and ability checks.
+                {derived.speed === 0 ? ' You cannot move.' : ''}
+              </p>
+            )}
+          </Field>
+        </div>
+
+        <div className="grid g3" style={{ marginTop: 14 }}>
+          <Field label="Destiny points">
+            <input
+              className="mono" value={char.destinyPoints}
+              onChange={e => update(c => { c.destinyPoints = parseInt(e.target.value, 10) || 0; })}
+            />
+          </Field>
+          <Field label="Dark Side score">
+            <input
+              className="mono" value={char.darkSideScore}
+              onChange={e => update(c => { c.darkSideScore = parseInt(e.target.value, 10) || 0; })}
+            />
+            <p className="hint" style={{ marginTop: 4 }}>
+              Reaching your Wisdom score ({derived.abilities.wis}) turns you to the dark side.
+              {char.darkSideScore >= derived.abilities.wis && <span className="err"> You have fallen.</span>}
+            </p>
+          </Field>
+          <Field label="Destiny">
+            <input value={char.destiny} onChange={e => update(c => { c.destiny = e.target.value; })} placeholder="Destruction, Discovery…" />
+          </Field>
+        </div>
+      </Panel>
 
       <div className="grid g2">
         <div>

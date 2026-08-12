@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Character } from '../types';
-import { SPECIES, FEATURES, CLASSES, RULES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, featureName } from '../data';
+import { SPECIES, FEATURES, CLASSES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, featureName } from '../data';
 import { signed, isBookAllowed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel, Field, Modal, FeatureDetail, RulesText, PortraitButton } from './ui';
@@ -88,91 +88,8 @@ export function Overview({
 
       <Sources char={char} update={update} />
 
-      <Panel title="Condition & resources">
-        <div className="grid g4">
-          <div className="stat">
-            <div className="label">Hit points</div>
-            <div className="value" style={{ fontSize: 20 }}>
-              {derived.maxHitPoints - char.damage}<span className="faint" style={{ fontSize: 14 }}> / {derived.maxHitPoints}</span>
-            </div>
-            <div className="row" style={{ justifyContent: 'center', gap: 4, marginTop: 6 }}>
-              <button className="sm" onClick={() => update(c => { c.damage = Math.min(derived.maxHitPoints, c.damage + 1); })}>−1</button>
-              <input
-                className="mono center" style={{ width: 54, padding: '2px 4px' }}
-                value={char.damage}
-                onChange={e => update(c => { c.damage = Math.max(0, parseInt(e.target.value, 10) || 0); })}
-              />
-              <button className="sm" onClick={() => update(c => { c.damage = Math.max(0, c.damage - 1); })}>+1</button>
-            </div>
-            <div className="sub">damage taken</div>
-          </div>
-
-          <div className="stat">
-            <div className="label">Damage threshold</div>
-            <div className="value">{derived.damageThreshold}</div>
-            <div className="sub">exceed it → −1 condition</div>
-          </div>
-
-          <div className="stat">
-            <div className="label">Second wind</div>
-            <div className="value">{derived.secondWind}</div>
-            <div className="sub">once per encounter</div>
-          </div>
-
-          <div className="stat" style={{ display: derived.isDroid ? 'none' : undefined }}>
-            <div className="label">Force points</div>
-            <div className="value">{Math.max(0, derived.forcePoints - char.forcePointsSpent)}<span className="faint" style={{ fontSize: 14 }}> / {derived.forcePoints}</span></div>
-            <div className="row" style={{ justifyContent: 'center', gap: 4, marginTop: 6 }}>
-              <button className="sm" onClick={() => update(c => { c.forcePointsSpent = Math.min(derived.forcePoints, c.forcePointsSpent + 1); })}>Spend</button>
-              <button className="sm ghost" onClick={() => update(c => { c.forcePointsSpent = 0; })}>Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 14 }}>
-          <Field label="Condition track">
-            <div className="row" style={{ flexWrap: 'wrap' }}>
-              {RULES.conditionTrack.map(step => (
-                <button
-                  key={step.index}
-                  className={`sm ${char.conditionIndex === step.index ? 'primary' : ''}`}
-                  onClick={() => update(c => { c.conditionIndex = step.index; })}
-                >
-                  {step.name}
-                </button>
-              ))}
-            </div>
-            {derived.conditionPenalty !== 0 && (
-              <p className="hint warn" style={{ marginTop: 6 }}>
-                {signed(derived.conditionPenalty)} to all defenses, attack rolls, skill checks and ability checks.
-                {derived.speed === 0 ? ' You cannot move.' : ''}
-              </p>
-            )}
-          </Field>
-        </div>
-
-        <div className="grid g3" style={{ marginTop: 14 }}>
-          <Field label="Destiny points">
-            <input
-              className="mono" value={char.destinyPoints}
-              onChange={e => update(c => { c.destinyPoints = parseInt(e.target.value, 10) || 0; })}
-            />
-          </Field>
-          <Field label="Dark Side score">
-            <input
-              className="mono" value={char.darkSideScore}
-              onChange={e => update(c => { c.darkSideScore = parseInt(e.target.value, 10) || 0; })}
-            />
-            <p className="hint" style={{ marginTop: 4 }}>
-              Reaching your Wisdom score ({derived.abilities.wis}) turns you to the dark side.
-              {char.darkSideScore >= derived.abilities.wis && <span className="err"> You have fallen.</span>}
-            </p>
-          </Field>
-          <Field label="Destiny">
-            <input value={char.destiny} onChange={e => update(c => { c.destiny = e.target.value; })} placeholder="Destruction, Discovery…" />
-          </Field>
-        </div>
-      </Panel>
+      {/* Condition, damage, Force points, destiny and Dark Side score live on the sheet —
+          they change during play, not while building the character. */}
 
       <Panel title="Description">
         <div className="grid g4">

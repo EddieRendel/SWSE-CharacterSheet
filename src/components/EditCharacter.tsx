@@ -96,8 +96,14 @@ export function EditCharacter({
 
   const needs = new Map(outstanding.map(o => [o.id, o]));
 
-  // Anything outstanding comes first, in the same relative order; the rest follow.
-  const order = [...ORDER].sort((a, b) => (needs.has(a) ? 0 : 1) - (needs.has(b) ? 0 : 1));
+  // Building a character starts with its ability scores, so Abilities leads while there are
+  // no levels yet, and again whenever an increase is waiting to be assigned. Otherwise the
+  // page prefers levels and feats, which is what you come back to between sessions.
+  const abilitiesFirst = !char.levels.length || needs.has('abilities');
+  const rank = (id: SectionId) =>
+    (abilitiesFirst && id === 'abilities' ? 0 : needs.has(id) ? 1 : 2);
+  // A stable sort, so within each rank the sections keep their usual order.
+  const order = [...ORDER].sort((a, b) => rank(a) - rank(b));
 
   const jumpTo = (id: SectionId) =>
     sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -125,7 +131,7 @@ export function EditCharacter({
             <span className="hint">
               {char.levels.length
                 ? 'Everything for this level is chosen. Add a level when you are ready.'
-                : 'Pick a class to begin. Feats, talents and skills follow from it.'}
+                : 'Set your ability scores first, then add a class level. Feats, talents and skills follow from it.'}
             </span>
           ) : (
             <div className="todo">
