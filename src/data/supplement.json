@@ -48,7 +48,11 @@
     "The Elite Trooper chain is not for lightsabers — that is what the Duelist tree is for.",
     "Greater Weapon Specialization already listed the five groups without lightsabers, but its",
     "tree-mate Greater Weapon Focus offered all seven, so an Elite Trooper could focus in",
-    "lightsabers and then never specialize. Both now offer the same five."
+    "lightsabers and then never specialize. Both now offer the same five.",
+    "",
+    "The Soldier's Weapon Specialization is deliberately left alone: it names no groups, only",
+    "any exotic weapon or group you are proficient with, so lightsabers belong on its list and",
+    "proficiency does the gating. Do not restrict it to match the Weapon Master five."
   ],
   "features": {
     "greater-weapon-focus": {

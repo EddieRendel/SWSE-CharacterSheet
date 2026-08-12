@@ -664,6 +664,26 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
   check('while the Weapon Focus feat still allows lightsabers, being open to anyone proficient',
     specOptionsFor(FEATURES['weapon-focus'], dt).map(o => o.id).includes('lightsabers'), true);
 
+  // The Soldier's Weapon Specialization names no groups at all — any exotic weapon or group
+  // you are proficient with — so lightsabers stay on offer there, gated by proficiency
+  // rather than by a list. Do not "tidy" this to match the Weapon Master five.
+  check('Weapon Specialization offers every group', groupsFor('weapon-specialization').length, 7);
+  check('lightsabers among them', groupsFor('weapon-specialization').includes('lightsabers'), true);
+  check('but proficiency gates it: a Soldier without lightsabers cannot',
+    canSelect('weapon-specialization', trooper, dt).viableSpecs.includes('lightsabers'), false);
+
+  const sabreSoldier = structuredClone(trooper);
+  sabreSoldier.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-proficiency', spec: 'lightsabers' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
+  ];
+  const dss = computeCharacter(sabreSoldier);
+  check('a Soldier proficient with lightsabers can specialize in them',
+    canSelect('weapon-specialization', sabreSoldier, dss, 'lightsabers').met, true);
+  check('and it is offered', canSelect('weapon-specialization', sabreSoldier, dss).viableSpecs.includes('lightsabers'), true);
+  check('yet the Elite Trooper greater tier still refuses lightsabers',
+    canSelect('greater-weapon-focus', sabreSoldier, dss).viableSpecs.includes('lightsabers'), false);
+
   // The Duelist entry is the lightsaber talent, not a copy of the Elite Trooper one.
   const gwsl = FEATURES['greater-weapon-specialization-lightsabers'];
   check('it is named for lightsabers', gwsl.name, 'Greater Weapon Specialization (lightsabers)');
