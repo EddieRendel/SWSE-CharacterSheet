@@ -239,6 +239,14 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .item .name { font-weight: 600; }
 .item .meta { font-size: 12px; color: var(--text-faint); }
 
+/* Duplicate / Export / Delete hold a fixed width, so on a phone they squeezed the name —
+   the button you tap to open the character — down to nothing: 0px at 320, 10px at 360.
+   Wrapping keeps the name on the first line and drops the actions below it. */
+@media (max-width: 560px) {
+  .item { flex-wrap: wrap; }
+  .item > .grow { flex: 1 1 calc(100% - 48px); }
+}
+
 .clickable { cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
 
 .empty {
