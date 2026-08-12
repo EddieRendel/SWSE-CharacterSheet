@@ -1,0 +1,6549 @@
+{
+  "feat": {
+    "id": "feat",
+    "name": "Feats",
+    "description": [
+      "A feat is a special feature that either gives your character a new capability or improves one he or she already has. Unlike skills and talents, your choice of feats is not restricted by your class. Any character can take any feat as long as the prerequisites are met."
+    ],
+    "type": "feat"
+  },
+  "force-power": {
+    "id": "force-power",
+    "name": "Force Powers",
+    "description": [
+      "Force powers are special abilities available to anyone who takes the Force Training feat. They allow characters to do astonishing things such as play tricks with the minds of others, move heavy objects, see into the future, and even blast foes with terrible arcs of lightning."
+    ],
+    "type": "force-power"
+  },
+  "force-secret": {
+    "id": "force-secret",
+    "name": "Force Secrets",
+    "description": [
+      "Skilled Force-users can learn to manipulate their Force powers in intriguing ways. Force secrets represent a sublime connection to the Force and are usually available only to powerful Force-users such as Force disciples, Jedi Masters, and Sith Lords.",
+      "Activating a Force secret costs either a Force Point or a Destiny Point (as noted in its description), and the normal limits on spending Force Points and Destiny Points during a round apply."
+    ],
+    "type": "force-secret"
+  },
+  "force-technique": {
+    "id": "force-technique",
+    "name": "Force Techniques",
+    "description": [
+      "Force techniques represent a deeper understanding of the Force and, like martial skills, usually come with years of practice. A few gifted or devoted Force-users learn to master them more quickly. In general, Force techniques are only available to characters with levels in certain Force-using prestige classes (such as the Force adept, Jedi Knight, and Sith apprentice)."
+    ],
+    "type": "force-technique"
+  },
+  "starship-maneuvers": {
+    "id": "starship-maneuvers",
+    "name": "Starship Maneuvers",
+    "description": [
+      "Starship maneuvers are available to any character who takes the Starship Tactics feat. They allow a pilot or gunner to do something beyond the bounds of the Pilot skill and the abilities provided by the ace pilot prestige class. Starship maneuvers enhance attacks, strengthen defenses, reduce damage, or produce other unique effects."
+    ],
+    "type": "starship-maneuver"
+  },
+  "jedi-starting": {
+    "id": "jedi-starting",
+    "name": "Jedi starting feats",
+    "features": [
+      {
+        "id": "force-sensitivity"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "lightsabers"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "simple-weapons"
+      }
+    ]
+  },
+  "noble-starting": {
+    "id": "noble-starting",
+    "name": "Noble starting feats",
+    "features": [
+      {
+        "id": "linguist"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "pistols"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "simple-weapons"
+      }
+    ]
+  },
+  "scoundrel-starting": {
+    "id": "scoundrel-starting",
+    "name": "Scoundrel starting feats",
+    "features": [
+      {
+        "id": "point-blank-shot"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "pistols"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "simple-weapons"
+      }
+    ]
+  },
+  "scout-starting": {
+    "id": "scout-starting",
+    "name": "Scout starting feats",
+    "features": [
+      {
+        "id": "shake-it-off"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "pistols"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "rifles"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "simple-weapons"
+      }
+    ]
+  },
+  "soldier-starting": {
+    "id": "soldier-starting",
+    "name": "Soldier starting feats",
+    "features": [
+      {
+        "id": "armor-proficiency-light"
+      },
+      {
+        "id": "armor-proficiency-medium"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "pistols"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "rifles"
+      },
+      {
+        "id": "weapon-proficiency",
+        "spec": "simple-weapons"
+      }
+    ]
+  },
+  "jedi-consular": {
+    "id": "jedi-consular",
+    "name": "Jedi Consular",
+    "description": [
+      "Jedi that follow the path of the consular are skilled negotiators and talented ambassadors. You prefer to use the strength of your words and the wisdom that the Force provides to solve conflicts."
+    ],
+    "icon": "adept-negotiator",
+    "group": "Jedi",
+    "features": [
+      {
+        "id": "adept-negotiator"
+      },
+      {
+        "id": "adversary-lore"
+      },
+      {
+        "id": "aggressive-negotiator"
+      },
+      {
+        "id": "cleanse-mind"
+      },
+      {
+        "id": "collective-visions"
+      },
+      {
+        "id": "consulars-vitality"
+      },
+      {
+        "id": "consulars-wisdom"
+      },
+      {
+        "id": "entreat-aid"
+      },
+      {
+        "id": "force-of-will"
+      },
+      {
+        "id": "force-persuasion"
+      },
+      {
+        "id": "guiding-strikes"
+      },
+      {
+        "id": "improved-consulars-vitality"
+      },
+      {
+        "id": "know-weakness"
+      },
+      {
+        "id": "master-negotiator"
+      },
+      {
+        "id": "recall-talent"
+      },
+      {
+        "id": "renew-vision"
+      },
+      {
+        "id": "skilled-advisor"
+      },
+      {
+        "id": "visionary-attack"
+      },
+      {
+        "id": "visionary-defense"
+      },
+      {
+        "id": "watchcircle-initiate"
+      }
+    ]
+  },
+  "jedi-guardian": {
+    "id": "jedi-guardian",
+    "name": "Jedi Guardian",
+    "description": [
+      "Jedi that follow the path of the guardian are more combat-oriented than other Jedi, honing their skills to become deadly combatants."
+    ],
+    "icon": "resilience",
+    "group": "Jedi",
+    "features": [
+      {
+        "id": "acrobatic-recovery"
+      },
+      {
+        "id": "battle-meditation"
+      },
+      {
+        "id": "close-maneuvering"
+      },
+      {
+        "id": "cover-escape"
+      },
+      {
+        "id": "defensive-acuity"
+      },
+      {
+        "id": "elusive-target"
+      },
+      {
+        "id": "exposing-strike"
+      },
+      {
+        "id": "force-intuition"
+      },
+      {
+        "id": "forceful-warrior"
+      },
+      {
+        "id": "grenade-defense"
+      },
+      {
+        "id": "guardian-strike"
+      },
+      {
+        "id": "hold-the-line"
+      },
+      {
+        "id": "immovable"
+      },
+      {
+        "id": "improved-battle-meditation"
+      },
+      {
+        "id": "mobile-combatant"
+      },
+      {
+        "id": "resilience"
+      }
+    ]
+  },
+  "jedi-sentinel": {
+    "id": "jedi-sentinel",
+    "name": "Jedi Sentinel",
+    "description": [
+      "The Jedi that follow the path of the sentinel are the true enemies of the dark side, hunting down evil and stopping the spread of darkness wherever they go. You are a master of subtlety and difficult to tempt with the dark side even when constantly confronted with its power."
+    ],
+    "icon": "resist-the-dark-side",
+    "group": "Jedi",
+    "features": [
+      {
+        "id": "clear-mind"
+      },
+      {
+        "id": "dampen-presence"
+      },
+      {
+        "id": "dark-retaliation"
+      },
+      {
+        "id": "dark-side-bane"
+      },
+      {
+        "id": "dark-side-scourge"
+      },
+      {
+        "id": "dark-side-sense"
+      },
+      {
+        "id": "force-haze"
+      },
+      {
+        "id": "gradual-resistance"
+      },
+      {
+        "id": "master-of-the-great-hunt"
+      },
+      {
+        "id": "persistent-haze"
+      },
+      {
+        "id": "prime-targets"
+      },
+      {
+        "id": "reap-retribution"
+      },
+      {
+        "id": "resist-the-dark-side"
+      },
+      {
+        "id": "sense-primal-force"
+      },
+      {
+        "id": "sentinel-strike"
+      },
+      {
+        "id": "sentinels-gambit"
+      },
+      {
+        "id": "sentinels-observation"
+      },
+      {
+        "id": "steel-resolve"
+      },
+      {
+        "id": "unseen-eyes"
+      }
+    ]
+  },
+  "lightsaber-combat": {
+    "id": "lightsaber-combat",
+    "name": "Lightsaber Combat",
+    "description": [
+      "The lightsaber is the chosen weapon of the Jedi. Not as clumsy or random as a blaster, the lightsaber is an elegant weapon for a more civilized combatant. The following talents allow you to improve your prowess with a lightsaber."
+    ],
+    "icon": "block",
+    "group": "Jedi",
+    "features": [
+      {
+        "id": "block"
+      },
+      {
+        "id": "cortosis-gauntlet-block"
+      },
+      {
+        "id": "deflect"
+      },
+      {
+        "id": "lightsaber-defense"
+      },
+      {
+        "id": "lightsaber-throw"
+      },
+      {
+        "id": "precise-redirect"
+      },
+      {
+        "id": "precision"
+      },
+      {
+        "id": "redirect-shot"
+      },
+      {
+        "id": "riposte"
+      },
+      {
+        "id": "shoto-focus"
+      },
+      {
+        "id": "weapon-specialization-lightsabers"
+      }
+    ]
+  },
+  "anticipation": {
+    "id": "anticipation",
+    "name": "Anticipation",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "anticipate-movement"
+      },
+      {
+        "id": "forewarn-allies"
+      },
+      {
+        "id": "get-down"
+      },
+      {
+        "id": "heavy-fire-zone"
+      },
+      {
+        "id": "summon-aid"
+      }
+    ]
+  },
+  "collaborator": {
+    "id": "collaborator",
+    "name": "Collaborator",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "double-agent"
+      },
+      {
+        "id": "enemy-tactics"
+      },
+      {
+        "id": "feed-information"
+      },
+      {
+        "id": "friendly-fire"
+      },
+      {
+        "id": "protection"
+      }
+    ]
+  },
+  "disgrace": {
+    "id": "disgrace",
+    "name": "Disgrace",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "ambush"
+      },
+      {
+        "id": "castigate"
+      },
+      {
+        "id": "dirty-tactics"
+      },
+      {
+        "id": "misplaced-loyalty"
+      },
+      {
+        "id": "two-faced"
+      },
+      {
+        "id": "unreadable"
+      }
+    ]
+  },
+  "exile": {
+    "id": "exile",
+    "name": "Exile",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "arrogant-bluster"
+      },
+      {
+        "id": "band-together"
+      },
+      {
+        "id": "galactic-guidance"
+      },
+      {
+        "id": "rant"
+      },
+      {
+        "id": "self-reliant"
+      }
+    ]
+  },
+  "fencing": {
+    "id": "fencing",
+    "name": "Fencing",
+    "description": [
+      "In the days of the Old Republic, the fine art of swordplay was stylish among nobles. A particular style arose mixing martial precision with forceful panache."
+    ],
+    "group": "Noble",
+    "features": [
+      {
+        "id": "demoralizing-defense"
+      },
+      {
+        "id": "leading-feint"
+      },
+      {
+        "id": "noble-fencing-style"
+      },
+      {
+        "id": "personal-affront"
+      },
+      {
+        "id": "transposing-strike"
+      }
+    ]
+  },
+  "gambling-leader": {
+    "id": "gambling-leader",
+    "name": "Gambling Leader",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "assault-gambit"
+      },
+      {
+        "id": "direct-fire"
+      },
+      {
+        "id": "face-the-foe"
+      },
+      {
+        "id": "lead-from-the-front"
+      },
+      {
+        "id": "luck-favors-the-bold"
+      }
+    ]
+  },
+  "ideologue": {
+    "id": "ideologue",
+    "name": "Ideologue",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "idealist"
+      },
+      {
+        "id": "instruction"
+      },
+      {
+        "id": "know-your-enemy"
+      },
+      {
+        "id": "known-dissident"
+      },
+      {
+        "id": "lead-by-example"
+      }
+    ]
+  },
+  "influence": {
+    "id": "influence",
+    "name": "Influence",
+    "description": [
+      "One of your greatest strengths is your ability to exert influence over your opponents."
+    ],
+    "icon": "presence",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "demand-surrender"
+      },
+      {
+        "id": "fluster"
+      },
+      {
+        "id": "improved-weaken-resolve"
+      },
+      {
+        "id": "intimidating-defense"
+      },
+      {
+        "id": "presence"
+      },
+      {
+        "id": "weaken-resolve"
+      }
+    ]
+  },
+  "inspiration": {
+    "id": "inspiration",
+    "name": "Inspiration",
+    "description": [
+      "Nobles are renowned for their ability to inspire their followers and urge them to greatness. You can often get results out of your friends, allies, and followers that other leaders cannot.",
+      "All of the talents in this tree are mind-affecting effects. Moreover, you can't use any of these talents on yourself."
+    ],
+    "icon": "inspire-confidence",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "beloved"
+      },
+      {
+        "id": "bolster-ally"
+      },
+      {
+        "id": "ignite-fervor"
+      },
+      {
+        "id": "inspire-confidence"
+      },
+      {
+        "id": "inspire-haste"
+      },
+      {
+        "id": "inspire-zeal"
+      },
+      {
+        "id": "willpower"
+      }
+    ]
+  },
+  "leadership": {
+    "id": "leadership",
+    "name": "Leadership",
+    "description": [
+      "A born leader, you know how to take charge and lead your companions and followers to success.",
+      "All of the talents in this tree are mind-affecting effects. Moreover, you can't use any of these talents on yourself."
+    ],
+    "icon": "born-leader",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "born-leader"
+      },
+      {
+        "id": "commanding-presence-war"
+      },
+      {
+        "id": "coordinate"
+      },
+      {
+        "id": "coordinated-leadership"
+      },
+      {
+        "id": "distant-command"
+      },
+      {
+        "id": "fearless-leader"
+      },
+      {
+        "id": "rally"
+      },
+      {
+        "id": "reactionary-attack"
+      },
+      {
+        "id": "tactical-savvy"
+      },
+      {
+        "id": "trust"
+      },
+      {
+        "id": "unwavering-ally"
+      }
+    ]
+  },
+  "lineage": {
+    "id": "lineage",
+    "name": "Lineage",
+    "description": [
+      "You lead a privileged life and reap the benefit of an upbringing beyond most citizens of the galaxy."
+    ],
+    "icon": "wealth",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "connections"
+      },
+      {
+        "id": "educated"
+      },
+      {
+        "id": "engineer"
+      },
+      {
+        "id": "influential-friends"
+      },
+      {
+        "id": "powerful-friends"
+      },
+      {
+        "id": "spontaneous-skill"
+      },
+      {
+        "id": "wealth"
+      }
+    ]
+  },
+  "loyal-protector": {
+    "id": "loyal-protector",
+    "name": "Loyal Protector",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "inspire-loyalty"
+      },
+      {
+        "id": "protector-actions"
+      },
+      {
+        "id": "punishing-protection"
+      },
+      {
+        "id": "undying-loyalty"
+      }
+    ]
+  },
+  "master-of-intrigue": {
+    "id": "master-of-intrigue",
+    "name": "Master of Intrigue",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "advanced-planning"
+      },
+      {
+        "id": "blend-in"
+      },
+      {
+        "id": "done-it-all"
+      },
+      {
+        "id": "get-into-position"
+      },
+      {
+        "id": "master-manipulator"
+      },
+      {
+        "id": "retaliation"
+      }
+    ]
+  },
+  "provocateur": {
+    "id": "provocateur",
+    "name": "Provocateur",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "cast-suspicion"
+      },
+      {
+        "id": "distress-to-discord"
+      },
+      {
+        "id": "friend-or-foe"
+      },
+      {
+        "id": "seize-the-moment"
+      },
+      {
+        "id": "stolen-advantage"
+      },
+      {
+        "id": "true-betrayal"
+      }
+    ]
+  },
+  "skill-challenge": {
+    "id": "skill-challenge",
+    "name": "Skill Challenge",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "guaranteed-boon"
+      },
+      {
+        "id": "leading-skill"
+      },
+      {
+        "id": "learn-from-mistakes"
+      },
+      {
+        "id": "try-your-luck"
+      }
+    ]
+  },
+  "superior-skills": {
+    "id": "superior-skills",
+    "name": "Superior Skills",
+    "group": "Noble",
+    "features": [
+      {
+        "id": "assured-skill"
+      },
+      {
+        "id": "critical-skill-success"
+      },
+      {
+        "id": "exceptional-skill"
+      },
+      {
+        "id": "reliable-boon"
+      },
+      {
+        "id": "skill-boon"
+      },
+      {
+        "id": "skill-confidence"
+      },
+      {
+        "id": "skillful-recovery"
+      }
+    ]
+  },
+  "brigand": {
+    "id": "brigand",
+    "name": "Brigand",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "cheap-trick"
+      },
+      {
+        "id": "easy-prey"
+      },
+      {
+        "id": "quick-strike"
+      },
+      {
+        "id": "sly-combatant"
+      }
+    ]
+  },
+  "fortune": {
+    "id": "fortune",
+    "name": "Fortune",
+    "description": [
+      "Many scoundrels like to gamble with destiny, putting everything on the line and trusting fate (or the Force) to bring them fortune, fame, and success."
+    ],
+    "icon": "lucky-shot",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "avert-disaster"
+      },
+      {
+        "id": "better-lucky-than-dead"
+      },
+      {
+        "id": "dumb-luck"
+      },
+      {
+        "id": "fools-luck"
+      },
+      {
+        "id": "fortunes-favor"
+      },
+      {
+        "id": "gambler"
+      },
+      {
+        "id": "knack"
+      },
+      {
+        "id": "labyrinthine-mind"
+      },
+      {
+        "id": "lucky-shot"
+      },
+      {
+        "id": "lucky-stop"
+      },
+      {
+        "id": "ricochet-shot"
+      },
+      {
+        "id": "uncanny-luck"
+      },
+      {
+        "id": "unlikely-shot"
+      }
+    ]
+  },
+  "malkite-poisoner": {
+    "id": "malkite-poisoner",
+    "name": "Malkite Poisoner",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "malkite-techniques"
+      },
+      {
+        "id": "modify-poison"
+      },
+      {
+        "id": "numbing-poison"
+      },
+      {
+        "id": "undetectable-poison"
+      },
+      {
+        "id": "vicious-poison"
+      }
+    ]
+  },
+  "misfortune": {
+    "id": "misfortune",
+    "name": "Misfortune",
+    "description": [
+      "Your mother always said you were trouble. Now, your enemies know it, too."
+    ],
+    "icon": "disruptive",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "backstabber"
+      },
+      {
+        "id": "befuddle"
+      },
+      {
+        "id": "cunning-strategist"
+      },
+      {
+        "id": "dastardly-strike"
+      },
+      {
+        "id": "disruptive"
+      },
+      {
+        "id": "hesitate"
+      },
+      {
+        "id": "improved-skirmisher"
+      },
+      {
+        "id": "improved-sneak-attack"
+      },
+      {
+        "id": "seducer"
+      },
+      {
+        "id": "seize-object"
+      },
+      {
+        "id": "skirmisher"
+      },
+      {
+        "id": "sneak-attack"
+      },
+      {
+        "id": "sow-confusion"
+      },
+      {
+        "id": "stymie"
+      },
+      {
+        "id": "sudden-strike"
+      },
+      {
+        "id": "walk-the-line"
+      },
+      {
+        "id": "weakening-strike"
+      }
+    ]
+  },
+  "opportunist": {
+    "id": "opportunist",
+    "name": "Opportunist",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "advantageous-opening"
+      },
+      {
+        "id": "retribution"
+      },
+      {
+        "id": "slip-by"
+      },
+      {
+        "id": "thrive-on-chaos"
+      },
+      {
+        "id": "vindication"
+      }
+    ]
+  },
+  "outlaw-tech": {
+    "id": "outlaw-tech",
+    "name": "Outlaw Tech",
+    "description": [
+      "Scoundrels learn a variety of tricks that allow them to squeeze more life out of ailing technology, enhancing their gear in ways the manufacturer never intended."
+    ],
+    "icon": "hot-wire",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "fast-repairs"
+      },
+      {
+        "id": "hot-wire"
+      },
+      {
+        "id": "personalized-modifications"
+      },
+      {
+        "id": "quick-fix"
+      }
+    ]
+  },
+  "outsider": {
+    "id": "outsider",
+    "name": "Outsider",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "oafish"
+      },
+      {
+        "id": "outsiders-eye"
+      },
+      {
+        "id": "outsiders-query"
+      },
+      {
+        "id": "wary"
+      }
+    ]
+  },
+  "recklessness": {
+    "id": "recklessness",
+    "name": "Recklessness",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "find-openings"
+      },
+      {
+        "id": "hit-the-deck"
+      },
+      {
+        "id": "lure-closer"
+      },
+      {
+        "id": "risk-for-reward"
+      },
+      {
+        "id": "trick-step"
+      }
+    ]
+  },
+  "revolutionary": {
+    "id": "revolutionary",
+    "name": "Revolutionary",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "bomb-thrower"
+      },
+      {
+        "id": "for-the-cause"
+      },
+      {
+        "id": "make-an-example"
+      },
+      {
+        "id": "revolutionary-rhetoric"
+      }
+    ]
+  },
+  "run-and-gun": {
+    "id": "run-and-gun",
+    "name": "Run and Gun",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "cheap-shot"
+      },
+      {
+        "id": "no-escape"
+      },
+      {
+        "id": "opportunistic-strike"
+      },
+      {
+        "id": "slippery-strike"
+      },
+      {
+        "id": "strike-and-run"
+      }
+    ]
+  },
+  "slicer": {
+    "id": "slicer",
+    "name": "Slicer",
+    "description": [
+      "You move like a ghost through the HoloNet and can hack into enemy mainframes and computer systems with astonishing grace."
+    ],
+    "icon": "trace",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "electronic-forgery"
+      },
+      {
+        "id": "electronic-sabotage"
+      },
+      {
+        "id": "gimmick"
+      },
+      {
+        "id": "master-slicer"
+      },
+      {
+        "id": "security-slicer"
+      },
+      {
+        "id": "trace"
+      },
+      {
+        "id": "virus"
+      }
+    ]
+  },
+  "smuggling": {
+    "id": "smuggling",
+    "name": "Smuggling",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "art-of-concealment"
+      },
+      {
+        "id": "fast-talker"
+      },
+      {
+        "id": "hidden-weapons"
+      },
+      {
+        "id": "illicit-dealings"
+      },
+      {
+        "id": "surprise-strike"
+      }
+    ]
+  },
+  "spacer": {
+    "id": "spacer",
+    "name": "Spacer",
+    "description": [
+      "You prowl the space lanes seeking wealth, fame, adventure, or something more. You're also pretty good with vehicles in general."
+    ],
+    "icon": "spacehound",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "cramped-quarters-fighting"
+      },
+      {
+        "id": "deep-space-raider"
+      },
+      {
+        "id": "hyperdriven"
+      },
+      {
+        "id": "make-a-break-for-it"
+      },
+      {
+        "id": "spacehound"
+      },
+      {
+        "id": "starship-raider"
+      },
+      {
+        "id": "stellar-warrior"
+      }
+    ]
+  },
+  "yuuzhan-vong-biotec": {
+    "id": "yuuzhan-vong-biotec",
+    "name": "Yuuzhan Vong Biotec",
+    "group": "Scoundrel",
+    "features": [
+      {
+        "id": "biotech-adept"
+      },
+      {
+        "id": "bugbite"
+      },
+      {
+        "id": "curved-throw"
+      },
+      {
+        "id": "surprising-weapons"
+      },
+      {
+        "id": "veiled-biotech"
+      }
+    ]
+  },
+  "advance-patrol": {
+    "id": "advance-patrol",
+    "name": "Advance Patrol",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "forward-patrol"
+      },
+      {
+        "id": "mobile-combatant-war"
+      },
+      {
+        "id": "trailblazer"
+      },
+      {
+        "id": "watchful-step"
+      }
+    ]
+  },
+  "awareness": {
+    "id": "awareness",
+    "name": "Awareness",
+    "description": [
+      "You are exceptionally good at noticing things and avoiding perilous situations."
+    ],
+    "icon": "acute-senses",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "acute-senses"
+      },
+      {
+        "id": "expert-tracker"
+      },
+      {
+        "id": "improved-initiative"
+      },
+      {
+        "id": "keen-shot"
+      },
+      {
+        "id": "reset-initiative"
+      },
+      {
+        "id": "uncanny-dodge-i"
+      },
+      {
+        "id": "uncanny-dodge-ii"
+      },
+      {
+        "id": "weak-point"
+      }
+    ]
+  },
+  "camouflage": {
+    "id": "camouflage",
+    "name": "Camouflage",
+    "description": [
+      "You learn quickly how to blend in with your environment"
+    ],
+    "icon": "hidden-movement",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "dig-in"
+      },
+      {
+        "id": "extended-ambush"
+      },
+      {
+        "id": "ghost-assailant"
+      },
+      {
+        "id": "hidden-movement"
+      },
+      {
+        "id": "hide-in-plain-sight"
+      },
+      {
+        "id": "hunker-down"
+      },
+      {
+        "id": "improved-stealth"
+      },
+      {
+        "id": "shadow-striker"
+      },
+      {
+        "id": "slip-by-war"
+      },
+      {
+        "id": "total-concealment"
+      }
+    ]
+  },
+  "espionage": {
+    "id": "espionage",
+    "name": "Espionage",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "fade-out"
+      },
+      {
+        "id": "keep-together"
+      },
+      {
+        "id": "prudent-escape"
+      },
+      {
+        "id": "reactive-stealth"
+      },
+      {
+        "id": "sizing-up"
+      }
+    ]
+  },
+  "fringer": {
+    "id": "fringer",
+    "name": "Fringer",
+    "description": [
+      "You're especially skilled at \"getting by\" on backwater worlds."
+    ],
+    "icon": "jury-rigger",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "barter"
+      },
+      {
+        "id": "flee"
+      },
+      {
+        "id": "fringe-savant"
+      },
+      {
+        "id": "jury-rigger"
+      },
+      {
+        "id": "keep-it-together"
+      },
+      {
+        "id": "long-stride"
+      },
+      {
+        "id": "sidestep"
+      },
+      {
+        "id": "surge-talent"
+      },
+      {
+        "id": "swift-strider"
+      }
+    ]
+  },
+  "hyperspace-explorer": {
+    "id": "hyperspace-explorer",
+    "name": "Hyperspace Explorer",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "deep-space-gambit"
+      },
+      {
+        "id": "guidance"
+      },
+      {
+        "id": "hidden-attacker"
+      },
+      {
+        "id": "hyperspace-savant"
+      },
+      {
+        "id": "silent-movement"
+      },
+      {
+        "id": "vehicle-sneak"
+      }
+    ]
+  },
+  "master-scout": {
+    "id": "master-scout",
+    "name": "Master Scout",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "piercing-hit"
+      },
+      {
+        "id": "quicktrap"
+      },
+      {
+        "id": "speedclimber"
+      },
+      {
+        "id": "surprisingly-quick"
+      },
+      {
+        "id": "tripwire"
+      }
+    ]
+  },
+  "mobile-scout": {
+    "id": "mobile-scout",
+    "name": "Mobile Scout",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "battle-mount"
+      },
+      {
+        "id": "expert-rider"
+      },
+      {
+        "id": "mechanized-rider"
+      },
+      {
+        "id": "terrain-guidance"
+      }
+    ]
+  },
+  "reconnaissance": {
+    "id": "reconnaissance",
+    "name": "Reconnaissance",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "close-combat-assault"
+      },
+      {
+        "id": "get-into-position-clone"
+      },
+      {
+        "id": "reconnaissance-actions"
+      },
+      {
+        "id": "reconnaissance-team-leader"
+      }
+    ]
+  },
+  "spy": {
+    "id": "spy",
+    "name": "Spy",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "blend-in-force"
+      },
+      {
+        "id": "improved-surveillance"
+      },
+      {
+        "id": "incognito"
+      },
+      {
+        "id": "intimate-knowledge"
+      },
+      {
+        "id": "surveillance"
+      },
+      {
+        "id": "traceless-tampering"
+      }
+    ]
+  },
+  "surveillance": {
+    "id": "surveillance",
+    "name": "Surveillance",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "advanced-intel"
+      },
+      {
+        "id": "hidden-eyes"
+      },
+      {
+        "id": "hunt-the-hunter"
+      },
+      {
+        "id": "seek-and-destroy"
+      },
+      {
+        "id": "spotter"
+      }
+    ]
+  },
+  "survivor": {
+    "id": "survivor",
+    "name": "Survivor",
+    "description": [
+      "As an explorer of dangerous places, you are trained to react to danger swiftly and adroitly, as well as navigate difficult terrain and reduce damage."
+    ],
+    "icon": "evasion",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "evasion"
+      },
+      {
+        "id": "extreme-effort"
+      },
+      {
+        "id": "sprint"
+      },
+      {
+        "id": "surefooted"
+      }
+    ]
+  },
+  "unpredictable": {
+    "id": "unpredictable",
+    "name": "Unpredictable",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "aggressive-surge"
+      },
+      {
+        "id": "blast-back"
+      },
+      {
+        "id": "fade-away"
+      },
+      {
+        "id": "second-strike"
+      },
+      {
+        "id": "swerve"
+      }
+    ]
+  },
+  "versatility": {
+    "id": "versatility",
+    "name": "Versatility",
+    "group": "Scout",
+    "features": [
+      {
+        "id": "adapt-and-survive"
+      },
+      {
+        "id": "defensive-protection"
+      },
+      {
+        "id": "quick-on-your-feet"
+      },
+      {
+        "id": "ready-and-willing"
+      },
+      {
+        "id": "unbalancing-adaptation"
+      }
+    ]
+  },
+  "ambusher": {
+    "id": "ambusher",
+    "name": "Ambusher",
+    "description": [
+      "You specialize in springing ambushes on your enemies."
+    ],
+    "icon": "ambush-specialist",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "ambush-specialist"
+      },
+      {
+        "id": "destructive-ambusher"
+      },
+      {
+        "id": "keep-it-going"
+      },
+      {
+        "id": "keep-them-reeling"
+      },
+      {
+        "id": "perceptive-ambusher"
+      },
+      {
+        "id": "spring-the-trap"
+      }
+    ]
+  },
+  "armor-specialist": {
+    "id": "armor-specialist",
+    "name": "Armor Specialist",
+    "description": [
+      "You can maximize the benefits of wearing armor while reducing or eliminating some of its drawbacks."
+    ],
+    "icon": "armored-defense",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "armor-mastery"
+      },
+      {
+        "id": "armored-defense"
+      },
+      {
+        "id": "improved-armored-defense"
+      },
+      {
+        "id": "juggernaut"
+      },
+      {
+        "id": "second-skin"
+      },
+      {
+        "id": "shield-expert"
+      }
+    ]
+  },
+  "brawler": {
+    "id": "brawler",
+    "name": "Brawler",
+    "description": [
+      "You like to get \"up close and personal\" with your enemies and engage them in melee combat."
+    ],
+    "icon": "expert-grappler",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "bayonet-master"
+      },
+      {
+        "id": "cantina-brawler"
+      },
+      {
+        "id": "counterpunch"
+      },
+      {
+        "id": "crowd-control"
+      },
+      {
+        "id": "devastating-melee-smash"
+      },
+      {
+        "id": "disarm-and-engage"
+      },
+      {
+        "id": "entangler"
+      },
+      {
+        "id": "experienced-brawler"
+      },
+      {
+        "id": "expert-grappler"
+      },
+      {
+        "id": "grabber"
+      },
+      {
+        "id": "gun-club"
+      },
+      {
+        "id": "hammerblow"
+      },
+      {
+        "id": "make-do"
+      },
+      {
+        "id": "man-down"
+      },
+      {
+        "id": "melee-smash"
+      },
+      {
+        "id": "pick-a-fight"
+      },
+      {
+        "id": "reverse-strength"
+      },
+      {
+        "id": "strong-grab"
+      },
+      {
+        "id": "stunning-strike"
+      },
+      {
+        "id": "sucker-punch"
+      },
+      {
+        "id": "unbalance-opponent"
+      },
+      {
+        "id": "unrelenting-assault"
+      }
+    ]
+  },
+  "brute-squad": {
+    "id": "brute-squad",
+    "name": "Brute Squad",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "gang-leader"
+      },
+      {
+        "id": "melee-assault"
+      },
+      {
+        "id": "melee-brute"
+      },
+      {
+        "id": "melee-opportunist"
+      },
+      {
+        "id": "squad-brutality"
+      },
+      {
+        "id": "squad-superiority"
+      }
+    ]
+  },
+  "commando": {
+    "id": "commando",
+    "name": "Commando",
+    "description": [
+      "You use advanced combat tactics to take down enemies quickly, shield your comrades, and endure whatever challenges are thrown your way."
+    ],
+    "icon": "indomitable",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "battle-analysis"
+      },
+      {
+        "id": "coordinated-effort"
+      },
+      {
+        "id": "cover-fire"
+      },
+      {
+        "id": "dedicated-guardian"
+      },
+      {
+        "id": "dedicated-protector"
+      },
+      {
+        "id": "defensive-position"
+      },
+      {
+        "id": "demolitionist"
+      },
+      {
+        "id": "draw-fire"
+      },
+      {
+        "id": "hard-target"
+      },
+      {
+        "id": "harms-way"
+      },
+      {
+        "id": "indomitable"
+      },
+      {
+        "id": "keep-them-at-bay"
+      },
+      {
+        "id": "out-of-harms-way"
+      },
+      {
+        "id": "tough-as-nails"
+      }
+    ]
+  },
+  "mercenary": {
+    "id": "mercenary",
+    "name": "Mercenary",
+    "description": [
+      "Mercenaries are blasters-for-hire who sell their services to the highest bidder. Though money might motivate them, few types of soldiers are more capable of operating independently."
+    ],
+    "icon": "notorious",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "combined-fire"
+      },
+      {
+        "id": "commanding-presence"
+      },
+      {
+        "id": "dirty-fighting"
+      },
+      {
+        "id": "feared-warrior"
+      },
+      {
+        "id": "focused-warrior"
+      },
+      {
+        "id": "mercenarys-determination"
+      },
+      {
+        "id": "mercenarys-grit"
+      },
+      {
+        "id": "mercenarys-teamwork"
+      },
+      {
+        "id": "ruthless"
+      }
+    ]
+  },
+  "rocket-jumper": {
+    "id": "rocket-jumper",
+    "name": "Rocket Jumper",
+    "description": [
+      "You are an expert in the use of jet packs. You can use this form of transport to perform specialized aerial assaults and maneuvers."
+    ],
+    "icon": "improved-trajectory",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "burning-assault"
+      },
+      {
+        "id": "improved-trajectory"
+      },
+      {
+        "id": "jet-pack-training"
+      },
+      {
+        "id": "jet-pack-withdraw"
+      }
+    ]
+  },
+  "shockboxer": {
+    "id": "shockboxer",
+    "name": "Shockboxer",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "defensive-jab"
+      },
+      {
+        "id": "nimble-dodge"
+      },
+      {
+        "id": "retaliation-jab"
+      },
+      {
+        "id": "stinging-jab"
+      },
+      {
+        "id": "stunning-shockboxer"
+      }
+    ]
+  },
+  "squad-leader-soldier": {
+    "id": "squad-leader-soldier",
+    "name": "Squad Leader",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "commanding-officer"
+      },
+      {
+        "id": "coordinated-tactics"
+      },
+      {
+        "id": "fire-at-will"
+      },
+      {
+        "id": "squad-actions"
+      }
+    ]
+  },
+  "trooper": {
+    "id": "trooper",
+    "name": "Trooper",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "comrades-in-arms"
+      },
+      {
+        "id": "focused-targeting"
+      },
+      {
+        "id": "phalanx"
+      },
+      {
+        "id": "stick-together"
+      },
+      {
+        "id": "watch-your-back"
+      }
+    ]
+  },
+  "veteran": {
+    "id": "veteran",
+    "name": "Veteran",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "battlefield-remedy"
+      },
+      {
+        "id": "grizzled-warrior"
+      },
+      {
+        "id": "reckless"
+      },
+      {
+        "id": "seen-it-all"
+      },
+      {
+        "id": "tested-in-battle"
+      }
+    ]
+  },
+  "warrior": {
+    "id": "warrior",
+    "name": "Warrior",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "champion"
+      },
+      {
+        "id": "quick-study"
+      },
+      {
+        "id": "simple-opportunity"
+      },
+      {
+        "id": "warriors-awareness"
+      },
+      {
+        "id": "warriors-determination"
+      }
+    ]
+  },
+  "weapon-specialist": {
+    "id": "weapon-specialist",
+    "name": "Weapon Specialist",
+    "description": [
+      "You are highly trained at using specific weapons."
+    ],
+    "icon": "weapon-focus",
+    "group": "Soldier",
+    "features": [
+      {
+        "id": "autofire-assault-talent"
+      },
+      {
+        "id": "crushing-assault"
+      },
+      {
+        "id": "devastating-attack"
+      },
+      {
+        "id": "disarming-attack"
+      },
+      {
+        "id": "impaling-assault"
+      },
+      {
+        "id": "improved-suppression-fire"
+      },
+      {
+        "id": "penetrating-attack"
+      },
+      {
+        "id": "stinging-assault"
+      },
+      {
+        "id": "weapon-specialization"
+      }
+    ]
+  },
+  "blockade-runner": {
+    "id": "blockade-runner",
+    "name": "Blockade Runner",
+    "group": "Ace Pilot",
+    "features": [
+      {
+        "id": "close-cover"
+      },
+      {
+        "id": "outrun"
+      },
+      {
+        "id": "punch-through"
+      },
+      {
+        "id": "small-target"
+      },
+      {
+        "id": "watch-this"
+      }
+    ]
+  },
+  "expert-pilot": {
+    "id": "expert-pilot",
+    "name": "Expert Pilot",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Ace Pilot",
+    "features": [
+      {
+        "id": "blind-spot"
+      },
+      {
+        "id": "clip"
+      },
+      {
+        "id": "close-scrape"
+      },
+      {
+        "id": "elusive-dogfighter"
+      },
+      {
+        "id": "full-throttle"
+      },
+      {
+        "id": "improved-attack-run"
+      },
+      {
+        "id": "juke"
+      },
+      {
+        "id": "keep-it-together-core"
+      },
+      {
+        "id": "master-defender"
+      },
+      {
+        "id": "relentless-pursuit"
+      },
+      {
+        "id": "renowned-pilot"
+      },
+      {
+        "id": "roll-out"
+      },
+      {
+        "id": "shunt-damage"
+      },
+      {
+        "id": "vehicle-focus"
+      },
+      {
+        "id": "vehicular-evasion"
+      },
+      {
+        "id": "wingman"
+      }
+    ]
+  },
+  "gunner": {
+    "id": "gunner",
+    "name": "Gunner",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Ace Pilot",
+    "features": [
+      {
+        "id": "crippling-hit"
+      },
+      {
+        "id": "dogfight-gunner"
+      },
+      {
+        "id": "expert-gunner"
+      },
+      {
+        "id": "fast-attack-specialist"
+      },
+      {
+        "id": "great-shot"
+      },
+      {
+        "id": "overcharged-shot"
+      },
+      {
+        "id": "quick-trigger"
+      },
+      {
+        "id": "synchronized-fire"
+      },
+      {
+        "id": "system-hit"
+      }
+    ]
+  },
+  "squadron-leader": {
+    "id": "squadron-leader",
+    "name": "Squadron Leader",
+    "group": "Ace Pilot",
+    "features": [
+      {
+        "id": "begin-attack-run"
+      },
+      {
+        "id": "regroup"
+      },
+      {
+        "id": "squadron-maneuvers"
+      },
+      {
+        "id": "squadron-tactics"
+      }
+    ]
+  },
+  "wingman": {
+    "id": "wingman",
+    "name": "Wingman",
+    "group": "Ace Pilot",
+    "features": [
+      {
+        "id": "concentrate-all-fire"
+      },
+      {
+        "id": "escort-pilot"
+      },
+      {
+        "id": "lose-pursuit"
+      },
+      {
+        "id": "run-interference"
+      },
+      {
+        "id": "wingman-retribution"
+      }
+    ]
+  },
+  "assassin": {
+    "id": "assassin",
+    "name": "Assassin",
+    "group": "Assassin",
+    "features": [
+      {
+        "id": "advantageous-positioning"
+      },
+      {
+        "id": "get-some-distance"
+      },
+      {
+        "id": "murderous-arts-i"
+      },
+      {
+        "id": "murderous-arts-ii"
+      },
+      {
+        "id": "ruthless-scum"
+      },
+      {
+        "id": "shift"
+      },
+      {
+        "id": "sniping-assassin"
+      },
+      {
+        "id": "sniping-marksman"
+      },
+      {
+        "id": "sniping-master"
+      }
+    ]
+  },
+  "genohardan": {
+    "id": "genohardan",
+    "name": "Genohardan",
+    "group": "Assassin",
+    "features": [
+      {
+        "id": "deadly-repercussions"
+      },
+      {
+        "id": "improved-manipulating-strike"
+      },
+      {
+        "id": "manipulating-strike"
+      },
+      {
+        "id": "pulling-the-strings"
+      }
+    ]
+  },
+  "bounty-hunter": {
+    "id": "bounty-hunter",
+    "name": "Bounty Hunter",
+    "description": [
+      "The nature of their work requires bounty hunters to associate with the scum of the universe. You are among the finest bounty hunters in the galaxy, relying on the element of surprise and your hunter's instincts to catch your prey."
+    ],
+    "icon": "hunters-target",
+    "group": "Bounty Hunter",
+    "features": [
+      {
+        "id": "detective"
+      },
+      {
+        "id": "dread"
+      },
+      {
+        "id": "electronic-trail"
+      },
+      {
+        "id": "familiar-enemies"
+      },
+      {
+        "id": "familiar-situation"
+      },
+      {
+        "id": "fearsome"
+      },
+      {
+        "id": "hunters-mark"
+      },
+      {
+        "id": "hunters-target"
+      },
+      {
+        "id": "jedi-hunter"
+      },
+      {
+        "id": "notorious"
+      },
+      {
+        "id": "nowhere-to-hide"
+      },
+      {
+        "id": "nowhere-to-run"
+      },
+      {
+        "id": "quick-cuffs"
+      },
+      {
+        "id": "relentless"
+      },
+      {
+        "id": "revealing-secrets"
+      },
+      {
+        "id": "ruthless-negotiator"
+      },
+      {
+        "id": "signature-item"
+      },
+      {
+        "id": "tag"
+      }
+    ]
+  },
+  "force-hunter": {
+    "id": "force-hunter",
+    "name": "Force Hunter",
+    "group": "Bounty Hunter",
+    "features": [
+      {
+        "id": "force-blank"
+      },
+      {
+        "id": "lightsaber-evasion"
+      },
+      {
+        "id": "precision-fire"
+      },
+      {
+        "id": "steel-mind"
+      },
+      {
+        "id": "strong-willed"
+      },
+      {
+        "id": "telekinetic-resistance"
+      }
+    ]
+  },
+  "gand-findsman": {
+    "id": "gand-findsman",
+    "name": "Gand Findsman",
+    "group": "Bounty Hunter",
+    "features": [
+      {
+        "id": "findsman-ceremonies"
+      },
+      {
+        "id": "findsmans-foresight"
+      },
+      {
+        "id": "omens"
+      },
+      {
+        "id": "target-visions"
+      },
+      {
+        "id": "temporal-awareness"
+      }
+    ]
+  },
+  "trickery": {
+    "id": "trickery",
+    "name": "Trickery",
+    "group": "Charlatan",
+    "features": [
+      {
+        "id": "cunning-distraction"
+      },
+      {
+        "id": "damaging-deception"
+      },
+      {
+        "id": "distracting-shout"
+      },
+      {
+        "id": "improved-soft-cover"
+      },
+      {
+        "id": "innocuous"
+      },
+      {
+        "id": "treacherous"
+      }
+    ]
+  },
+  "corporate-power": {
+    "id": "corporate-power",
+    "name": "Corporate Power",
+    "group": "Corporate Agent",
+    "features": [
+      {
+        "id": "competitive-drive"
+      },
+      {
+        "id": "competitive-edge"
+      },
+      {
+        "id": "corporate-clout"
+      },
+      {
+        "id": "impose-confusion"
+      },
+      {
+        "id": "impose-hesitation"
+      },
+      {
+        "id": "willful-resolve"
+      },
+      {
+        "id": "wrong-decision"
+      }
+    ]
+  },
+  "infamy": {
+    "id": "infamy",
+    "name": "Infamy",
+    "description": [
+      "You are wanted in multiple systems for criminal acts, and your manner of doing business has earned you an unsavory reputation in the criminal underworld."
+    ],
+    "icon": "shared-notoriety",
+    "group": "Crime Lord",
+    "features": [
+      {
+        "id": "fear-me"
+      },
+      {
+        "id": "frighten"
+      },
+      {
+        "id": "inspire-fear-i"
+      },
+      {
+        "id": "inspire-fear-ii"
+      },
+      {
+        "id": "inspire-fear-iii"
+      },
+      {
+        "id": "master-manipulator-regions"
+      },
+      {
+        "id": "notorious"
+      },
+      {
+        "id": "shared-notoriety"
+      },
+      {
+        "id": "small-favor"
+      },
+      {
+        "id": "terrify"
+      },
+      {
+        "id": "unsavory-reputation"
+      }
+    ]
+  },
+  "mastermind": {
+    "id": "mastermind",
+    "name": "Mastermind",
+    "description": [
+      "You have the ability to attract loyal minions and are skilled at redirecting allies on the battlefield."
+    ],
+    "icon": "attract-minion",
+    "group": "Crime Lord",
+    "features": [
+      {
+        "id": "attract-minion"
+      },
+      {
+        "id": "attract-superior-minion"
+      },
+      {
+        "id": "bodyguard-i"
+      },
+      {
+        "id": "bodyguard-ii"
+      },
+      {
+        "id": "bodyguard-iii"
+      },
+      {
+        "id": "contingency-plan"
+      },
+      {
+        "id": "impel-ally-i"
+      },
+      {
+        "id": "impel-ally-ii"
+      },
+      {
+        "id": "impel-ally-iii"
+      },
+      {
+        "id": "inspire-wrath"
+      },
+      {
+        "id": "masters-orders"
+      },
+      {
+        "id": "shelter"
+      },
+      {
+        "id": "tactical-superiority"
+      },
+      {
+        "id": "tactical-withdraw"
+      },
+      {
+        "id": "urgency"
+      },
+      {
+        "id": "wealth-of-allies"
+      }
+    ]
+  },
+  "fifth-degree-droid": {
+    "id": "fifth-degree-droid",
+    "name": "Fifth-Degree Droid",
+    "group": "Droid",
+    "features": [
+      {
+        "id": "cargo-hauler"
+      },
+      {
+        "id": "durable"
+      },
+      {
+        "id": "environmentally-shielded"
+      },
+      {
+        "id": "heavy-duty-actuators"
+      },
+      {
+        "id": "load-launcher"
+      },
+      {
+        "id": "power-supply"
+      },
+      {
+        "id": "task-optimization"
+      }
+    ]
+  },
+  "first-degree-droid": {
+    "id": "first-degree-droid",
+    "name": "First-Degree Droid",
+    "group": "Droid",
+    "features": [
+      {
+        "id": "dull-the-pain"
+      },
+      {
+        "id": "interrogator"
+      },
+      {
+        "id": "known-vulnerability"
+      },
+      {
+        "id": "medical-analyzer"
+      },
+      {
+        "id": "medical-droid"
+      },
+      {
+        "id": "science-analyzer"
+      },
+      {
+        "id": "triage-scan"
+      }
+    ]
+  },
+  "fourth-degree-droid": {
+    "id": "fourth-degree-droid",
+    "name": "Fourth-Degree Droid",
+    "group": "Droid",
+    "features": [
+      {
+        "id": "combat-repairs"
+      },
+      {
+        "id": "droid-smash"
+      },
+      {
+        "id": "just-a-scratch"
+      },
+      {
+        "id": "target-acquisition"
+      },
+      {
+        "id": "target-lock"
+      },
+      {
+        "id": "targeting-package"
+      },
+      {
+        "id": "weapons-power-surge"
+      }
+    ]
+  },
+  "second-degree-droid": {
+    "id": "second-degree-droid",
+    "name": "Second-Degree Droid",
+    "group": "Droid",
+    "features": [
+      {
+        "id": "adept-assistant"
+      },
+      {
+        "id": "burst-transfer"
+      },
+      {
+        "id": "mechanics-mastery"
+      },
+      {
+        "id": "on-board-system-link"
+      },
+      {
+        "id": "quick-astrogation"
+      },
+      {
+        "id": "scomp-link-slicer"
+      },
+      {
+        "id": "vehicle-mechanic"
+      }
+    ]
+  },
+  "third-degree-droid": {
+    "id": "third-degree-droid",
+    "name": "Third-Degree Droid",
+    "group": "Droid",
+    "features": [
+      {
+        "id": "etiquette"
+      },
+      {
+        "id": "helpful"
+      },
+      {
+        "id": "nuanced"
+      },
+      {
+        "id": "observant"
+      },
+      {
+        "id": "protocol"
+      },
+      {
+        "id": "supervising-droid"
+      },
+      {
+        "id": "talkdroid"
+      }
+    ]
+  },
+  "droid-commander": {
+    "id": "droid-commander",
+    "name": "Droid Commander",
+    "group": "Droid Commander",
+    "features": [
+      {
+        "id": "automated-strike"
+      },
+      {
+        "id": "droid-defense"
+      },
+      {
+        "id": "droid-mettle"
+      },
+      {
+        "id": "expanded-sensors"
+      },
+      {
+        "id": "inspire-competence"
+      },
+      {
+        "id": "maintain-focus"
+      },
+      {
+        "id": "overclocked-troops"
+      },
+      {
+        "id": "reinforced-commands"
+      }
+    ]
+  },
+  "override": {
+    "id": "override",
+    "name": "Override",
+    "group": "Droid Commander",
+    "features": [
+      {
+        "id": "directed-action"
+      },
+      {
+        "id": "directed-movement"
+      },
+      {
+        "id": "full-control"
+      },
+      {
+        "id": "remote-attack"
+      }
+    ]
+  },
+  "critical-master": {
+    "id": "critical-master",
+    "name": "Critical Master",
+    "description": "Some elite troopers know exactly where to strike their foes to deal maximum damage, potentially crippling their enemies in the process.",
+    "icon": "triple-crit",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "deny-move"
+      },
+      {
+        "id": "extended-critical-range-heavy-weapons"
+      },
+      {
+        "id": "extended-critical-range"
+      },
+      {
+        "id": "extended-critical-range-simple-weapons"
+      },
+      {
+        "id": "flurry-attack"
+      },
+      {
+        "id": "knockback"
+      },
+      {
+        "id": "reduce-defense"
+      },
+      {
+        "id": "reduce-mobility"
+      }
+    ]
+  },
+  "mandalorian-warrior": {
+    "id": "mandalorian-warrior",
+    "name": "Mandalorian Warrior",
+    "description": [
+      "Mandalorians are talented and ferocious warriors. Their skillful training, warrior culture, and advanced combat abilities make them formidable foes in any era. The following talents are particularly suited to the <em>Knights of the Old Republic</em> era."
+    ],
+    "icon": "mandalorian-ferocity",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "armored-mandalorian"
+      },
+      {
+        "id": "mandalorian-advance"
+      },
+      {
+        "id": "mandalorian-ferocity"
+      },
+      {
+        "id": "mandalorian-glory"
+      }
+    ]
+  },
+  "master-of-teras-kasi": {
+    "id": "master-of-teras-kasi",
+    "name": "Master of Teras Kasi",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "ignore-damage-reduction"
+      },
+      {
+        "id": "ter-s-k-si-basics"
+      },
+      {
+        "id": "ter-s-k-si-mastery"
+      },
+      {
+        "id": "unarmed-counterstrike"
+      },
+      {
+        "id": "unarmed-parry"
+      }
+    ]
+  },
+  "melee-specialist": {
+    "id": "melee-specialist",
+    "name": "Melee Specialist",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "accurate-blow"
+      },
+      {
+        "id": "close-quarters-fighter"
+      },
+      {
+        "id": "ignore-armor"
+      },
+      {
+        "id": "improved-stunning-strike"
+      },
+      {
+        "id": "whirling-death"
+      }
+    ]
+  },
+  "protection": {
+    "id": "protection",
+    "name": "Protection",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "armored-guard"
+      },
+      {
+        "id": "bodyguards-sacrifice"
+      },
+      {
+        "id": "guards-endurance"
+      },
+      {
+        "id": "lifesaver"
+      },
+      {
+        "id": "out-of-harms-way-legacy"
+      },
+      {
+        "id": "roll-with-it"
+      },
+      {
+        "id": "take-the-hit"
+      },
+      {
+        "id": "ward"
+      }
+    ]
+  },
+  "republic-commando": {
+    "id": "republic-commando",
+    "name": "Republic Commando",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "ambush-clone"
+      },
+      {
+        "id": "higher-yield"
+      },
+      {
+        "id": "rapid-reload"
+      },
+      {
+        "id": "shoulder-to-shoulder"
+      },
+      {
+        "id": "strength-in-numbers"
+      },
+      {
+        "id": "weapon-shift"
+      }
+    ]
+  },
+  "squad-leader-elite-trooper": {
+    "id": "squad-leader-elite-trooper",
+    "name": "Squad Leader",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "fall-back"
+      },
+      {
+        "id": "form-up"
+      },
+      {
+        "id": "full-advance"
+      },
+      {
+        "id": "hold-steady"
+      },
+      {
+        "id": "search-and-destroy"
+      }
+    ]
+  },
+  "weapon-master": {
+    "id": "weapon-master",
+    "name": "Weapon Master",
+    "description": [
+      "You are skilled at wielding a variety of weapons and can wield choice weapons with deadly precision and force."
+    ],
+    "icon": "exotic-weapon-mastery",
+    "group": "Elite Trooper",
+    "features": [
+      {
+        "id": "controlled-burst"
+      },
+      {
+        "id": "exotic-weapon-mastery"
+      },
+      {
+        "id": "extended-threat"
+      },
+      {
+        "id": "ferocious-assault"
+      },
+      {
+        "id": "greater-devastating-attack"
+      },
+      {
+        "id": "greater-penetrating-attack"
+      },
+      {
+        "id": "greater-weapon-focus"
+      },
+      {
+        "id": "greater-weapon-specialization"
+      },
+      {
+        "id": "multiattack-proficiency-heavy-weapons"
+      },
+      {
+        "id": "multiattack-proficiency-rifles"
+      },
+      {
+        "id": "multiattack-proficiency-simple-weapons"
+      },
+      {
+        "id": "two-for-one-throw"
+      }
+    ]
+  },
+  "enforcement": {
+    "id": "enforcement",
+    "name": "Enforcement",
+    "group": "Enforcer",
+    "features": [
+      {
+        "id": "cover-bracing"
+      },
+      {
+        "id": "intentional-crash"
+      },
+      {
+        "id": "nonlethal-tactics"
+      },
+      {
+        "id": "pursuit"
+      },
+      {
+        "id": "respected-officer"
+      },
+      {
+        "id": "slowing-stun"
+      },
+      {
+        "id": "takedown"
+      }
+    ]
+  },
+  "beastwarden": {
+    "id": "beastwarden",
+    "name": "Beastwarden",
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "bonded-mount"
+      },
+      {
+        "id": "charm-beast"
+      },
+      {
+        "id": "entreat-beast"
+      },
+      {
+        "id": "soothing-presence"
+      },
+      {
+        "id": "wild-sense"
+      }
+    ]
+  },
+  "dark-side-devotee": {
+    "id": "dark-side-devotee",
+    "name": "Dark Side Devotee",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "channel-aggression"
+      },
+      {
+        "id": "channel-anger"
+      },
+      {
+        "id": "crippling-strike"
+      },
+      {
+        "id": "dark-side-talisman"
+      },
+      {
+        "id": "embrace-the-dark-side"
+      },
+      {
+        "id": "greater-dark-side-talisman"
+      }
+    ]
+  },
+  "force-adept": {
+    "id": "force-adept",
+    "name": "Force Adept",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "force-power-adept"
+      },
+      {
+        "id": "force-treatment"
+      },
+      {
+        "id": "fortified-body"
+      },
+      {
+        "id": "instrument-of-the-force"
+      },
+      {
+        "id": "long-call"
+      },
+      {
+        "id": "mystical-link"
+      }
+    ]
+  },
+  "force-item": {
+    "id": "force-item",
+    "name": "Force Item",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "attune-weapon"
+      },
+      {
+        "id": "empower-weapon"
+      },
+      {
+        "id": "focused-force-talisman"
+      },
+      {
+        "id": "force-talisman"
+      },
+      {
+        "id": "force-throw"
+      },
+      {
+        "id": "greater-focused-force-talisman"
+      },
+      {
+        "id": "greater-force-talisman"
+      },
+      {
+        "id": "primitive-block"
+      }
+    ]
+  },
+  "imperial-inquisitor": {
+    "id": "imperial-inquisitor",
+    "name": "Imperial Inquisitor",
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "cower-enemies"
+      },
+      {
+        "id": "force-interrogation"
+      },
+      {
+        "id": "inquisition"
+      },
+      {
+        "id": "unsettling-presence"
+      }
+    ]
+  },
+  "mystic": {
+    "id": "mystic",
+    "name": "Mystic",
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "channel-vitality"
+      },
+      {
+        "id": "closed-mind"
+      },
+      {
+        "id": "esoteric-technique"
+      },
+      {
+        "id": "mystic-mastery"
+      },
+      {
+        "id": "regimen-aptitude"
+      }
+    ]
+  },
+  "telepath": {
+    "id": "telepath",
+    "name": "Telepath",
+    "group": "Force Adept",
+    "features": [
+      {
+        "id": "mind-probe"
+      },
+      {
+        "id": "perfect-telepathy"
+      },
+      {
+        "id": "psychic-citadel"
+      },
+      {
+        "id": "psychic-defenses"
+      },
+      {
+        "id": "telepathic-intruder"
+      }
+    ]
+  },
+  "alter": {
+    "id": "alter",
+    "name": "Alter",
+    "description": [
+      "The Force grants you considerable power over your environment as well as others around you."
+    ],
+    "icon": "telekinetic-power",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "aversion"
+      },
+      {
+        "id": "disciplined-strike"
+      },
+      {
+        "id": "force-flow"
+      },
+      {
+        "id": "illusion-f87-j14"
+      },
+      {
+        "id": "illusion-bond"
+      },
+      {
+        "id": "influence-savant"
+      },
+      {
+        "id": "link"
+      },
+      {
+        "id": "masquerade"
+      },
+      {
+        "id": "move-massive-object"
+      },
+      {
+        "id": "suppress-force"
+      },
+      {
+        "id": "telekinetic-power"
+      },
+      {
+        "id": "telekinetic-prodigy"
+      },
+      {
+        "id": "telekinetic-savant"
+      },
+      {
+        "id": "telepathic-influence"
+      },
+      {
+        "id": "telepathic-link"
+      }
+    ]
+  },
+  "control": {
+    "id": "control",
+    "name": "Control",
+    "description": [
+      "You have learned how to regulate your own body systems, control your emotions, and channel the Force."
+    ],
+    "icon": "force-focus",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "beast-trick"
+      },
+      {
+        "id": "channel-energy"
+      },
+      {
+        "id": "damage-reduction-10"
+      },
+      {
+        "id": "equilibrium"
+      },
+      {
+        "id": "force-exertion"
+      },
+      {
+        "id": "force-focus"
+      },
+      {
+        "id": "force-harmony"
+      },
+      {
+        "id": "force-recovery"
+      },
+      {
+        "id": "force-suppression"
+      },
+      {
+        "id": "indomitable-will"
+      },
+      {
+        "id": "telekinetic-stability"
+      },
+      {
+        "id": "the-will-to-resist"
+      }
+    ]
+  },
+  "dark-side": {
+    "id": "dark-side",
+    "name": "Dark Side",
+    "description": [
+      "The path to the dark side of the Force is the quick and easy path, granting amazing power but forever dominating the destinies of those in its grasp.",
+      "You must have a Dark Side Score of 1 or higher to select talents from this tree; if your Dark Side Score is ever reduced to 0, you lose access to all talents in this talent tree until your Dark Side Score increases."
+    ],
+    "icon": "revenge",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "consumed-by-darkness"
+      },
+      {
+        "id": "dark-presence"
+      },
+      {
+        "id": "dark-preservation"
+      },
+      {
+        "id": "dark-side-savant"
+      },
+      {
+        "id": "drain-knowledge"
+      },
+      {
+        "id": "power-of-the-dark-side"
+      },
+      {
+        "id": "revenge"
+      },
+      {
+        "id": "swift-power"
+      },
+      {
+        "id": "transfer-essence"
+      },
+      {
+        "id": "wrath-of-the-dark-side"
+      }
+    ]
+  },
+  "guardian-spirit": {
+    "id": "guardian-spirit",
+    "name": "Guardian Spirit",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "crucial-advice"
+      },
+      {
+        "id": "distracting-apparition"
+      },
+      {
+        "id": "guardian-spirit"
+      },
+      {
+        "id": "manifest-guardian-spirit"
+      },
+      {
+        "id": "vital-encouragement"
+      }
+    ]
+  },
+  "light-side": {
+    "id": "light-side",
+    "name": "Light Side",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "at-peace"
+      },
+      {
+        "id": "attuned"
+      },
+      {
+        "id": "focused-attack"
+      },
+      {
+        "id": "surge-of-light"
+      }
+    ]
+  },
+  "sense": {
+    "id": "sense",
+    "name": "Sense",
+    "description": [
+      "Your attunement to the Force grants you uncanny powers of perception."
+    ],
+    "icon": "visions",
+    "group": "Force Sensitive",
+    "force": true,
+    "features": [
+      {
+        "id": "feel-the-force"
+      },
+      {
+        "id": "force-perception"
+      },
+      {
+        "id": "force-pilot"
+      },
+      {
+        "id": "force-reflexes"
+      },
+      {
+        "id": "foresight"
+      },
+      {
+        "id": "gauge-force-potential"
+      },
+      {
+        "id": "heightened-awareness"
+      },
+      {
+        "id": "instinctive-navigation"
+      },
+      {
+        "id": "motion-of-the-future"
+      },
+      {
+        "id": "psychometry"
+      },
+      {
+        "id": "shift-sense"
+      },
+      {
+        "id": "visions"
+      }
+    ]
+  },
+  "agent-of-ossus": {
+    "id": "agent-of-ossus",
+    "name": "Agent of Ossus",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "buried-presence"
+      },
+      {
+        "id": "conceal-other"
+      },
+      {
+        "id": "insightful-aim"
+      },
+      {
+        "id": "vanish"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "aing-tii-monk": {
+    "id": "aing-tii-monk",
+    "name": "Aing-Tii Monk",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "aura-of-freedom"
+      },
+      {
+        "id": "folded-space-mastery"
+      },
+      {
+        "id": "liberate"
+      },
+      {
+        "id": "many-shades-of-the-force"
+      },
+      {
+        "id": "spatial-integrity"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "bando-gora-captain": {
+    "id": "bando-gora-captain",
+    "name": "Bando Gora Captain",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "bando-gora-surge"
+      },
+      {
+        "id": "force-fighter"
+      },
+      {
+        "id": "resist-enervation"
+      },
+      {
+        "id": "victorious-force-mastery"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "baran-do-sage": {
+    "id": "baran-do-sage",
+    "name": "Baran Do Sage",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "enhanced-danger-sense"
+      },
+      {
+        "id": "expanded-horizon"
+      },
+      {
+        "id": "knowledge-and-defense"
+      },
+      {
+        "id": "planetary-attunement"
+      },
+      {
+        "id": "precognitive-meditation"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "believer-disciple": {
+    "id": "believer-disciple",
+    "name": "Believer Disciple",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "believer-intuition"
+      },
+      {
+        "id": "defense-boost"
+      },
+      {
+        "id": "hardiness"
+      },
+      {
+        "id": "high-impact"
+      },
+      {
+        "id": "sith-reverence"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "blazing-chain": {
+    "id": "blazing-chain",
+    "name": "Blazing Chain",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "force-directed-shot"
+      },
+      {
+        "id": "negate-and-redirect"
+      },
+      {
+        "id": "rising-anger"
+      },
+      {
+        "id": "rising-panic"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "dathomiri-witch": {
+    "id": "dathomiri-witch",
+    "name": "Dathomiri Witch",
+    "description": [
+      "The Force-using witches of the planet Dathomir are primitive yet powerful beings. They use ancient training handed down for generations as the basis of their powers."
+    ],
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "adept-spellcaster"
+      },
+      {
+        "id": "charm-beast"
+      },
+      {
+        "id": "command-beast"
+      },
+      {
+        "id": "flight"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "disciple-of-twilight": {
+    "id": "disciple-of-twilight",
+    "name": "Disciple of Twilight",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "cloak-of-shadow"
+      },
+      {
+        "id": "phantasm"
+      },
+      {
+        "id": "revelation"
+      },
+      {
+        "id": "shadow-armor"
+      },
+      {
+        "id": "shadow-vision"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "ember-of-vahl": {
+    "id": "ember-of-vahl",
+    "name": "Ember of Vahl",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "initiate-of-vahl"
+      },
+      {
+        "id": "reading-the-flame"
+      },
+      {
+        "id": "sword-of-vahl"
+      },
+      {
+        "id": "vahls-brand"
+      },
+      {
+        "id": "vahls-flame"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "felucian-shaman": {
+    "id": "felucian-shaman",
+    "name": "Felucian Shaman",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "charm-beast"
+      },
+      {
+        "id": "command-beast"
+      },
+      {
+        "id": "detonate"
+      },
+      {
+        "id": "hive-mind"
+      },
+      {
+        "id": "infuse-weapon"
+      },
+      {
+        "id": "sickening-blast"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "iron-knight": {
+    "id": "iron-knight",
+    "name": "Iron Knight",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "droid-duelist"
+      },
+      {
+        "id": "force-repair"
+      },
+      {
+        "id": "heal-droid"
+      },
+      {
+        "id": "mask-presence"
+      },
+      {
+        "id": "silicon-mind"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "jal-shey": {
+    "id": "jal-shey",
+    "name": "Jal Shey",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "action-exchange"
+      },
+      {
+        "id": "force-delay"
+      },
+      {
+        "id": "imbue-item"
+      },
+      {
+        "id": "knowledge-of-the-force"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "jensaarai-defender": {
+    "id": "jensaarai-defender",
+    "name": "Jensaarai Defender",
+    "description": [
+      "The Jensaarai walk a thin line between light and darkness, using the teachings of both the Jedi and the Sith to create their own unique traditions. Only Force-users that are part of the Jensaarai tradition may select talents from this tree."
+    ],
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "attune-armor"
+      },
+      {
+        "id": "force-cloak"
+      },
+      {
+        "id": "force-cloak-mastery"
+      },
+      {
+        "id": "linked-defense"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "keetael": {
+    "id": "keetael",
+    "name": "Keetael",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "conceal-force-use"
+      },
+      {
+        "id": "force-direction"
+      },
+      {
+        "id": "force-momentum"
+      },
+      {
+        "id": "past-visions"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "kilian-ranger": {
+    "id": "kilian-ranger",
+    "name": "Kilian Ranger",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "empower-siang-lance"
+      },
+      {
+        "id": "shield-gauntlet-defense"
+      },
+      {
+        "id": "shield-gauntlet-deflect"
+      },
+      {
+        "id": "shield-gauntlet-redirect"
+      },
+      {
+        "id": "siang-lance-mastery"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "korunnai-adept": {
+    "id": "korunnai-adept",
+    "name": "Korunnai Adept",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "akk-dog-attack-training"
+      },
+      {
+        "id": "akk-dog-master"
+      },
+      {
+        "id": "akk-dog-trainers-actions"
+      },
+      {
+        "id": "protective-reaction"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "luka-sene": {
+    "id": "luka-sene",
+    "name": "Luka Sene",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "field-detection"
+      },
+      {
+        "id": "improved-force-sight"
+      },
+      {
+        "id": "luka-sene-master"
+      },
+      {
+        "id": "quickseeing"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "matukai-adept": {
+    "id": "matukai-adept",
+    "name": "Matukai Adept",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "body-control"
+      },
+      {
+        "id": "physical-surge"
+      },
+      {
+        "id": "soft-to-solid"
+      },
+      {
+        "id": "wan-shen-defense"
+      },
+      {
+        "id": "wan-shen-kata"
+      },
+      {
+        "id": "wan-shen-mastery"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "order-of-shasa": {
+    "id": "order-of-shasa",
+    "name": "Order of Shasa",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "deception-awareness"
+      },
+      {
+        "id": "greater-weapon-focus-fira"
+      },
+      {
+        "id": "progenitors-call"
+      },
+      {
+        "id": "waveform"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "seyugi-dervish": {
+    "id": "seyugi-dervish",
+    "name": "Seyugi Dervish",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "mobile-whirlwind"
+      },
+      {
+        "id": "repelling-whirlwind"
+      },
+      {
+        "id": "seyugi-cyclone"
+      },
+      {
+        "id": "sudden-storm"
+      },
+      {
+        "id": "tempest-tossed"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "shapers-of-kro-var": {
+    "id": "shapers-of-kro-var",
+    "name": "Shapers of Kro Var",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "combustion"
+      },
+      {
+        "id": "earth-buckle"
+      },
+      {
+        "id": "fluidity"
+      },
+      {
+        "id": "thunderclap"
+      },
+      {
+        "id": "wind-vortex"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "the-krath": {
+    "id": "the-krath",
+    "name": "The Krath",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "dark-side-manipulation"
+      },
+      {
+        "id": "krath-illusions"
+      },
+      {
+        "id": "krath-intuition"
+      },
+      {
+        "id": "krath-surge"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "tyia-adept": {
+    "id": "tyia-adept",
+    "name": "Tyia Adept",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "cycle-of-harmony"
+      },
+      {
+        "id": "force-stabilize"
+      },
+      {
+        "id": "repel-discord"
+      },
+      {
+        "id": "stifle-conflict"
+      },
+      {
+        "id": "tyia-adept"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "warden-of-the-sky": {
+    "id": "warden-of-the-sky",
+    "name": "Warden of the Sky",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "brutal-unarmed-strike"
+      },
+      {
+        "id": "martial-resurgence"
+      },
+      {
+        "id": "rebound-leap"
+      },
+      {
+        "id": "simultaneous-strike"
+      },
+      {
+        "id": "telekinetic-strike"
+      },
+      {
+        "id": "telekinetic-throw"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "white-current-adept": {
+    "id": "white-current-adept",
+    "name": "White Current Adept",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "force-immersion"
+      },
+      {
+        "id": "immerse-another"
+      },
+      {
+        "id": "ride-the-current"
+      },
+      {
+        "id": "surrender-to-the-current"
+      },
+      {
+        "id": "white-current-adept"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "zeison-sha-warrior": {
+    "id": "zeison-sha-warrior",
+    "name": "Zeison Sha Warrior",
+    "group": "Force-Using Tradition",
+    "force": true,
+    "features": [
+      {
+        "id": "discblade-arc"
+      },
+      {
+        "id": "distant-discblade-throw"
+      },
+      {
+        "id": "recall-discblade"
+      },
+      {
+        "id": "telekinetic-vigilance"
+      },
+      {
+        "id": "weapon-specialization-discblade"
+      }
+    ],
+    "hidden": true,
+    "hiddenReason": "Force traditions are not implemented"
+  },
+  "gladiatorial-combat": {
+    "id": "gladiatorial-combat",
+    "name": "Gladiatorial Combat",
+    "description": [
+      "You have learned the tricks of fighting in the gladiatorial arena. These talents represent your knowledge of this specialized combination of combat and showmanship."
+    ],
+    "icon": "armored-mandalorian",
+    "group": "Gladiator",
+    "features": [
+      {
+        "id": "brutal-attack"
+      },
+      {
+        "id": "call-out"
+      },
+      {
+        "id": "distracting-attack"
+      },
+      {
+        "id": "exotic-weapons-master"
+      },
+      {
+        "id": "lockdown-strike"
+      },
+      {
+        "id": "multiattack-proficiency-exotic-weapons"
+      },
+      {
+        "id": "personal-vendetta"
+      },
+      {
+        "id": "unstoppable"
+      }
+    ]
+  },
+  "carbineer": {
+    "id": "carbineer",
+    "name": "Carbineer",
+    "group": "Gunslinger",
+    "features": [
+      {
+        "id": "blowback"
+      },
+      {
+        "id": "close-contact"
+      },
+      {
+        "id": "multiattack-proficiency-rifles"
+      },
+      {
+        "id": "old-faithful"
+      },
+      {
+        "id": "opportunity-fire"
+      },
+      {
+        "id": "rifle-master"
+      },
+      {
+        "id": "shoot-from-the-hip"
+      },
+      {
+        "id": "snap-shot"
+      }
+    ]
+  },
+  "gunslinger": {
+    "id": "gunslinger",
+    "name": "Gunslinger",
+    "description": [
+      "You never travel anywhere without a blaster (or two), and you know how to handle yourself in a gunfight. The following talents may only be used with pistols and rifles."
+    ],
+    "icon": "multiattack-proficiency-pistols",
+    "group": "Gunslinger",
+    "features": [
+      {
+        "id": "blind-shot"
+      },
+      {
+        "id": "damaging-disarm"
+      },
+      {
+        "id": "debilitating-shot"
+      },
+      {
+        "id": "deceptive-shot"
+      },
+      {
+        "id": "improved-quick-draw"
+      },
+      {
+        "id": "keep-them-honest"
+      },
+      {
+        "id": "knockdown-shot"
+      },
+      {
+        "id": "lingering-debilitation"
+      },
+      {
+        "id": "mobile-attack-pistols"
+      },
+      {
+        "id": "multiattack-proficiency"
+      },
+      {
+        "id": "pistol-duelist"
+      },
+      {
+        "id": "ranged-disarm"
+      },
+      {
+        "id": "ranged-flank"
+      },
+      {
+        "id": "retreating-fire"
+      },
+      {
+        "id": "slowing-shot"
+      },
+      {
+        "id": "swift-shot"
+      },
+      {
+        "id": "trigger-work"
+      }
+    ]
+  },
+  "pistoleer": {
+    "id": "pistoleer",
+    "name": "Pistoleer",
+    "description": [
+      "You are a master of wielding two pistols at the same time, and can use both pistols simultaneously in unusual ways."
+    ],
+    "icon": "dash-and-blast",
+    "group": "Gunslinger",
+    "features": [
+      {
+        "id": "dash-and-blast"
+      },
+      {
+        "id": "flanking-fire"
+      },
+      {
+        "id": "guaranteed-shot"
+      },
+      {
+        "id": "hailfire"
+      },
+      {
+        "id": "twin-shot"
+      }
+    ]
+  },
+  "sharpshooter": {
+    "id": "sharpshooter",
+    "name": "Sharpshooter",
+    "group": "Gunslinger",
+    "features": [
+      {
+        "id": "bullseye"
+      },
+      {
+        "id": "draw-a-bead"
+      },
+      {
+        "id": "harrying-shot"
+      },
+      {
+        "id": "pinning-shot"
+      },
+      {
+        "id": "precision-shot"
+      }
+    ]
+  },
+  "knights-armor": {
+    "id": "knights-armor",
+    "name": "Knight's Armor",
+    "description": [
+      "You are a skilled master of the Force who knows how to get the most out of your armor."
+    ],
+    "icon": "armor-mastery-imperial-knight",
+    "group": "Imperial Knight",
+    "features": [
+      {
+        "id": "armor-mastery-legacy"
+      },
+      {
+        "id": "armored-augmentation-i"
+      },
+      {
+        "id": "armored-augmentation-ii"
+      },
+      {
+        "id": "cortosis-defense"
+      },
+      {
+        "id": "cortosis-retaliation"
+      }
+    ]
+  },
+  "knights-resolve": {
+    "id": "knights-resolve",
+    "name": "Knight's Resolve",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Imperial Knight",
+    "features": [
+      {
+        "id": "knights-morale"
+      },
+      {
+        "id": "oath-of-duty"
+      },
+      {
+        "id": "praetoria-ishu"
+      },
+      {
+        "id": "praetoria-vonil"
+      },
+      {
+        "id": "strength-of-the-empire"
+      }
+    ]
+  },
+  "improviser": {
+    "id": "improviser",
+    "name": "Improviser",
+    "group": "Improviser",
+    "features": [
+      {
+        "id": "bigger-bang"
+      },
+      {
+        "id": "capture-droid"
+      },
+      {
+        "id": "custom-model"
+      },
+      {
+        "id": "improved-jury-rig"
+      },
+      {
+        "id": "improvised-device"
+      }
+    ]
+  },
+  "procurement": {
+    "id": "procurement",
+    "name": "Procurement",
+    "group": "Improviser",
+    "features": [
+      {
+        "id": "black-market-buyer"
+      },
+      {
+        "id": "excellent-kit"
+      },
+      {
+        "id": "just-what-is-needed"
+      },
+      {
+        "id": "only-the-finest"
+      },
+      {
+        "id": "right-gear-for-the-job"
+      }
+    ]
+  },
+  "autonomy": {
+    "id": "autonomy",
+    "name": "Autonomy",
+    "description": [
+      "You are able to resist any attempts to curb your independence and can fight back against anyone that tries to suppress your personality."
+    ],
+    "icon": "modification-specialist",
+    "group": "Independent Droid",
+    "features": [
+      {
+        "id": "defensive-electronics"
+      },
+      {
+        "id": "ion-resistance-10"
+      },
+      {
+        "id": "just-a-droid"
+      },
+      {
+        "id": "modification-specialist"
+      },
+      {
+        "id": "repair-self"
+      },
+      {
+        "id": "soft-reset"
+      },
+      {
+        "id": "swift-droid"
+      }
+    ]
+  },
+  "elite-droid": {
+    "id": "elite-droid",
+    "name": "Elite Droid",
+    "group": "Independent Droid",
+    "features": [
+      {
+        "id": "break-program"
+      },
+      {
+        "id": "heuristic-mastery"
+      },
+      {
+        "id": "scripted-routines"
+      },
+      {
+        "id": "ultra-resilient"
+      }
+    ]
+  },
+  "specialized-droid": {
+    "id": "specialized-droid",
+    "name": "Specialized Droid",
+    "description": [
+      "You have become more specialized than other droids of the same or similar model."
+    ],
+    "icon": "power-surge",
+    "group": "Independent Droid",
+    "features": [
+      {
+        "id": "computer-language"
+      },
+      {
+        "id": "computer-master"
+      },
+      {
+        "id": "enhanced-manipulation"
+      },
+      {
+        "id": "hotwired-processor"
+      },
+      {
+        "id": "power-boost"
+      },
+      {
+        "id": "power-surge"
+      },
+      {
+        "id": "skill-conversion"
+      }
+    ]
+  },
+  "bothan-spynet": {
+    "id": "bothan-spynet",
+    "name": "Bothan Spynet",
+    "group": "Infiltrator",
+    "features": [
+      {
+        "id": "bothan-resources"
+      },
+      {
+        "id": "knowledge-is-life"
+      },
+      {
+        "id": "knowledge-is-power"
+      },
+      {
+        "id": "knowledge-is-strength"
+      },
+      {
+        "id": "six-questions"
+      },
+      {
+        "id": "spynet-agent"
+      }
+    ]
+  },
+  "infiltration": {
+    "id": "infiltration",
+    "name": "Infiltration",
+    "group": "Infiltrator",
+    "features": [
+      {
+        "id": "always-ready"
+      },
+      {
+        "id": "concealed-weapon-expert"
+      },
+      {
+        "id": "creeping-approach"
+      },
+      {
+        "id": "set-for-stun"
+      },
+      {
+        "id": "silent-takedown"
+      }
+    ]
+  },
+  "duelist": {
+    "id": "duelist",
+    "name": "Duelist",
+    "description": [
+      "Through rigorous training and experience, you become one of the greatest swordfighters in the galaxy."
+    ],
+    "icon": "multiattack-proficiency-lightsabers",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "force-fortification"
+      },
+      {
+        "id": "greater-weapon-focus-lightsabers"
+      },
+      {
+        "id": "greater-weapon-specialization-lightsabers"
+      },
+      {
+        "id": "improved-lightsaber-throw"
+      },
+      {
+        "id": "improved-redirect"
+      },
+      {
+        "id": "improved-riposte"
+      },
+      {
+        "id": "lightsaber-form-savant"
+      },
+      {
+        "id": "multiattack-proficiency-lightsabers"
+      },
+      {
+        "id": "severing-strike"
+      },
+      {
+        "id": "shoto-master"
+      },
+      {
+        "id": "thrown-lightsaber-mastery"
+      }
+    ]
+  },
+  "jedi-archivist": {
+    "id": "jedi-archivist",
+    "name": "Jedi Archivist",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "direct"
+      },
+      {
+        "id": "impart-knowledge"
+      },
+      {
+        "id": "insight-of-the-force"
+      },
+      {
+        "id": "master-advisor"
+      },
+      {
+        "id": "scholarly-knowledge"
+      }
+    ]
+  },
+  "jedi-artisan": {
+    "id": "jedi-artisan",
+    "name": "Jedi Artisan",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "call-weapon"
+      },
+      {
+        "id": "lightsaber-specialist"
+      },
+      {
+        "id": "masterwork-lightsaber"
+      },
+      {
+        "id": "perfect-attunement"
+      },
+      {
+        "id": "quick-modification"
+      }
+    ]
+  },
+  "jedi-battlemaster": {
+    "id": "jedi-battlemaster",
+    "name": "Jedi Battlemaster",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "defensive-circle"
+      },
+      {
+        "id": "force-revive"
+      },
+      {
+        "id": "jedi-battle-commander"
+      },
+      {
+        "id": "mobile-attack-lightsabers"
+      },
+      {
+        "id": "slashing-charge"
+      }
+    ]
+  },
+  "jedi-healer": {
+    "id": "jedi-healer",
+    "name": "Jedi Healer",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "force-treatment"
+      },
+      {
+        "id": "healing-boost"
+      },
+      {
+        "id": "improved-healing-boost"
+      },
+      {
+        "id": "soothe"
+      }
+    ]
+  },
+  "jedi-instructor": {
+    "id": "jedi-instructor",
+    "name": "Jedi Instructor",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "apprentice-boon"
+      },
+      {
+        "id": "share-force-secret"
+      },
+      {
+        "id": "share-force-technique"
+      },
+      {
+        "id": "share-talent"
+      },
+      {
+        "id": "transfer-power"
+      }
+    ]
+  },
+  "jedi-investigator": {
+    "id": "jedi-investigator",
+    "name": "Jedi Investigator",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "echoes-in-the-force"
+      },
+      {
+        "id": "jedi-quarry"
+      },
+      {
+        "id": "prepared-for-danger"
+      },
+      {
+        "id": "sense-deception"
+      },
+      {
+        "id": "unclouded-judgment"
+      }
+    ]
+  },
+  "jedi-refugee": {
+    "id": "jedi-refugee",
+    "name": "Jedi Refugee",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "cover-your-tracks"
+      },
+      {
+        "id": "difficult-to-sense"
+      },
+      {
+        "id": "force-veil"
+      },
+      {
+        "id": "jedi-network"
+      }
+    ]
+  },
+  "jedi-shadow": {
+    "id": "jedi-shadow",
+    "name": "Jedi Shadow",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "dark-deception"
+      },
+      {
+        "id": "improved-sentinel-strike"
+      },
+      {
+        "id": "improved-sentinels-gambit"
+      },
+      {
+        "id": "rebuke-the-dark"
+      },
+      {
+        "id": "taint-of-the-dark-side"
+      }
+    ]
+  },
+  "jedi-watchman": {
+    "id": "jedi-watchman",
+    "name": "Jedi Watchman",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "force-warning"
+      },
+      {
+        "id": "improved-quick-draw-lightsabers"
+      },
+      {
+        "id": "sheltering-stance"
+      },
+      {
+        "id": "vigilance"
+      },
+      {
+        "id": "watchmans-advance"
+      }
+    ]
+  },
+  "jedi-weapon-master": {
+    "id": "jedi-weapon-master",
+    "name": "Jedi Weapon Master",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "combat-trance"
+      },
+      {
+        "id": "improvised-weapon-master"
+      },
+      {
+        "id": "shoto-pin"
+      },
+      {
+        "id": "twin-weapon-mastery"
+      },
+      {
+        "id": "twin-weapon-style"
+      }
+    ]
+  },
+  "lightsaber-forms": {
+    "id": "lightsaber-forms",
+    "name": "Lightsaber Forms",
+    "description": [
+      "You have refined your knowledge of lightsaber technique, your blade becoming an extension of your self. Anyone using a lightsaber may use one of these forms, but you have the discipline and patience to become a true master of the form."
+    ],
+    "icon": "makashi",
+    "group": "Jedi Knight",
+    "features": [
+      {
+        "id": "ataru"
+      },
+      {
+        "id": "djem-so"
+      },
+      {
+        "id": "jarkai"
+      },
+      {
+        "id": "juyo"
+      },
+      {
+        "id": "makashi"
+      },
+      {
+        "id": "niman"
+      },
+      {
+        "id": "shien"
+      },
+      {
+        "id": "shii-cho"
+      },
+      {
+        "id": "sokan"
+      },
+      {
+        "id": "soresu"
+      },
+      {
+        "id": "trakata"
+      },
+      {
+        "id": "vaapad"
+      }
+    ]
+  },
+  "martial-arts-forms": {
+    "id": "martial-arts-forms",
+    "name": "Martial Arts Forms",
+    "group": "Martial Arts Master",
+    "features": [
+      {
+        "id": "echani-expertise"
+      },
+      {
+        "id": "hijkata-expertise"
+      },
+      {
+        "id": "ktara-expertise"
+      },
+      {
+        "id": "kthri-expertise"
+      },
+      {
+        "id": "stava-expertise"
+      },
+      {
+        "id": "tae-jitsu-expertise"
+      },
+      {
+        "id": "wrruushi-expertise"
+      }
+    ]
+  },
+  "unarmed-mastery": {
+    "id": "unarmed-mastery",
+    "name": "Unarmed Mastery",
+    "group": "Martial Arts Master",
+    "features": [
+      {
+        "id": "flurry-of-blows"
+      },
+      {
+        "id": "hardened-strike"
+      },
+      {
+        "id": "punishing-strike"
+      }
+    ]
+  },
+  "piracy": {
+    "id": "piracy",
+    "name": "Piracy",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Master Privateer",
+    "features": [
+      {
+        "id": "bloodthirsty"
+      },
+      {
+        "id": "fight-to-the-death"
+      },
+      {
+        "id": "keep-them-reeling-scum"
+      },
+      {
+        "id": "raiders-frenzy"
+      },
+      {
+        "id": "raiders-surge"
+      },
+      {
+        "id": "savage-reputation"
+      },
+      {
+        "id": "take-them-alive"
+      }
+    ]
+  },
+  "privateer": {
+    "id": "privateer",
+    "name": "Privateer",
+    "description": [
+      "You are a veteran of privateering and have learned the secrets of fighting aboard starships."
+    ],
+    "icon": "blaster-and-blade-iii",
+    "group": "Master Privateer",
+    "features": [
+      {
+        "id": "armored-spacer"
+      },
+      {
+        "id": "attract-privateer"
+      },
+      {
+        "id": "blaster-and-blade-i"
+      },
+      {
+        "id": "blaster-and-blade-ii"
+      },
+      {
+        "id": "blaster-and-blade-iii"
+      },
+      {
+        "id": "boarder"
+      },
+      {
+        "id": "ion-mastery"
+      },
+      {
+        "id": "multiattack-proficiency-advanced-melee-weapons"
+      },
+      {
+        "id": "preserving-shot"
+      }
+    ]
+  },
+  "advanced-medicine": {
+    "id": "advanced-medicine",
+    "name": "Advanced Medicine",
+    "group": "Medic",
+    "features": [
+      {
+        "id": "battlefield-medic"
+      },
+      {
+        "id": "bring-them-back"
+      },
+      {
+        "id": "emergency-team"
+      },
+      {
+        "id": "extra-first-aid"
+      },
+      {
+        "id": "medical-miracle"
+      },
+      {
+        "id": "natural-healing"
+      },
+      {
+        "id": "second-chance"
+      },
+      {
+        "id": "steady-under-pressure"
+      }
+    ]
+  },
+  "melee-duelist": {
+    "id": "melee-duelist",
+    "name": "Melee Duelist",
+    "group": "Melee Duelist",
+    "features": [
+      {
+        "id": "advantageous-strike"
+      },
+      {
+        "id": "dirty-tricks"
+      },
+      {
+        "id": "dual-weapon-flourish-i"
+      },
+      {
+        "id": "dual-weapon-flourish-ii"
+      },
+      {
+        "id": "master-of-elegance"
+      },
+      {
+        "id": "multiattack-proficiency-advanced-melee-weapons"
+      },
+      {
+        "id": "out-of-nowhere"
+      },
+      {
+        "id": "single-weapon-flourish-i"
+      },
+      {
+        "id": "single-weapon-flourish-ii"
+      }
+    ]
+  },
+  "military-engineer": {
+    "id": "military-engineer",
+    "name": "Military Engineer",
+    "group": "Military Engineer",
+    "features": [
+      {
+        "id": "breach-cover"
+      },
+      {
+        "id": "breaching-explosive"
+      },
+      {
+        "id": "droid-expert"
+      },
+      {
+        "id": "prepared-explosive"
+      },
+      {
+        "id": "problem-solver"
+      },
+      {
+        "id": "quick-modifications"
+      },
+      {
+        "id": "repairs-on-the-fly"
+      },
+      {
+        "id": "sabotage-device"
+      },
+      {
+        "id": "tech-savant"
+      },
+      {
+        "id": "vehicular-boost"
+      }
+    ]
+  },
+  "fugitive-commander": {
+    "id": "fugitive-commander",
+    "name": "Fugitive Commander",
+    "group": "Officer",
+    "features": [
+      {
+        "id": "disciplined-trickery"
+      },
+      {
+        "id": "group-perception"
+      },
+      {
+        "id": "hasty-withdrawal"
+      },
+      {
+        "id": "stalwart-subordinates"
+      },
+      {
+        "id": "stay-in-the-fight"
+      },
+      {
+        "id": "stealthy-withdrawal"
+      }
+    ]
+  },
+  "military-tactics": {
+    "id": "military-tactics",
+    "name": "Military Tactics",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Officer",
+    "features": [
+      {
+        "id": "assault-tactics"
+      },
+      {
+        "id": "commanders-prerogative"
+      },
+      {
+        "id": "deployment-tactics"
+      },
+      {
+        "id": "exploit-weakness"
+      },
+      {
+        "id": "field-tactics"
+      },
+      {
+        "id": "grand-leader"
+      },
+      {
+        "id": "irregular-tactics"
+      },
+      {
+        "id": "lead-by-example-regions"
+      },
+      {
+        "id": "one-for-the-team"
+      },
+      {
+        "id": "outmaneuver"
+      },
+      {
+        "id": "shift-defense-i"
+      },
+      {
+        "id": "shift-defense-ii"
+      },
+      {
+        "id": "shift-defense-iii"
+      },
+      {
+        "id": "tactical-edge"
+      },
+      {
+        "id": "turn-the-tide"
+      },
+      {
+        "id": "uncanny-defense"
+      }
+    ]
+  },
+  "naval-officer": {
+    "id": "naval-officer",
+    "name": "Naval Officer",
+    "group": "Officer",
+    "features": [
+      {
+        "id": "combined-fire-starships"
+      },
+      {
+        "id": "fleet-deployment"
+      },
+      {
+        "id": "fleet-tactics"
+      },
+      {
+        "id": "its-a-trap"
+      },
+      {
+        "id": "legendary-commander"
+      }
+    ]
+  },
+  "rebel-recruiter": {
+    "id": "rebel-recruiter",
+    "name": "Rebel Recruiter",
+    "group": "Officer",
+    "features": [
+      {
+        "id": "bolstered-numbers"
+      },
+      {
+        "id": "noble-sacrifice"
+      },
+      {
+        "id": "recruit-enemy"
+      },
+      {
+        "id": "stay-in-the-fight-rebellion"
+      },
+      {
+        "id": "team-recruiting"
+      }
+    ]
+  },
+  "outlaw": {
+    "id": "outlaw",
+    "name": "Outlaw",
+    "group": "Outlaw",
+    "features": [
+      {
+        "id": "confounding-attack"
+      },
+      {
+        "id": "double-up"
+      },
+      {
+        "id": "find-an-opening"
+      },
+      {
+        "id": "opportunistic-defense"
+      },
+      {
+        "id": "preternatural-senses"
+      },
+      {
+        "id": "seize-the-moment-scum"
+      },
+      {
+        "id": "tangle-up"
+      },
+      {
+        "id": "uncanny-instincts"
+      }
+    ]
+  },
+  "pathfinder": {
+    "id": "pathfinder",
+    "name": "Pathfinder",
+    "group": "Pathfinder",
+    "features": [
+      {
+        "id": "bunker-blaster"
+      },
+      {
+        "id": "defensive-measures"
+      },
+      {
+        "id": "enhance-cover"
+      },
+      {
+        "id": "escort-fighter"
+      },
+      {
+        "id": "launch-point"
+      },
+      {
+        "id": "obscuring-defenses"
+      },
+      {
+        "id": "relocate"
+      },
+      {
+        "id": "safe-passage"
+      },
+      {
+        "id": "safe-zone"
+      },
+      {
+        "id": "zone-of-recuperation"
+      }
+    ]
+  },
+  "sabotage": {
+    "id": "sabotage",
+    "name": "Sabotage",
+    "group": "Saboteur",
+    "features": [
+      {
+        "id": "device-jammer"
+      },
+      {
+        "id": "droid-jammer"
+      },
+      {
+        "id": "extreme-explosion"
+      },
+      {
+        "id": "mine-mastery"
+      },
+      {
+        "id": "shaped-explosion"
+      },
+      {
+        "id": "skilled-demolitionist"
+      }
+    ]
+  },
+  "turret": {
+    "id": "turret",
+    "name": "Turret",
+    "group": "Saboteur",
+    "features": [
+      {
+        "id": "blaster-turret-i"
+      },
+      {
+        "id": "blaster-turret-ii"
+      },
+      {
+        "id": "blaster-turret-iii"
+      },
+      {
+        "id": "ion-turret"
+      },
+      {
+        "id": "stun-turret"
+      },
+      {
+        "id": "turret-self-destruct"
+      }
+    ]
+  },
+  "implant": {
+    "id": "implant",
+    "name": "Implant",
+    "group": "Shaper",
+    "features": [
+      {
+        "id": "adrenaline-implant"
+      },
+      {
+        "id": "precision-implant"
+      },
+      {
+        "id": "resilience-implant"
+      },
+      {
+        "id": "speed-implant"
+      },
+      {
+        "id": "strength-implant"
+      }
+    ]
+  },
+  "shaper": {
+    "id": "shaper",
+    "name": "Shaper",
+    "group": "Shaper",
+    "features": [
+      {
+        "id": "biotech-mastery"
+      },
+      {
+        "id": "expedient-mending"
+      },
+      {
+        "id": "expert-shaper"
+      },
+      {
+        "id": "master-mender"
+      },
+      {
+        "id": "skilled-implanter"
+      }
+    ]
+  },
+  "sith": {
+    "id": "sith",
+    "name": "Sith",
+    "description": [
+      "The talents in this tree are not included in the rules data. Check your sourcebook."
+    ],
+    "group": "Sith Apprentice",
+    "features": [
+      {
+        "id": "affliction"
+      },
+      {
+        "id": "dark-healing"
+      },
+      {
+        "id": "dark-healing-field"
+      },
+      {
+        "id": "dark-scourge"
+      },
+      {
+        "id": "dark-side-adept"
+      },
+      {
+        "id": "dark-side-master"
+      },
+      {
+        "id": "drain-force"
+      },
+      {
+        "id": "force-deception"
+      },
+      {
+        "id": "improved-dark-healing"
+      },
+      {
+        "id": "sith-alchemy"
+      },
+      {
+        "id": "stolen-form"
+      },
+      {
+        "id": "wicked-strike-talent"
+      }
+    ]
+  },
+  "sith-alchemy": {
+    "id": "sith-alchemy",
+    "name": "Sith Alchemy",
+    "group": "Sith Apprentice",
+    "features": [
+      {
+        "id": "cause-mutation"
+      },
+      {
+        "id": "rapid-alchemy"
+      },
+      {
+        "id": "sith-alchemy-jedi"
+      },
+      {
+        "id": "sith-alchemy-specialist"
+      }
+    ]
+  },
+  "sith-commander": {
+    "id": "sith-commander",
+    "name": "Sith Commander",
+    "group": "Sith Apprentice",
+    "features": [
+      {
+        "id": "desperate-measures"
+      },
+      {
+        "id": "focus-terror"
+      },
+      {
+        "id": "incite-rage"
+      },
+      {
+        "id": "power-of-hatred"
+      }
+    ]
+  },
+  "vanguard": {
+    "id": "vanguard",
+    "name": "Vanguard",
+    "group": "Vanguard",
+    "features": [
+      {
+        "id": "enhanced-vision"
+      },
+      {
+        "id": "impenetrable-cover"
+      },
+      {
+        "id": "invisible-attacker"
+      },
+      {
+        "id": "mark-the-target"
+      },
+      {
+        "id": "maximize-cover"
+      },
+      {
+        "id": "shellshock"
+      },
+      {
+        "id": "soften-the-target"
+      },
+      {
+        "id": "triangulate"
+      }
+    ]
+  },
+  "jedi-bonus": {
+    "id": "jedi-bonus",
+    "name": "Jedi bonus feats",
+    "features": [
+      {
+        "id": "accelerated-strike"
+      },
+      {
+        "id": "acrobatic-strike"
+      },
+      {
+        "id": "assured-attack"
+      },
+      {
+        "id": "attack-combo-melee"
+      },
+      {
+        "id": "battering-attack"
+      },
+      {
+        "id": "brilliant-defense"
+      },
+      {
+        "id": "brink-of-death"
+      },
+      {
+        "id": "burst-of-speed"
+      },
+      {
+        "id": "cleave"
+      },
+      {
+        "id": "close-combat-escape"
+      },
+      {
+        "id": "combat-reflexes"
+      },
+      {
+        "id": "critical-strike"
+      },
+      {
+        "id": "deft-charge"
+      },
+      {
+        "id": "dive-for-cover"
+      },
+      {
+        "id": "dodge"
+      },
+      {
+        "id": "double-attack"
+      },
+      {
+        "id": "dual-weapon-mastery-i"
+      },
+      {
+        "id": "dual-weapon-mastery-ii"
+      },
+      {
+        "id": "dual-weapon-mastery-iii"
+      },
+      {
+        "id": "elders-knowledge"
+      },
+      {
+        "id": "fast-surge"
+      },
+      {
+        "id": "feat-of-strength"
+      },
+      {
+        "id": "fight-through-pain"
+      },
+      {
+        "id": "flurry"
+      },
+      {
+        "id": "force-of-personality"
+      },
+      {
+        "id": "force-readiness"
+      },
+      {
+        "id": "grapple-resistance"
+      },
+      {
+        "id": "great-cleave"
+      },
+      {
+        "id": "impetuous-move"
+      },
+      {
+        "id": "improved-charge"
+      },
+      {
+        "id": "improved-disarm"
+      },
+      {
+        "id": "improved-rapid-strike"
+      },
+      {
+        "id": "impulsive-flight"
+      },
+      {
+        "id": "instinctive-attack"
+      },
+      {
+        "id": "instinctive-defense"
+      },
+      {
+        "id": "lightning-draw"
+      },
+      {
+        "id": "martial-arts-i"
+      },
+      {
+        "id": "martial-arts-ii"
+      },
+      {
+        "id": "martial-arts-iii"
+      },
+      {
+        "id": "melee-defense"
+      },
+      {
+        "id": "mission-specialist"
+      },
+      {
+        "id": "mobility"
+      },
+      {
+        "id": "moving-target"
+      },
+      {
+        "id": "never-surrender"
+      },
+      {
+        "id": "officer-candidacy-training"
+      },
+      {
+        "id": "opportunistic-retreat"
+      },
+      {
+        "id": "power-attack"
+      },
+      {
+        "id": "powerful-charge"
+      },
+      {
+        "id": "quick-draw"
+      },
+      {
+        "id": "rapid-reaction"
+      },
+      {
+        "id": "rapid-strike"
+      },
+      {
+        "id": "recovering-surge"
+      },
+      {
+        "id": "resilient-strength"
+      },
+      {
+        "id": "resolute-stance"
+      },
+      {
+        "id": "resurgence"
+      },
+      {
+        "id": "risk-taker"
+      },
+      {
+        "id": "running-attack"
+      },
+      {
+        "id": "savage-attack"
+      },
+      {
+        "id": "skill-focus"
+      },
+      {
+        "id": "skill-training"
+      },
+      {
+        "id": "slippery-maneuver"
+      },
+      {
+        "id": "staggering-attack-war"
+      },
+      {
+        "id": "stand-tall"
+      },
+      {
+        "id": "strong-in-the-force"
+      },
+      {
+        "id": "swarm"
+      },
+      {
+        "id": "tactical-advantage"
+      },
+      {
+        "id": "triple-attack"
+      },
+      {
+        "id": "triple-crit"
+      },
+      {
+        "id": "tumble-defense"
+      },
+      {
+        "id": "unstoppable-force"
+      },
+      {
+        "id": "unwavering-resolve"
+      },
+      {
+        "id": "wary-defender"
+      },
+      {
+        "id": "weapon-finesse"
+      },
+      {
+        "id": "weapon-focus"
+      },
+      {
+        "id": "wicked-strike"
+      },
+      {
+        "id": "withdrawal-strike"
+      }
+    ]
+  },
+  "noble-bonus": {
+    "id": "noble-bonus",
+    "name": "Noble bonus feats",
+    "features": [
+      {
+        "id": "armor-proficiency-light"
+      },
+      {
+        "id": "biotech-specialist"
+      },
+      {
+        "id": "biotech-surgery"
+      },
+      {
+        "id": "brilliant-defense"
+      },
+      {
+        "id": "combat-trickery"
+      },
+      {
+        "id": "cornered"
+      },
+      {
+        "id": "cut-the-red-tape"
+      },
+      {
+        "id": "cybernetic-surgery"
+      },
+      {
+        "id": "demoralizing-strike"
+      },
+      {
+        "id": "disabler"
+      },
+      {
+        "id": "disturbing-presence"
+      },
+      {
+        "id": "elders-knowledge"
+      },
+      {
+        "id": "exotic-weapon-proficiency"
+      },
+      {
+        "id": "experienced-medic"
+      },
+      {
+        "id": "expert-briber"
+      },
+      {
+        "id": "fast-surge"
+      },
+      {
+        "id": "fight-through-pain"
+      },
+      {
+        "id": "fl-che"
+      },
+      {
+        "id": "flurry"
+      },
+      {
+        "id": "force-of-personality"
+      },
+      {
+        "id": "friends-in-low-places"
+      },
+      {
+        "id": "hasty-modification"
+      },
+      {
+        "id": "impulsive-flight"
+      },
+      {
+        "id": "indomitable-personality"
+      },
+      {
+        "id": "informer"
+      },
+      {
+        "id": "intimidator"
+      },
+      {
+        "id": "leader-of-droids"
+      },
+      {
+        "id": "linguist"
+      },
+      {
+        "id": "master-of-disguise"
+      },
+      {
+        "id": "melee-defense"
+      },
+      {
+        "id": "mission-specialist"
+      },
+      {
+        "id": "mounted-combat"
+      },
+      {
+        "id": "opportunistic-retreat"
+      },
+      {
+        "id": "predictive-defense"
+      },
+      {
+        "id": "quick-skill"
+      },
+      {
+        "id": "rapid-reaction"
+      },
+      {
+        "id": "rapport"
+      },
+      {
+        "id": "recall"
+      },
+      {
+        "id": "recovering-surge"
+      },
+      {
+        "id": "return-fire"
+      },
+      {
+        "id": "returning-bug"
+      },
+      {
+        "id": "sadistic-strike"
+      },
+      {
+        "id": "signature-device"
+      },
+      {
+        "id": "silver-tongue"
+      },
+      {
+        "id": "skill-focus"
+      },
+      {
+        "id": "skill-training"
+      },
+      {
+        "id": "sport-hunter"
+      },
+      {
+        "id": "stand-tall"
+      },
+      {
+        "id": "surgical-expertise"
+      },
+      {
+        "id": "tactical-advantage"
+      },
+      {
+        "id": "tech-specialist"
+      },
+      {
+        "id": "unwavering-resolve"
+      },
+      {
+        "id": "wary-defender"
+      },
+      {
+        "id": "weapon-finesse"
+      },
+      {
+        "id": "weapon-proficiency"
+      },
+      {
+        "id": "wicked-strike"
+      }
+    ]
+  },
+  "scoundrel-bonus": {
+    "id": "scoundrel-bonus",
+    "name": "Scoundrel bonus feats",
+    "features": [
+      {
+        "id": "acrobatic-ally"
+      },
+      {
+        "id": "acrobatic-dodge"
+      },
+      {
+        "id": "advantageous-attack"
+      },
+      {
+        "id": "advantageous-cover"
+      },
+      {
+        "id": "attack-combo-ranged"
+      },
+      {
+        "id": "bad-feeling"
+      },
+      {
+        "id": "bantha-herder"
+      },
+      {
+        "id": "biotech-specialist"
+      },
+      {
+        "id": "burst-of-speed"
+      },
+      {
+        "id": "close-combat-escape"
+      },
+      {
+        "id": "collateral-damage"
+      },
+      {
+        "id": "combat-trickery"
+      },
+      {
+        "id": "cornered"
+      },
+      {
+        "id": "crossfire"
+      },
+      {
+        "id": "cunning-attack"
+      },
+      {
+        "id": "deadeye"
+      },
+      {
+        "id": "deceptive-drop"
+      },
+      {
+        "id": "desperate-gambit"
+      },
+      {
+        "id": "disabler"
+      },
+      {
+        "id": "disturbing-presence"
+      },
+      {
+        "id": "dodge"
+      },
+      {
+        "id": "droid-hunter"
+      },
+      {
+        "id": "droidcraft"
+      },
+      {
+        "id": "duck-and-cover"
+      },
+      {
+        "id": "expert-briber"
+      },
+      {
+        "id": "expert-droid-repair"
+      },
+      {
+        "id": "fast-surge"
+      },
+      {
+        "id": "fatal-hit"
+      },
+      {
+        "id": "fight-through-pain"
+      },
+      {
+        "id": "fleet-footed"
+      },
+      {
+        "id": "force-of-personality"
+      },
+      {
+        "id": "friends-in-low-places"
+      },
+      {
+        "id": "gearhead"
+      },
+      {
+        "id": "hasty-modification"
+      },
+      {
+        "id": "hobbling-strike"
+      },
+      {
+        "id": "hold-together"
+      },
+      {
+        "id": "implant-training"
+      },
+      {
+        "id": "improved-opportunistic-trickery"
+      },
+      {
+        "id": "improved-sleight-of-hand"
+      },
+      {
+        "id": "impulsive-flight"
+      },
+      {
+        "id": "indomitable-personality"
+      },
+      {
+        "id": "knife-trick"
+      },
+      {
+        "id": "lightning-draw"
+      },
+      {
+        "id": "master-of-disguise"
+      },
+      {
+        "id": "melee-defense"
+      },
+      {
+        "id": "mission-specialist"
+      },
+      {
+        "id": "mobility"
+      },
+      {
+        "id": "moving-target"
+      },
+      {
+        "id": "opportunistic-shooter"
+      },
+      {
+        "id": "opportunistic-trickery"
+      },
+      {
+        "id": "overwhelming-attack"
+      },
+      {
+        "id": "pistoleer"
+      },
+      {
+        "id": "poison-resistance"
+      },
+      {
+        "id": "precise-shot"
+      },
+      {
+        "id": "predictive-defense"
+      },
+      {
+        "id": "prime-shot"
+      },
+      {
+        "id": "quick-draw"
+      },
+      {
+        "id": "quick-skill"
+      },
+      {
+        "id": "rapid-reaction"
+      },
+      {
+        "id": "rapid-shot"
+      },
+      {
+        "id": "recovering-surge"
+      },
+      {
+        "id": "return-fire"
+      },
+      {
+        "id": "returning-bug"
+      },
+      {
+        "id": "running-attack"
+      },
+      {
+        "id": "sadistic-strike"
+      },
+      {
+        "id": "scavenger"
+      },
+      {
+        "id": "signature-device"
+      },
+      {
+        "id": "silver-tongue"
+      },
+      {
+        "id": "skill-focus"
+      },
+      {
+        "id": "skill-training"
+      },
+      {
+        "id": "sniper-shot"
+      },
+      {
+        "id": "stand-tall"
+      },
+      {
+        "id": "steadying-position"
+      },
+      {
+        "id": "tech-specialist"
+      },
+      {
+        "id": "vehicle-systems-expertise"
+      },
+      {
+        "id": "vehicular-combat"
+      },
+      {
+        "id": "vehicular-surge"
+      },
+      {
+        "id": "weapon-proficiency"
+      },
+      {
+        "id": "zero-range"
+      }
+    ]
+  },
+  "scout-bonus": {
+    "id": "scout-bonus",
+    "name": "Scout bonus feats",
+    "features": [
+      {
+        "id": "advantageous-attack"
+      },
+      {
+        "id": "advantageous-cover"
+      },
+      {
+        "id": "armor-proficiency-heavy"
+      },
+      {
+        "id": "armor-proficiency-light"
+      },
+      {
+        "id": "armor-proficiency-medium"
+      },
+      {
+        "id": "attack-combo-ranged"
+      },
+      {
+        "id": "bad-feeling"
+      },
+      {
+        "id": "burst-of-speed"
+      },
+      {
+        "id": "careful-shot"
+      },
+      {
+        "id": "conditioning"
+      },
+      {
+        "id": "cornered"
+      },
+      {
+        "id": "cunning-attack"
+      },
+      {
+        "id": "deadeye"
+      },
+      {
+        "id": "deadly-sniper"
+      },
+      {
+        "id": "deft-charge"
+      },
+      {
+        "id": "destructive-force"
+      },
+      {
+        "id": "disabler"
+      },
+      {
+        "id": "dive-for-cover"
+      },
+      {
+        "id": "dodge"
+      },
+      {
+        "id": "droid-hunter"
+      },
+      {
+        "id": "droidcraft"
+      },
+      {
+        "id": "expert-droid-repair"
+      },
+      {
+        "id": "far-shot"
+      },
+      {
+        "id": "fast-surge"
+      },
+      {
+        "id": "fatal-hit"
+      },
+      {
+        "id": "feat-of-strength"
+      },
+      {
+        "id": "flash-and-clear"
+      },
+      {
+        "id": "forceful-blast"
+      },
+      {
+        "id": "fortifying-recovery"
+      },
+      {
+        "id": "gearhead"
+      },
+      {
+        "id": "grapple-resistance"
+      },
+      {
+        "id": "grazing-shot"
+      },
+      {
+        "id": "hobbling-strike"
+      },
+      {
+        "id": "hold-together"
+      },
+      {
+        "id": "hyperblazer"
+      },
+      {
+        "id": "improvised-weapon-mastery"
+      },
+      {
+        "id": "increased-agility"
+      },
+      {
+        "id": "linguist"
+      },
+      {
+        "id": "maniacal-charge"
+      },
+      {
+        "id": "meat-shield"
+      },
+      {
+        "id": "mission-specialist"
+      },
+      {
+        "id": "mobility"
+      },
+      {
+        "id": "mounted-combat"
+      },
+      {
+        "id": "moving-target"
+      },
+      {
+        "id": "never-surrender"
+      },
+      {
+        "id": "opportunistic-shooter"
+      },
+      {
+        "id": "pistoleer"
+      },
+      {
+        "id": "point-blank-shot"
+      },
+      {
+        "id": "poison-resistance"
+      },
+      {
+        "id": "precise-shot"
+      },
+      {
+        "id": "prime-shot"
+      },
+      {
+        "id": "rapid-reaction"
+      },
+      {
+        "id": "rapid-shot"
+      },
+      {
+        "id": "rebel-military-training"
+      },
+      {
+        "id": "recovering-surge"
+      },
+      {
+        "id": "resilient-strength"
+      },
+      {
+        "id": "return-fire"
+      },
+      {
+        "id": "riflemaster"
+      },
+      {
+        "id": "risk-taker"
+      },
+      {
+        "id": "running-attack"
+      },
+      {
+        "id": "skill-focus"
+      },
+      {
+        "id": "skill-training"
+      },
+      {
+        "id": "slippery-maneuver"
+      },
+      {
+        "id": "sniper"
+      },
+      {
+        "id": "sport-hunter"
+      },
+      {
+        "id": "stand-tall"
+      },
+      {
+        "id": "steadying-position"
+      },
+      {
+        "id": "targeted-area"
+      },
+      {
+        "id": "trample"
+      },
+      {
+        "id": "vehicle-systems-expertise"
+      },
+      {
+        "id": "vehicular-combat"
+      },
+      {
+        "id": "vehicular-surge"
+      },
+      {
+        "id": "weapon-proficiency"
+      },
+      {
+        "id": "wilderness-first-aid"
+      }
+    ]
+  },
+  "soldier-bonus": {
+    "id": "soldier-bonus",
+    "name": "Soldier bonus feats",
+    "features": [
+      {
+        "id": "accelerated-strike"
+      },
+      {
+        "id": "advantageous-cover"
+      },
+      {
+        "id": "angled-throw"
+      },
+      {
+        "id": "armor-proficiency-heavy"
+      },
+      {
+        "id": "artillery-shot"
+      },
+      {
+        "id": "assured-attack"
+      },
+      {
+        "id": "attack-combo-fire-strike"
+      },
+      {
+        "id": "attack-combo-melee"
+      },
+      {
+        "id": "attack-combo-ranged"
+      },
+      {
+        "id": "autofire-assault"
+      },
+      {
+        "id": "autofire-sweep"
+      },
+      {
+        "id": "bantha-herder"
+      },
+      {
+        "id": "bantha-rush"
+      },
+      {
+        "id": "battering-attack"
+      },
+      {
+        "id": "blaster-barrage"
+      },
+      {
+        "id": "bone-crusher"
+      },
+      {
+        "id": "brink-of-death"
+      },
+      {
+        "id": "burst-of-speed"
+      },
+      {
+        "id": "careful-shot"
+      },
+      {
+        "id": "charging-fire"
+      },
+      {
+        "id": "cleave"
+      },
+      {
+        "id": "collateral-damage"
+      },
+      {
+        "id": "combat-reflexes"
+      },
+      {
+        "id": "conditioning"
+      },
+      {
+        "id": "coordinated-attack"
+      },
+      {
+        "id": "coordinated-barrage"
+      },
+      {
+        "id": "critical-strike"
+      },
+      {
+        "id": "crossfire"
+      },
+      {
+        "id": "crush"
+      },
+      {
+        "id": "deadeye"
+      },
+      {
+        "id": "deadly-sniper"
+      },
+      {
+        "id": "deft-charge"
+      },
+      {
+        "id": "destructive-force"
+      },
+      {
+        "id": "disabler"
+      },
+      {
+        "id": "dive-for-cover"
+      },
+      {
+        "id": "double-attack"
+      },
+      {
+        "id": "droid-hunter"
+      },
+      {
+        "id": "dual-weapon-mastery-i"
+      },
+      {
+        "id": "dual-weapon-mastery-ii"
+      },
+      {
+        "id": "dual-weapon-mastery-iii"
+      },
+      {
+        "id": "exotic-weapon-proficiency"
+      },
+      {
+        "id": "experienced-medic"
+      },
+      {
+        "id": "far-shot"
+      },
+      {
+        "id": "fast-surge"
+      },
+      {
+        "id": "fatal-hit"
+      },
+      {
+        "id": "feat-of-strength"
+      },
+      {
+        "id": "fl-che"
+      },
+      {
+        "id": "flash-and-clear"
+      },
+      {
+        "id": "flood-of-fire"
+      },
+      {
+        "id": "flurry"
+      },
+      {
+        "id": "forceful-blast"
+      },
+      {
+        "id": "fortifying-recovery"
+      },
+      {
+        "id": "frightening-cleave"
+      },
+      {
+        "id": "galactic-alliance-military-training"
+      },
+      {
+        "id": "grab-back"
+      },
+      {
+        "id": "grand-army-of-the-republic"
+      },
+      {
+        "id": "grapple-resistance"
+      },
+      {
+        "id": "grazing-shot"
+      },
+      {
+        "id": "great-cleave"
+      },
+      {
+        "id": "gunnery-specialist"
+      },
+      {
+        "id": "halt"
+      },
+      {
+        "id": "heavy-hitter"
+      },
+      {
+        "id": "hobbling-strike"
+      },
+      {
+        "id": "imperial-military-training"
+      },
+      {
+        "id": "impetuous-move"
+      },
+      {
+        "id": "improved-bantha-rush"
+      },
+      {
+        "id": "improved-charge"
+      },
+      {
+        "id": "improved-disarm"
+      },
+      {
+        "id": "improved-rapid-strike"
+      },
+      {
+        "id": "improvised-weapon-mastery"
+      },
+      {
+        "id": "increased-agility"
+      },
+      {
+        "id": "knock-heads"
+      },
+      {
+        "id": "lightning-draw"
+      },
+      {
+        "id": "maniacal-charge"
+      },
+      {
+        "id": "martial-arts-i"
+      },
+      {
+        "id": "martial-arts-ii"
+      },
+      {
+        "id": "martial-arts-iii"
+      },
+      {
+        "id": "meat-shield"
+      },
+      {
+        "id": "melee-defense"
+      },
+      {
+        "id": "mighty-swing"
+      },
+      {
+        "id": "mighty-throw"
+      },
+      {
+        "id": "mission-specialist"
+      },
+      {
+        "id": "multi-grab"
+      },
+      {
+        "id": "never-surrender"
+      },
+      {
+        "id": "officer-candidacy-training"
+      },
+      {
+        "id": "opportunistic-shooter"
+      },
+      {
+        "id": "overwhelming-attack"
+      },
+      {
+        "id": "pin"
+      },
+      {
+        "id": "pistoleer"
+      },
+      {
+        "id": "point-blank-shot"
+      },
+      {
+        "id": "power-attack"
+      },
+      {
+        "id": "power-blast"
+      },
+      {
+        "id": "precise-shot"
+      },
+      {
+        "id": "prime-shot"
+      },
+      {
+        "id": "quick-draw"
+      },
+      {
+        "id": "rancor-crush"
+      },
+      {
+        "id": "rapid-reaction"
+      },
+      {
+        "id": "rapid-shot"
+      },
+      {
+        "id": "rapid-strike"
+      },
+      {
+        "id": "rapport"
+      },
+      {
+        "id": "rebel-military-training"
+      },
+      {
+        "id": "recovering-surge"
+      },
+      {
+        "id": "resilient-strength"
+      },
+      {
+        "id": "resolute-stance"
+      },
+      {
+        "id": "resurgence"
+      },
+      {
+        "id": "riflemaster"
+      },
+      {
+        "id": "risk-taker"
+      },
+      {
+        "id": "running-attack"
+      },
+      {
+        "id": "sadistic-strike"
+      },
+      {
+        "id": "savage-attack"
+      },
+      {
+        "id": "separatist-military-training"
+      },
+      {
+        "id": "shake-it-off"
+      },
+      {
+        "id": "skill-focus"
+      },
+      {
+        "id": "skill-training"
+      },
+      {
+        "id": "slippery-maneuver"
+      },
+      {
+        "id": "sniper"
+      },
+      {
+        "id": "sniper-shot"
+      },
+      {
+        "id": "sport-hunter"
+      },
+      {
+        "id": "staggering-attack-war"
+      },
+      {
+        "id": "steadying-position"
+      },
+      {
+        "id": "strafe"
+      },
+      {
+        "id": "targeted-area"
+      },
+      {
+        "id": "throw"
+      },
+      {
+        "id": "toughness"
+      },
+      {
+        "id": "trench-warrior"
+      },
+      {
+        "id": "trip"
+      },
+      {
+        "id": "triple-attack"
+      },
+      {
+        "id": "triple-crit"
+      },
+      {
+        "id": "tumble-defense"
+      },
+      {
+        "id": "unstoppable-force"
+      },
+      {
+        "id": "vehicular-combat"
+      },
+      {
+        "id": "vehicular-surge"
+      },
+      {
+        "id": "wary-defender"
+      },
+      {
+        "id": "weapon-focus"
+      },
+      {
+        "id": "weapon-proficiency"
+      },
+      {
+        "id": "withdrawal-strike"
+      },
+      {
+        "id": "wookiee-grip"
+      },
+      {
+        "id": "zero-range"
+      }
+    ]
+  }
+}

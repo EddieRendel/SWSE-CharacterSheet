@@ -1,0 +1,4 @@
+[
+  "feature \"superior-tech\": requirements.levle -> requirements.level (prereq was never enforced)",
+  "49 species prerequisites retargeted from features -> species"
+]

@@ -1,0 +1,137 @@
+{
+  "acrobatics": {
+    "id": "acrobatics",
+    "name": "Acrobatics",
+    "modifier": "dex",
+    "armorCheck": true
+  },
+  "climb": {
+    "id": "climb",
+    "name": "Climb",
+    "modifier": "str",
+    "armorCheck": true
+  },
+  "deception": {
+    "id": "deception",
+    "name": "Deception",
+    "modifier": "cha"
+  },
+  "endurance": {
+    "id": "endurance",
+    "name": "Endurance",
+    "modifier": "con",
+    "armorCheck": true
+  },
+  "gather-information": {
+    "id": "gather-information",
+    "name": "Gather Information",
+    "modifier": "cha"
+  },
+  "initiative": {
+    "id": "initiative",
+    "name": "Initiative",
+    "modifier": "dex",
+    "armorCheck": true
+  },
+  "jump": {
+    "id": "jump",
+    "name": "Jump",
+    "modifier": "str",
+    "armorCheck": true
+  },
+  "knowledge-bureaucracy": {
+    "id": "knowledge-bureaucracy",
+    "name": "Knowledge (Bureaucracy)",
+    "modifier": "int"
+  },
+  "knowledge-galactic-lore": {
+    "id": "knowledge-galactic-lore",
+    "name": "Knowledge (Galactic Lore)",
+    "modifier": "int"
+  },
+  "knowledge-life-sciences": {
+    "id": "knowledge-life-sciences",
+    "name": "Knowledge (Life Sciences)",
+    "modifier": "int"
+  },
+  "knowledge-physical-sciences": {
+    "id": "knowledge-physical-sciences",
+    "name": "Knowledge (Physical Sciences)",
+    "modifier": "int"
+  },
+  "knowledge-social-sciences": {
+    "id": "knowledge-social-sciences",
+    "name": "Knowledge (Social Sciences)",
+    "modifier": "int"
+  },
+  "knowledge-tactics": {
+    "id": "knowledge-tactics",
+    "name": "Knowledge (Tactics)",
+    "modifier": "int"
+  },
+  "knowledge-technology": {
+    "id": "knowledge-technology",
+    "name": "Knowledge (Technology)",
+    "modifier": "int"
+  },
+  "mechanics": {
+    "id": "mechanics",
+    "name": "Mechanics",
+    "modifier": "int",
+    "trainedOnly": true
+  },
+  "perception": {
+    "id": "perception",
+    "name": "Perception",
+    "modifier": "wis"
+  },
+  "persuasion": {
+    "id": "persuasion",
+    "name": "Persuasion",
+    "modifier": "cha"
+  },
+  "pilot": {
+    "id": "pilot",
+    "name": "Pilot",
+    "modifier": "dex"
+  },
+  "ride": {
+    "id": "ride",
+    "name": "Ride",
+    "modifier": "dex",
+    "armorCheck": true
+  },
+  "stealth": {
+    "id": "stealth",
+    "name": "Stealth",
+    "modifier": "dex",
+    "armorCheck": true
+  },
+  "survival": {
+    "id": "survival",
+    "name": "Survival",
+    "modifier": "wis"
+  },
+  "swim": {
+    "id": "swim",
+    "name": "Swim",
+    "modifier": "str",
+    "armorCheck": true
+  },
+  "treat-injury": {
+    "id": "treat-injury",
+    "name": "Treat Injury",
+    "modifier": "wis"
+  },
+  "use-computer": {
+    "id": "use-computer",
+    "name": "Use Computer",
+    "modifier": "int"
+  },
+  "use-the-force": {
+    "id": "use-the-force",
+    "name": "Use the Force",
+    "modifier": "cha",
+    "requiresForceSensitivity": true
+  }
+}

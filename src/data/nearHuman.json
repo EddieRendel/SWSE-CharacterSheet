@@ -1,0 +1,42 @@
+{
+  "cosmeticLimit": 3,
+  "mechanical": [
+    "near-human-ability-adjustment",
+    "near-human-additional-arms",
+    "near-human-biotech-augmentation",
+    "near-human-breathe-underwater",
+    "near-human-climate-adaptation",
+    "near-human-conductive",
+    "near-human-cultural-cybernetics",
+    "near-human-darkvision",
+    "near-human-empath",
+    "near-human-expert-swimmer",
+    "near-human-heightened-awareness",
+    "near-human-low-light-vision",
+    "near-human-natural-armor",
+    "near-human-natural-weapon",
+    "near-human-naturally-acrobatic",
+    "near-human-persistent",
+    "near-human-quick",
+    "near-human-quick-healing",
+    "near-human-resistant",
+    "near-human-scent",
+    "near-human-spring-step",
+    "near-human-strength-surge",
+    "near-human-visually-striking",
+    "near-human-weapon-familiarity"
+  ],
+  "cosmetic": [
+    "near-human-bimms",
+    "near-human-digit-variation",
+    "near-human-eye-variation",
+    "near-human-fins",
+    "near-human-hair-variation",
+    "near-human-shaped",
+    "near-human-skin-color",
+    "near-human-skin-texture",
+    "near-human-teeth-variation",
+    "near-human-towering",
+    "near-human-webbed-digits"
+  ]
+}

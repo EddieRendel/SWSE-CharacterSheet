@@ -1,0 +1,235 @@
+{
+  "altirish": {
+    "id": "altirish",
+    "name": "Altirish"
+  },
+  "anarrese": {
+    "id": "anarrese",
+    "name": "Anarrese"
+  },
+  "anzat": {
+    "id": "anzat",
+    "name": "Anzat"
+  },
+  "arkanian": {
+    "id": "arkanian",
+    "name": "Arkanian"
+  },
+  "basic": {
+    "id": "basic",
+    "name": "Basic"
+  },
+  "basic-cannot-speak": {
+    "id": "basic-cannot-speak",
+    "name": "Basic (cannot speak)"
+  },
+  "binary": {
+    "id": "binary",
+    "name": "Binary",
+    "description": "Binary Nearly all Droids are programmed to understand a binary computer language used by most computers and intelligent machines. The simple version of this is a language skill called Binary. With it, Droids can communicate with computers and each other. Binary allows a computer or droid to communicate mathematical or technical information in great detail at a very high rate (approximately 100 times as fast as normal speech), but it has great difficulty expressing nontechnical topics such as emotion, art philosophy, or The Force. For example, as a Free Action, a Droid can use Binary to describe the exact location and physical description of all objects and characters that the Droid detects in a 10-by-10-square area, but the Droid would be unable to express the nuance of a conversation or the emotion conveyed by body language. Obviously, some Droids can understand additional languages as well- most Droids in the galaxy are programmed with Basic, even if they can't actually articulate the language. Some living beings learn to intercept the Binary language of the Droids, even if they can't themselves speak an approximation of it. A living being who understands Binary cannot understand the same volume of information as another Droid or computer, so the speaking Droid must voluntarily slow it's speech to normal rates (that is, the same as Basic or any other language) so that the living being can understand it. Additional Scavenger's Secret: Speaking Binary Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids You know, a lot of first-time Astromech buyers, they're always worrying about communicating with their new purchase. It's no big deal. You want a sophisticated conversation? Buy a Protocol Droid. You need a detailed report? Plug that Astromech into just about anything with a view screen and just read what it has to say. Computer, Datapad, you know, whatever's handy. I've even seen one use its holographic projector to display text. Mind you, you might not like what you hear! Most Astromechs aren't exactly diplomatic, and many don't know what it means to be polite. But hang around enough Droids, and you'll pick up on what those whistles and chirps mean. Of course, you'll have to carry half the conversation yourself- you know, asking questions, assuming subjects and so on. You'll be best off trying to phrase your questions for yes or no answers, but after a while, you'll get the gist of what they're saying. Even those funny little wobbles and shakes mean something. What will really get you fouled up is when you think you get a Droid that understands Basic but it really understands Huttese or some oddball tongue the last owner installed. You'll think the thing has blown its language circuits. Worse, you might think it's ignoring or flat out contradicting you, when it's really trying to communicate something vitally important. Even a viewscreen might not help, if it can't display something you can read. You know, I've even seen a hasty fighter pilot fly into the middle of combat before realizing his replacement Astromech didn't speak his language. Entertaining, as they say. Of course, he survived the battle- how else could he have sold the Droid to me? -Raalo"
+  },
+  "bocce": {
+    "id": "bocce",
+    "name": "Bocce"
+  },
+  "bothese": {
+    "id": "bothese",
+    "name": "Bothese"
+  },
+  "cerean": {
+    "id": "cerean",
+    "name": "Cerean"
+  },
+  "chadra-fan": {
+    "id": "chadra-fan",
+    "name": "Chadra-Fan"
+  },
+  "cheunh": {
+    "id": "cheunh",
+    "name": "Cheunh"
+  },
+  "dosh": {
+    "id": "dosh",
+    "name": "Dosh"
+  },
+  "dromnyr": {
+    "id": "dromnyr",
+    "name": "Dromnyr"
+  },
+  "durese": {
+    "id": "durese",
+    "name": "Durese"
+  },
+  "ebruchese": {
+    "id": "ebruchese",
+    "name": "Ebruchese"
+  },
+  "ewokese": {
+    "id": "ewokese",
+    "name": "Ewokese"
+  },
+  "ewokese-speak-only": {
+    "id": "ewokese-speak-only",
+    "name": "Ewokese (speak only)"
+  },
+  "gamorrean": {
+    "id": "gamorrean",
+    "name": "Gamorrean"
+  },
+  "gamorrean-speak-only": {
+    "id": "gamorrean-speak-only",
+    "name": "Gamorrean (speak only)"
+  },
+  "gunganese": {
+    "id": "gunganese",
+    "name": "Gunganese"
+  },
+  "high-galactic": {
+    "id": "high-galactic",
+    "name": "High Galactic"
+  },
+  "huttese": {
+    "id": "huttese",
+    "name": "Huttese"
+  },
+  "ithorese": {
+    "id": "ithorese",
+    "name": "Ithorese"
+  },
+  "jawa-trade-language": {
+    "id": "jawa-trade-language",
+    "name": "Jawa Trade Language"
+  },
+  "kel-dor": {
+    "id": "kel-dor",
+    "name": "Kel Dor"
+  },
+  "killik": {
+    "id": "killik",
+    "name": "Killik"
+  },
+  "kreva": {
+    "id": "kreva",
+    "name": "Kreva"
+  },
+  "mandoa": {
+    "id": "mandoa",
+    "name": "Mando'a"
+  },
+  "military-sign": {
+    "id": "military-sign",
+    "name": "Military Sign",
+    "description": "Military Sign Military Sign is not a language in the traditional sense, many military and paramilitary units use hand signals to communicate silently with one another. Favored by Alliance Spec Force, military sign allows beings who understand the signals to communicate with each other in basic terms. You can take military sign as a language just like any other language, although to use it, you must have line of sight to the person or people you are attempting to communicate with. Military sign makes no noise, but it can express only simple concepts. Examples include: halt, attention, danger, surround the target, move to a certain location, proceed with caution, trap ahead, ambush ahead, sensors ahead, bypass the hazard ahead, and execute orders."
+  },
+  "minnisiat": {
+    "id": "minnisiat",
+    "name": "Minnisiat"
+  },
+  "miralukese": {
+    "id": "miralukese",
+    "name": "Miralukese"
+  },
+  "mon-calamarian": {
+    "id": "mon-calamarian",
+    "name": "Mon Calamarian"
+  },
+  "nautila": {
+    "id": "nautila",
+    "name": "Nautila"
+  },
+  "nikto": {
+    "id": "nikto",
+    "name": "Nikto"
+  },
+  "old-corellian": {
+    "id": "old-corellian",
+    "name": "Old Corellian",
+    "description": "Old Corellian the original language spoken by the people of Corellia before that world joined the Republic and adopted Basic as the standard language. Though few actually speak Old Corellian these days, the language is far from dead, and many Corellians still pepper their speech with Old Corellian phrases."
+  },
+  "quarrenese": {
+    "id": "quarrenese",
+    "name": "Quarrenese"
+  },
+  "rakata": {
+    "id": "rakata",
+    "name": "Rakata"
+  },
+  "rammocate": {
+    "id": "rammocate",
+    "name": "Rammocate"
+  },
+  "rodese": {
+    "id": "rodese",
+    "name": "Rodese"
+  },
+  "ryl": {
+    "id": "ryl",
+    "name": "Ryl"
+  },
+  "selkath": {
+    "id": "selkath",
+    "name": "Selkath"
+  },
+  "shistavanen": {
+    "id": "shistavanen",
+    "name": "Shistavanen"
+  },
+  "shyriiwook": {
+    "id": "shyriiwook",
+    "name": "Shyriiwook"
+  },
+  "sluissese": {
+    "id": "sluissese",
+    "name": "Sluissese"
+  },
+  "snivvian": {
+    "id": "snivvian",
+    "name": "Snivvian"
+  },
+  "socorran": {
+    "id": "socorran",
+    "name": "Socorran",
+    "description": "Socorran is the language spoken by the natives of the volcanic desert world of Socorro. Like Old Corellian, Socorran has largely been supplanted by Basic, but many pirates, smugglers, and other criminals use it as a secret language known only to those who have spent time on the seedy world."
+  },
+  "squibbian": {
+    "id": "squibbian",
+    "name": "Squibbian"
+  },
+  "ssi-ruuvi": {
+    "id": "ssi-ruuvi",
+    "name": "Ssi-Ruuvi"
+  },
+  "sullustese": {
+    "id": "sullustese",
+    "name": "Sullustese"
+  },
+  "sy-bisti": {
+    "id": "sy-bisti",
+    "name": "Sy Bisti",
+    "description": "Sy Bisti is a trade language spoken on The Outer Rim and also in parts of The Unknown Regions. Though the language is not as widespread as Bocce, many inhabitants of worlds on the edge of The Unknown Regions and Wild Space use Sy Bisti as a common language between Species that have not learned Basic."
+  },
+  "tibranese": {
+    "id": "tibranese",
+    "name": "Tibranese"
+  },
+  "tof": {
+    "id": "tof",
+    "name": "Tof"
+  },
+  "umbarese": {
+    "id": "umbarese",
+    "name": "Umbarese"
+  },
+  "vagaari": {
+    "id": "vagaari",
+    "name": "Vagaari"
+  },
+  "verpine": {
+    "id": "verpine",
+    "name": "Verpine"
+  },
+  "zabrak": {
+    "id": "zabrak",
+    "name": "Zabrak"
+  }
+}

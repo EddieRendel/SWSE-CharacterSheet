@@ -1,0 +1,38 @@
+{
+  "_readme": [
+    "Hand-written additions merged on top of the extracted rules data at load time.",
+    "Use this for content the upstream data is missing \u2014 most notably the class-specific",
+    "talent trees it references but never defines (Dark Side Devotee, Force Adept, Force Item,",
+    "Sith, Expert Pilot, Gunner, Knight's Resolve, Piracy, Military Tactics).",
+    "",
+    "Add the talent itself under `features`, then list its id under the tree in `talentTrees`.",
+    "A tree stops being marked incomplete as soon as it has at least one talent.",
+    "Nothing here is validated against the books \u2014 it is whatever you type.",
+    "",
+    "Example:",
+    "  \"features\": {",
+    "    \"my-talent\": {",
+    "      \"name\": \"My Talent\",",
+    "      \"book\": \"core\",",
+    "      \"type\": \"talent\",",
+    "      \"description\": [\"What the talent does.\"],",
+    "      \"prerequisites\": \"Some Other Talent\",",
+    "      \"requirements\": { \"features\": [{ \"id\": \"some-other-talent\" }] }",
+    "    }",
+    "  },",
+    "  \"talentTrees\": {",
+    "    \"force-adept\": { \"features\": [{ \"id\": \"my-talent\" }] }",
+    "  }",
+    "",
+    "Icons: drop a file in public/icons/features/ (or classes/, weapons/) and name it here:",
+    "  \"icons\": { \"features\": { \"my-talent\": \"my-talent.jpg\" } }",
+    "Only listed icons are rendered, so a missing file can never show as a broken image."
+  ],
+  "features": {},
+  "talentTrees": {},
+  "icons": {
+    "classes": {},
+    "features": {},
+    "weapons": {}
+  }
+}
