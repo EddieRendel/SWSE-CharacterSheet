@@ -1,5 +1,5 @@
 import type { Character, EquipmentItem } from '../types';
-import { WEAPON_GROUPS, EQUIPMENT, FEATURES } from '../data';
+import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
 import { countFeature, hasFeature, getItem } from './engine';
 import type { Derived } from './engine';
 
@@ -126,6 +126,33 @@ export function twoWeaponPenalty(
 /** The best Dual Weapon Mastery tier held, for tips. '' when the character has none. */
 export const dualWeaponMasteryId = (have: { id: string }[]) =>
   [...DWM.iii, ...DWM.ii, ...DWM.i].find(id => hasFeature(have, id)) ?? '';
+
+/**
+ * Whether a weapon takes both hands, which is what doubles the Strength bonus to damage
+ * and Power Attack's damage.
+ *
+ * Saga Edition ties this to size: a weapon a category larger than you needs two hands. The
+ * data carries a `twoHanded` flag but only on 15 of 241 weapons — six of them melee — while
+ * 49 Large weapons go unflagged, so the flag alone would miss the Power Hammer, Wan-Shen,
+ * Vibrosword and two dozen others. Taking the flag first and falling back to size covers
+ * both, and scales with the wielder: a Medium weapon is two-handed for a Small character.
+ *
+ * Wookiee Grip lifts the requirement — you need only one hand for weapons that normally
+ * take two.
+ */
+export function needsTwoHands(
+  weapon: EquipmentItem,
+  wielderSize: string,
+  have: { id: string }[],
+): boolean {
+  if (hasFeature(have, 'wookiee-grip')) return false;
+  if (weapon.twoHanded === true) return true;
+  const ladder = RULES.sizes;
+  const w = ladder.indexOf(weapon.size ?? '');
+  const c = ladder.indexOf(wielderSize);
+  // An unrecognised size is left alone rather than guessed at.
+  return w >= 0 && c >= 0 && w > c;
+}
 
 export interface Part { label: string; value: number }
 
@@ -259,14 +286,14 @@ export function buildAttack(
   const damageParts: Part[] = [
     { label: 'half character level', value: Math.floor(derived.level / 2) },
   ];
+  // A weapon that takes two hands is always held that way, so it does not wait on the
+  // toggle; a one-handed one counts only when the player says they are gripping it in two.
+  // Neither is possible while holding a weapon in each hand.
+  const inherent = needsTwoHands(weapon, derived.size, have);
+  const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
+
   if (melee) {
-    // Two hands on the weapon applies double the Strength bonus. A weapon the data marks
-    // two-handed is always held that way, so it does not wait on the toggle; a one-handed
-    // one only counts when the player says they are gripping it in two. Either way it is
-    // impossible while holding a weapon in each hand.
     const str = derived.mods.str;
-    const inherent = weapon.twoHanded === true;
-    const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
     damageParts.push({
       label: bothHands
         ? (inherent ? 'Strength ×2 (two-handed weapon)' : 'Strength ×2 (two-handed grip)')
@@ -280,7 +307,16 @@ export function buildAttack(
   if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
   if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
   if (melee && hasFeature(have, 'melee-smash')) damageParts.push({ label: 'Melee Smash', value: 1 });
-  if (power) damageParts.push({ label: 'Power Attack', value: power });
+  // Power Attack's own Special clause: held in two hands, it adds twice what you gave up.
+  if (power) {
+    damageParts.push({
+      label: bothHands ? 'Power Attack ×2 (two-handed)' : 'Power Attack',
+      value: bothHands ? power * 2 : power,
+    });
+    if (bothHands) {
+      notes.push('Power Attack adds twice the number subtracted when the weapon is held in two hands. It never applies to damage against an object or vehicle.');
+    }
+  }
   if (!melee && opts.pointBlank && hasFeature(have, 'point-blank-shot')) {
     damageParts.push({ label: 'Point Blank Shot', value: 1 });
   }

@@ -83,6 +83,15 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   proficiency with the weapon in hand, so an unfamiliar one still takes the full −10. It
   grants an attack with each weapon, stacks with Double and Triple Attack, and is mutually
   exclusive with a two-handed grip — you cannot hold two weapons and also hold one in two.
+- **Two-handed weapons are worked out, not asked about.** Saga Edition ties handedness to
+  size — a weapon a category larger than you needs both hands — so the 34 Large melee
+  weapons (Quarterstaff, Vibro-Axe, Power Hammer, Wan-Shen, Double-Bladed Lightsaber…) get
+  the doubled Strength bonus on their own. The data's `twoHanded` flag is honoured first but
+  covers only 15 of 241 weapons, so size fills the gap, and it scales with the wielder: a
+  Medium weapon takes both hands from a Small character. **Wookiee Grip** lifts the
+  requirement. The toggle remains for holding a one-handed weapon in two.
+- **Power Attack doubles when two-handed**, per its own Special clause: held in two hands it
+  adds twice the number you subtracted from your attack rolls.
 - **Unarmed strike** is always listed, stepping up with Martial Arts I/II/III.
 - **Damaging Force powers** get their own section, resolved as a Use the Force check against a
   defense — *Force Lightning: +12 vs Reflex Defense, 8d6 force*.
@@ -110,11 +119,6 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   Adding them makes those selectable with no re-import.
 - **Vehicle and starship combat** — 27 starship maneuvers sit in the data with no rules around
   them. 14 droid stat blocks are likewise hidden as NPC content.
-- **Two-handed weapons are barely tagged.** The equipment schema has a `twoHanded` flag and
-  the engine honours it — a weapon marked two-handed gets the doubled Strength bonus without
-  the toggle — but only 1 of 212 weapons carries it, and that one is a rifle, where Strength
-  never applied. Until melee weapons are tagged from the books, the two-handed toggle is what
-  actually does the work. Tags go in `supplement.json`.
 - **Prerequisites that arrive as unreadable prose** are shown as *"not enforced automatically"*
   rather than guessed at. Extending the parser shrinks that set; under-restricting is safe,
   mis-restricting isn't.

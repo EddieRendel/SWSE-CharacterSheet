@@ -1305,15 +1305,53 @@ console.log('\n▸ Attacks');
   check('two weapons denies the doubled Strength bonus', clash.damageBonus, 4 + 3);
   check('and says why', clash.notes.some(n => n.includes('cannot also be held in two')), true);
 
-  // A weapon the data marks two-handed is always held that way. Built inline rather than
-  // taken from the data, which flags only a ranged weapon — see the README's data gaps.
-  const twoHandedClub = { ...EQUIPMENT['club'], id: 'test-two-handed-club', twoHanded: true };
-  check('a two-handed weapon doubles Strength without the toggle',
-    buildAttack(c, d, twoHandedClub, opts).damageBonus, 4 + 6);
+  // A weapon that takes two hands is held that way without the toggle. The data flags some
+  // (Quarterstaff) and misses others, so size decides where the flag is absent: a weapon a
+  // category larger than you needs both hands.
+  check('a flagged two-handed weapon doubles Strength',
+    buildAttack(c, d, EQUIPMENT['quarterstaff'], opts).damageBonus, 4 + 6);
   check('and is labelled as the weapon, not a grip',
-    buildAttack(c, d, twoHandedClub, opts).damageParts.some(p => p.label.includes('two-handed weapon')), true);
-  check('while two weapons still overrides it',
-    buildAttack(c, d, twoHandedClub, { ...opts, twoWeapon: true }).damageBonus, 4 + 3);
+    buildAttack(c, d, EQUIPMENT['quarterstaff'], opts).damageParts.some(p => p.label.includes('two-handed weapon')), true);
+  check('a Large weapon the data never flagged still counts',
+    buildAttack(c, d, EQUIPMENT['wan-shen'], opts).damageBonus, 4 + 6);
+  check('so does an unflagged Large advanced melee weapon',
+    buildAttack(c, d, EQUIPMENT['power-hammer'], opts).damageBonus, 4 + 6);
+  check('a Medium weapon is still one-handed for a Medium character',
+    buildAttack(c, d, EQUIPMENT['club'], opts).damageBonus, 4 + 3);
+  check('while two weapons overrides a two-handed weapon',
+    buildAttack(c, d, EQUIPMENT['quarterstaff'], { ...opts, twoWeapon: true }).damageBonus, 4 + 3);
+
+  // Wookiee Grip: one hand is enough for weapons that normally need two.
+  const gripper = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'wookiee-grip' }]);
+  const dgrip = computeCharacter(gripper);
+  check('Wookiee Grip makes a Large weapon one-handed',
+    buildAttack(gripper, dgrip, EQUIPMENT['quarterstaff'], opts).damageBonus, 4 + 3);
+  check('but the two-handed toggle still doubles it',
+    buildAttack(gripper, dgrip, EQUIPMENT['quarterstaff'], { ...opts, twoHanded: true }).damageBonus, 4 + 6);
+
+  // Handedness is relative to the wielder, so a smaller character needs both hands sooner.
+  const small = make(x => {
+    x.speciesId = 'ewok';
+    setAbilities(x, { str: 16, dex: 14, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 }));
+  });
+  const dsmall = computeCharacter(small);
+  check('the wielder is Small', dsmall.size, 'Small');
+  check('a Medium weapon needs both hands from a Small character',
+    buildAttack(small, dsmall, EQUIPMENT['club'], opts).damageParts.some(p => p.label.includes('two-handed weapon')), true);
+
+  // Power Attack's Special clause: two-handed, it adds twice what you gave up.
+  const paTwo = buildAttack(pa, dpa, EQUIPMENT['quarterstaff'], { ...opts, powerAttack: 3 });
+  check('Power Attack doubles on a two-handed weapon', paTwo.damageParts.find(p => p.label.startsWith('Power Attack'))?.value, 6);
+  check('and the attack penalty is unchanged', paTwo.attack, 8 + 3 - 3);
+  check('a one-handed weapon adds it once',
+    buildAttack(pa, dpa, EQUIPMENT['club'], { ...opts, powerAttack: 3 })
+      .damageParts.find(p => p.label.startsWith('Power Attack'))?.value, 3);
+  check('unless gripped in two hands',
+    buildAttack(pa, dpa, EQUIPMENT['club'], { ...opts, powerAttack: 3, twoHanded: true })
+      .damageParts.find(p => p.label.startsWith('Power Attack'))?.value, 6);
+  check('and the doubling is explained',
+    paTwo.notes.some(n => n.includes('twice the number subtracted')), true);
 
   // Two weapons drawn, plus unarmed strike, which is always available.
   check('a profile per drawn weapon plus unarmed', buildAttacks(c, d, opts).length, 3);
