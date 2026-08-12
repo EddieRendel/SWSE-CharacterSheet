@@ -24,9 +24,30 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
   const [browsing, setBrowsing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { saveAll(characters); }, [characters]);
+
+  // Same dismissal rules as the hover cards: Escape, a press elsewhere, or a
+  // resize — the last because the burger itself disappears above the breakpoint.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = () => setMenuOpen(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    const onDown = (e: Event) => {
+      if (!menuRef.current?.contains(e.target as Node)) close();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('resize', close);
+    };
+  }, [menuOpen]);
 
   const active = characters.find(c => c.id === activeId) ?? null;
 
@@ -41,6 +62,16 @@ export default function App() {
   }, [activeId]);
 
   const derived = useMemo(() => (active ? computeCharacter(active) : null), [active]);
+
+  // Declared once and rendered twice — inline on wide screens, inside the burger
+  // menu on narrow ones — so the two never drift apart.
+  const topActions = [
+    { label: 'Compendium', run: () => setBrowsing(true) },
+    ...(active ? [
+      { label: 'Export', run: () => exportCharacter(active) },
+      { label: 'All characters', run: () => setActiveId(null) },
+    ] : []),
+  ];
 
   const create = () => {
     const c = newCharacter();
@@ -82,17 +113,43 @@ export default function App() {
         </div>
         <div className="spacer" />
         {active && derived && (
-          <span className="hint nowrap row" style={{ gap: 8 }}>
+          <span className="hint row topbar-status" style={{ gap: 8 }}>
             <Portrait portrait={active.portrait} name={active.name} size={26} />
-            {active.name || 'Unnamed'} · level {derived.level}
-            {derived.unfilledSlots.length > 0 && (
-              <span className="warn"> · {derived.unfilledSlots.length} unfilled</span>
-            )}
+            <span className="topbar-name">
+              {active.name || 'Unnamed'} · level {derived.level}
+              {derived.unfilledSlots.length > 0 && (
+                <span className="warn"> · {derived.unfilledSlots.length} unfilled</span>
+              )}
+            </span>
           </span>
         )}
-        <button className="ghost" onClick={() => setBrowsing(true)}>Compendium</button>
-        {active && <button className="ghost" onClick={() => exportCharacter(active)}>Export</button>}
-        {active && <button className="ghost" onClick={() => setActiveId(null)}>All characters</button>}
+
+        <div className="topbar-actions">
+          {topActions.map(a => (
+            <button key={a.label} className="ghost" onClick={a.run}>{a.label}</button>
+          ))}
+        </div>
+
+        <div className="topbar-menu" ref={menuRef}>
+          <button
+            className="ghost burger"
+            aria-label="Menu"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(o => !o)}
+          >
+            ☰
+          </button>
+          {menuOpen && (
+            <div className="menu-pop" role="menu">
+              {topActions.map(a => (
+                <button key={a.label} role="menuitem" onClick={() => { setMenuOpen(false); a.run(); }}>
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {active && (
