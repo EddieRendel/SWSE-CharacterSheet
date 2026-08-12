@@ -5,7 +5,7 @@ import { signed, hasFeature, countFeature, forcePowerUses } from '../rules/engin
 import type { Derived } from '../rules/engine';
 import {
   buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
-  defaultAttackOptions, SITUATIONAL,
+  defaultAttackOptions, SITUATIONAL, twoWeaponPenalty, dualWeaponMasteryId,
 } from '../rules/attacks';
 import type { AttackOptions, AttackProfile } from '../rules/attacks';
 import { Panel } from './ui';
@@ -132,6 +132,10 @@ export function Attacks({
     });
   const anySpent = powers.some(p => spentOf(p.id) > 0);
   const sneakDice = countFeature(have, 'sneak-attack');
+  // Shown on the toggle as the best case; a weapon you are not proficient with still
+  // takes the full −10, which buildAttack works out per weapon.
+  const twoWeapon = twoWeaponPenalty(have, true);
+  const dwmId = dualWeaponMasteryId(have);
 
   // Only offer a toggle when the character has the feat that makes it matter.
   const available = {
@@ -190,8 +194,24 @@ export function Attacks({
       )}
 
       <div className="row" style={{ flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
-        <Toggle on={opts.twoHanded} onChange={v => set('twoHanded', v)} label="Two-handed"
-          tip={toggleTip('', 'Wielding the weapon in two hands applies double your Strength bonus to melee damage.')} />
+        {/* Two hands on one weapon and a weapon in each hand are mutually exclusive, so
+            each toggle switches the other off rather than letting both look active. */}
+        <Toggle
+          on={opts.twoHanded}
+          onChange={v => setOpts(o => ({ ...o, twoHanded: v, twoWeapon: v ? false : o.twoWeapon }))}
+          label="Two-handed"
+          tip={toggleTip('', 'Holding the weapon in two hands applies double your Strength bonus to melee damage. Weapons the data marks two-handed already get this without the toggle.')} />
+        <Toggle
+          on={opts.twoWeapon}
+          onChange={v => setOpts(o => ({ ...o, twoWeapon: v, twoHanded: v ? false : o.twoHanded }))}
+          label={`Two weapons ${twoWeapon.value === 0 ? '±0' : signed(twoWeapon.value)}`}
+          tip={toggleTip(dwmId,
+            `A weapon in each hand, or both ends of a double weapon, as part of a full attack: `
+            + `one attack with each, and ${twoWeapon.value === 0 ? 'no penalty' : `${signed(twoWeapon.value)} on every`} `
+            + `attack roll until the start of your next turn. `
+            + (dwmId
+              ? 'Dual Weapon Mastery reduces this, but only with weapons you are proficient with — an unfamiliar weapon still takes the full −10.'
+              : 'Dual Weapon Mastery I, II and III reduce it to −5, −2 and nothing.'))} />
         {available.fullAttack && (
           <Toggle on={opts.fullAttack} onChange={v => set('fullAttack', v)} label="Full attack"
             tip={toggleTip(hasFeature(have, 'triple-attack') ? 'triple-attack' : 'double-attack',

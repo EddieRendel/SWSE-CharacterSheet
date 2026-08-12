@@ -17,6 +17,11 @@ export interface AttackOptions {
   flatFooted: boolean;
   /** Using the full attack action, which enables Double/Triple Attack. */
   fullAttack: boolean;
+  /**
+   * A weapon in each hand, or both ends of a double weapon. Only possible as part of a
+   * full attack, and it costs every attack roll this turn — see twoWeaponPenalty.
+   */
+  twoWeapon: boolean;
   /** Rapid Shot: two shots as one attack. */
   rapidShot: boolean;
   /** Burst Fire: an autofire burst as one attack. */
@@ -89,9 +94,38 @@ export const SITUATIONAL: Situational[] = [
 
 export const defaultAttackOptions = (): AttackOptions => ({
   powerAttack: 0, twoHanded: false, pointBlank: false, aim: false,
-  flatFooted: false, fullAttack: false, rapidShot: false, burstFire: false,
-  situational: {},
+  flatFooted: false, fullAttack: false, twoWeapon: false, rapidShot: false,
+  burstFire: false, situational: {},
 });
+
+/** Dual Weapon Mastery I also reaches characters as a species trait. */
+const DWM = {
+  i: ['dual-weapon-mastery-i', 'dual-weapon-mastery-i-trait'],
+  ii: ['dual-weapon-mastery-ii'],
+  iii: ['dual-weapon-mastery-iii'],
+};
+const hasAny = (have: { id: string }[], ids: string[]) => ids.some(id => hasFeature(have, id));
+
+/**
+ * Fighting with two weapons costs −10 on every attack roll until the start of your next
+ * turn. Dual Weapon Mastery buys that down to −5, then −2, then nothing — but each tier
+ * says the reduced penalty applies only while wielding a weapon you are proficient with,
+ * so without proficiency the full −10 stands however many tiers you hold.
+ */
+export function twoWeaponPenalty(
+  have: { id: string }[],
+  proficient: boolean,
+): { value: number; label: string } {
+  if (!proficient) return { value: -10, label: 'two weapons (not proficient)' };
+  if (hasAny(have, DWM.iii)) return { value: 0, label: 'two weapons (Dual Weapon Mastery III)' };
+  if (hasAny(have, DWM.ii)) return { value: -2, label: 'two weapons (Dual Weapon Mastery II)' };
+  if (hasAny(have, DWM.i)) return { value: -5, label: 'two weapons (Dual Weapon Mastery I)' };
+  return { value: -10, label: 'two weapons' };
+}
+
+/** The best Dual Weapon Mastery tier held, for tips. '' when the character has none. */
+export const dualWeaponMasteryId = (have: { id: string }[]) =>
+  [...DWM.iii, ...DWM.ii, ...DWM.i].find(id => hasFeature(have, id)) ?? '';
 
 export interface Part { label: string; value: number }
 
@@ -189,14 +223,32 @@ export function buildAttack(
     attackParts.push({ label: 'Burst Fire', value: -5 });
   }
 
-  // ---- full attack: Double and Triple Attack each add an attack and -5 to all rolls ----
+  // ---- full attack: Double and Triple Attack each add an attack and -5 to all rolls,
+  // and a weapon in each hand adds one more at its own penalty ----
   let fullAttack: AttackProfile['fullAttack'] = null;
-  if (opts.fullAttack) {
-    let attacks = 1, penalty = 0;
-    if (hasFeature(have, 'double-attack', group)) { attacks += 1; penalty -= 5; }
-    if (hasFeature(have, 'triple-attack', group)) { attacks += 1; penalty -= 5; }
-    fullAttack = { attacks, penalty };
-    if (penalty) attackParts.push({ label: 'full attack', value: penalty });
+  // Two-weapon fighting is only available as part of a full attack, so asking for it is
+  // asking for the action.
+  if (opts.fullAttack || opts.twoWeapon) {
+    let attacks = 1, twoWeapon = 0, extra = 0;
+
+    if (opts.twoWeapon) {
+      const p = twoWeaponPenalty(have, proficient);
+      attacks += 1;
+      twoWeapon = p.value;
+      // Recorded even at 0, so the breakdown data says the penalty was considered. Tips
+      // hide zero rows by convention, and with Mastery III the ×2 badge reports the net
+      // penalty as +0, which is where the player sees it landed.
+      attackParts.push({ label: p.label, value: p.value });
+      if (!proficient && dualWeaponMasteryId(have)) {
+        notes.push('Dual Weapon Mastery reduces the two-weapon penalty only with weapons you are proficient with, so the full −10 applies here.');
+      }
+    }
+
+    if (hasFeature(have, 'double-attack', group)) { attacks += 1; extra -= 5; }
+    if (hasFeature(have, 'triple-attack', group)) { attacks += 1; extra -= 5; }
+    if (extra) attackParts.push({ label: 'full attack', value: extra });
+
+    fullAttack = { attacks, penalty: twoWeapon + extra };
     if (attacks === 1) notes.push('Double Attack with this weapon group would grant a second attack.');
   }
 
@@ -208,12 +260,22 @@ export function buildAttack(
     { label: 'half character level', value: Math.floor(derived.level / 2) },
   ];
   if (melee) {
-    // A two-handed grip applies double the Strength bonus.
+    // Two hands on the weapon applies double the Strength bonus. A weapon the data marks
+    // two-handed is always held that way, so it does not wait on the toggle; a one-handed
+    // one only counts when the player says they are gripping it in two. Either way it is
+    // impossible while holding a weapon in each hand.
     const str = derived.mods.str;
+    const inherent = weapon.twoHanded === true;
+    const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
     damageParts.push({
-      label: opts.twoHanded ? 'Strength ×2 (two-handed)' : 'Strength',
-      value: opts.twoHanded ? str * 2 : str,
+      label: bothHands
+        ? (inherent ? 'Strength ×2 (two-handed weapon)' : 'Strength ×2 (two-handed grip)')
+        : 'Strength',
+      value: bothHands ? str * 2 : str,
     });
+    if (opts.twoWeapon && (inherent || opts.twoHanded)) {
+      notes.push('A weapon in each hand cannot also be held in two, so the doubled Strength bonus does not apply.');
+    }
   }
   if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
   if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });

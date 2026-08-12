@@ -1265,6 +1265,56 @@ console.log('\n▸ Attacks');
   check('and only when taking a full attack',
     buildAttack(doubler, dd2, EQUIPMENT['blaster-rifle'], opts).attack, 8 + 2);
 
+  // Fighting with a weapon in each hand: -10 to every roll, bought down by Dual Weapon
+  // Mastery, and only ever as part of a full attack.
+  const tw = (sel: Character['selections'], item = EQUIPMENT['club']) => {
+    const x = soldier(sel);
+    return buildAttack(x, computeCharacter(x), item, { ...opts, twoWeapon: true });
+  };
+  const bare2 = tw([]);
+  check('two weapons costs 10 with no Dual Weapon Mastery', bare2.attack, 8 + 3 - 10);
+  check('and grants an attack with each weapon', bare2.fullAttack?.attacks, 2);
+  check('asking for it implies the full attack action', bare2.fullAttack !== null, true);
+  check('the penalty is named in the breakdown',
+    bare2.attackParts.some(p => p.label === 'two weapons' && p.value === -10), true);
+
+  const dwm1 = [{ key: 'feat:1', choiceId: 'feat', featureId: 'dual-weapon-mastery-i' }];
+  const dwm2 = [...dwm1, { key: 'feat:3', choiceId: 'feat', featureId: 'dual-weapon-mastery-ii' }];
+  const dwm3 = [...dwm2, { key: 'feat:6', choiceId: 'feat', featureId: 'dual-weapon-mastery-iii' }];
+  check('Dual Weapon Mastery I reduces it to 5', tw(dwm1).attack, 8 + 3 - 5);
+  check('Dual Weapon Mastery II reduces it to 2', tw(dwm2).attack, 8 + 3 - 2);
+  check('Dual Weapon Mastery III removes it', tw(dwm3).attack, 8 + 3);
+  check('and III still shows its row, at zero',
+    tw(dwm3).attackParts.some(p => p.label.includes('Dual Weapon Mastery III') && p.value === 0), true);
+
+  // Every tier grants the reduction only with a weapon you are proficient with.
+  const unfamiliar = tw(dwm3, EQUIPMENT['lightsaber']);
+  check('without proficiency the full 10 still applies', unfamiliar.attack, 8 + 3 - 5 - 10);
+  check('and that is explained',
+    unfamiliar.notes.some(n => n.includes('proficient')), true);
+
+  // The penalties come from different places, so they add up.
+  const dtw = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'double-attack', spec: 'rifles' }]);
+  const ddtw = computeCharacter(dtw);
+  const stacked = buildAttack(dtw, ddtw, EQUIPMENT['blaster-rifle'], { ...opts, twoWeapon: true });
+  check('two weapons and Double Attack stack to three attacks', stacked.fullAttack?.attacks, 3);
+  check('at -10 and -5 together', stacked.attack, 8 + 2 - 10 - 5);
+
+  // You cannot hold a weapon in each hand and also grip one in two.
+  const clash = buildAttack(c, d, EQUIPMENT['club'], { ...opts, twoWeapon: true, twoHanded: true });
+  check('two weapons denies the doubled Strength bonus', clash.damageBonus, 4 + 3);
+  check('and says why', clash.notes.some(n => n.includes('cannot also be held in two')), true);
+
+  // A weapon the data marks two-handed is always held that way. Built inline rather than
+  // taken from the data, which flags only a ranged weapon — see the README's data gaps.
+  const twoHandedClub = { ...EQUIPMENT['club'], id: 'test-two-handed-club', twoHanded: true };
+  check('a two-handed weapon doubles Strength without the toggle',
+    buildAttack(c, d, twoHandedClub, opts).damageBonus, 4 + 6);
+  check('and is labelled as the weapon, not a grip',
+    buildAttack(c, d, twoHandedClub, opts).damageParts.some(p => p.label.includes('two-handed weapon')), true);
+  check('while two weapons still overrides it',
+    buildAttack(c, d, twoHandedClub, { ...opts, twoWeapon: true }).damageBonus, 4 + 3);
+
   // Two weapons drawn, plus unarmed strike, which is always available.
   check('a profile per drawn weapon plus unarmed', buildAttacks(c, d, opts).length, 3);
 

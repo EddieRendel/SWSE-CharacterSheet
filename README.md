@@ -78,6 +78,11 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   Toggles appear only for feats you have, and Rapid Shot / Burst Fire / Deadeye correctly
   refuse to stack. Talents, species traits and powers are covered too (Rage, Dark Rage, Battle
   Strike, Skirmisher, Cunning Attack, Sniper Shot and more).
+- **Two-weapon fighting** — a weapon in each hand costs −10 on every attack roll, which
+  **Dual Weapon Mastery** I/II/III buys down to −5, −2 and nothing. The reduction needs
+  proficiency with the weapon in hand, so an unfamiliar one still takes the full −10. It
+  grants an attack with each weapon, stacks with Double and Triple Attack, and is mutually
+  exclusive with a two-handed grip — you cannot hold two weapons and also hold one in two.
 - **Unarmed strike** is always listed, stepping up with Martial Arts I/II/III.
 - **Damaging Force powers** get their own section, resolved as a Use the Force check against a
   defense — *Force Lightning: +12 vs Reflex Defense, 8d6 force*.
@@ -105,6 +110,11 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   Adding them makes those selectable with no re-import.
 - **Vehicle and starship combat** — 27 starship maneuvers sit in the data with no rules around
   them. 14 droid stat blocks are likewise hidden as NPC content.
+- **Two-handed weapons are barely tagged.** The equipment schema has a `twoHanded` flag and
+  the engine honours it — a weapon marked two-handed gets the doubled Strength bonus without
+  the toggle — but only 1 of 212 weapons carries it, and that one is a rifle, where Strength
+  never applied. Until melee weapons are tagged from the books, the two-handed toggle is what
+  actually does the work. Tags go in `supplement.json`.
 - **Prerequisites that arrive as unreadable prose** are shown as *"not enforced automatically"*
   rather than guessed at. Extending the parser shrinks that set; under-restricting is safe,
   mis-restricting isn't.
