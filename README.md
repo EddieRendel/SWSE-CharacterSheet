@@ -69,6 +69,11 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   and lifts exactly those sections to the top with a "still to do" strip.
 - **Sourcebook filtering** — restrict a character to any of the 14 books, with *Core only* and
   *All books* shortcuts. Narrowing never removes what's already chosen.
+- **Panels fold away.** Every panel on the Character and Edit pages collapses to its header,
+  and the talent picker's trees fold individually. Everything starts open and your choices are
+  remembered across tabs and reloads — except that a section owing you something is held open
+  until you deal with it, then returns to however you left it. Picker trees always reopen
+  expanded, since you want to see what's on offer.
 
 **Playing the character**
 - **Attacks** — every worn weapon gets an attack and damage line with the full breakdown.

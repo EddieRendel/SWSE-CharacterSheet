@@ -68,6 +68,7 @@ export function Features({
       )}
 
       <Panel
+        collapseId="edit:features"
         title="Feats, talents & features by level"
         actions={
           <label className="row nowrap hint" style={{ gap: 6 }}>
@@ -166,7 +167,7 @@ function SummaryPanel({
     ['Starship maneuvers', derived.starshipManeuvers],
   ];
   return (
-    <Panel title="Summary">
+    <Panel collapseId="edit:features-summary" title="Summary">
       <div className="grid g2">
         {groups.filter(([, list]) => list.length > 0).map(([title, list]) => (
           <div key={title}>

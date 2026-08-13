@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Character } from '../types';
 import { isAbilityIncreaseLevel } from '../rules/engine';
@@ -7,11 +7,25 @@ import { Levels } from './Levels';
 import { Features } from './Features';
 import { Abilities } from './Abilities';
 import { Skills } from './Skills';
+import { setForcedOpen } from '../collapse';
 
 type SectionId = 'levels' | 'features' | 'abilities' | 'skills';
 
 /** Where a section sits once nothing is outstanding. */
 const ORDER: SectionId[] = ['levels', 'features', 'abilities', 'skills'];
+
+/**
+ * The collapsible panels each section owns, so a section that starts owing you something can
+ * open the panel you would fix it in. Only panels that gain a need are opened, and only at
+ * the moment it appears — collapse one afterwards and it stays shut, including once the
+ * choice is made.
+ */
+const SECTION_PANELS: Record<SectionId, string[]> = {
+  levels: ['edit:levels'],
+  features: ['edit:features'],
+  abilities: ['edit:abilities', 'edit:ability-increases'],
+  skills: ['edit:skills', 'edit:languages'],
+};
 
 const LABELS: Record<SectionId, string> = {
   levels: 'Levels',
@@ -119,6 +133,15 @@ export function EditCharacter({
   }, [char, derived]);
 
   const needs = new Map(outstanding.map(o => [o.id, o]));
+
+  // Hold open the panels of every section that owes something. This never touches the saved
+  // preference, so a panel collapsed during a level-up folds itself away again once the
+  // choice is made rather than having to be collapsed twice.
+  const needKeys = outstanding.map(o => o.id).sort().join(',');
+  useEffect(() => {
+    setForcedOpen(needKeys ? needKeys.split(',').flatMap(id => SECTION_PANELS[id as SectionId]) : []);
+    return () => setForcedOpen([]);
+  }, [needKeys]);
 
   // Building a character starts with its ability scores, so Abilities leads while there are
   // no levels yet, and again whenever an increase is waiting to be assigned. Otherwise the

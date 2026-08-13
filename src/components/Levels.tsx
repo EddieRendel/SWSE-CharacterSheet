@@ -48,6 +48,7 @@ export function Levels({
   return (
     <>
       <Panel
+        collapseId="edit:levels"
         title={`Class progression — level ${derived.level}`}
         actions={
           <div className="row">
@@ -123,7 +124,7 @@ export function Levels({
       </Panel>
 
       {derived.classLevels.length > 0 && (
-        <Panel title="Class summary">
+        <Panel collapseId="edit:class-summary" title="Class summary">
           <div className="list">
             {derived.classLevels.map(({ cls, levels }) => (
               <div key={cls.id} className="item">

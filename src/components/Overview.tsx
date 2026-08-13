@@ -91,7 +91,7 @@ export function Overview({
       {/* Condition, damage, Force points, destiny and Dark Side score live on the sheet —
           they change during play, not while building the character. */}
 
-      <Panel title="Description">
+      <Panel collapseId="character:description" title="Description">
         <div className="grid g4">
           <Field label="Age"><input value={t.age} onChange={e => setTrait('age', e.target.value)} /></Field>
           <Field label="Gender"><input value={t.gender} onChange={e => setTrait('gender', e.target.value)} /></Field>
@@ -255,6 +255,7 @@ function Sources({
 
   return (
     <Panel
+      collapseId="character:sourcebooks"
       title="Sourcebooks"
       actions={
         <div className="row">

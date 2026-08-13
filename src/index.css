@@ -175,6 +175,19 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 }
 .panel > header h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-dim); }
 
+/* A collapsed panel is just its header bar, so the padding that framed the body goes away. */
+.panel.collapsed { padding: 0; }
+.panel.collapsed > header { margin: 0; border-bottom: none; border-radius: var(--radius); }
+.panel-toggle {
+  display: flex; align-items: center; gap: 7px;
+  background: none; border: none; padding: 0; cursor: pointer;
+  min-width: 0; text-align: left;
+}
+.panel-toggle:hover:not(:disabled) { background: none; }
+.panel-toggle:hover h2 { color: var(--text); }
+.panel-toggle .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
+.panel-toggle:hover .caret { color: var(--accent); }
+
 /* Panel headers pair a title with action buttons. On a phone the two together were wider
    than the screen — the sheet's Actions / Feats / Equipment switcher was the worst — so
    let the actions drop onto their own line. */
@@ -331,10 +344,16 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   border-bottom: 1px solid var(--border-2); margin-bottom: 4px;
 }
 .tree-group { margin-bottom: 10px; }
+/* A button now, so it can fold the tree away — styled back down to the label it looks like. */
 .tree-name {
+  display: flex; align-items: center; gap: 6px; width: 100%;
   font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
   color: var(--text-dim); padding: 4px 10px 3px;
+  background: none; border: none; border-radius: 5px; text-align: left; cursor: pointer;
 }
+.tree-name:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+.tree-name .caret { color: var(--text-faint); font-size: 10px; line-height: 1; width: 8px; }
+.tree-name:hover .caret { color: var(--accent); }
 .tree-group .opt { padding-left: 20px; }
 
 table { width: 100%; border-collapse: collapse; }

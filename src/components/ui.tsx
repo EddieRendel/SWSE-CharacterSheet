@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Character, Feature } from '../types';
 import { BOOK_NAMES, WEAPON_GROUPS, SKILLS, CLASSES, FEATURES, EQUIPMENT, featureIcon, portraitUrl, classIcon } from '../data';
 import { readPortrait } from '../storage';
+import { useCollapsePanel } from '../collapse';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -13,17 +14,39 @@ export function Field({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-export function Panel({ title, actions, children }: { title?: string; actions?: ReactNode; children: ReactNode }) {
+/**
+ * Pass `collapseId` to let the player fold the panel away. The id keys the saved preference,
+ * so it must stay stable even where the title does not — "Class progression — level 7"
+ * changes every level.
+ */
+export function Panel({
+  title, actions, children, collapseId,
+}: { title?: string; actions?: ReactNode; children: ReactNode; collapseId?: string }) {
+  const [openPref, toggle] = useCollapsePanel(collapseId ?? '');
+  const foldable = !!collapseId && !!title;
+  const open = !foldable || openPref;
+
   return (
-    <section className="panel">
+    <section className={`panel${foldable && !open ? ' collapsed' : ''}`}>
       {title && (
         <header>
-          <h2>{title}</h2>
+          {foldable ? (
+            <button
+              type="button"
+              className="panel-toggle"
+              aria-expanded={open}
+              title={open ? 'Collapse' : 'Expand'}
+              onClick={toggle}
+            >
+              <span className="caret" aria-hidden="true">{open ? '▾' : '▸'}</span>
+              <h2>{title}</h2>
+            </button>
+          ) : <h2>{title}</h2>}
           <div className="spacer" />
           {actions}
         </header>
       )}
-      {children}
+      {open && children}
     </section>
   );
 }

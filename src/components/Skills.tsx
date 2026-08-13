@@ -24,7 +24,7 @@ export function Skills({
 
   return (
     <>
-      <Panel title="Trained skills">
+      <Panel collapseId="edit:skills" title="Trained skills">
         <div className={`notice ${used > allowed ? 'warn' : ''}`} style={{ marginBottom: 12 }}>
           <strong>{used}</strong> of <strong>{allowed}</strong> trained skills chosen
           {' '}({derived.classLevels[0] ? `${derived.classLevels.find(c => c.cls.id === char.levels[0].classId)?.cls.baseSkills ?? 0} from class` : ''}
@@ -119,6 +119,7 @@ function Languages({
 
   return (
     <Panel
+      collapseId="edit:languages"
       title="Languages"
       actions={
         <div className="row">

@@ -32,6 +32,9 @@ export function FeaturePicker({
   const [showIneligible, setShowIneligible] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [spec, setSpec] = useState<string | undefined>();
+  // Folded trees are deliberately not remembered: the picker is a fresh mount each time it
+  // opens, so every tree starts expanded and you always see what is on offer.
+  const [closedTrees, setClosedTrees] = useState<Set<string>>(() => new Set());
 
   // Options come from the slot's explicit pool, or from every feature of the matching type.
   const options = useMemo(() => {
@@ -208,23 +211,37 @@ export function FeaturePicker({
               ] as const).map(([heading, groups]) => groups.length > 0 && (
                 <div key={heading}>
                   <div className="tree-category">{heading}</div>
-                  {groups.map(g => (
-                    <div key={g.treeId} className="tree-group">
-                      <div className="tree-name">
-                        {g.treeName}
-                        <span className="faint"> · {g.entries.length}</span>
-                        {TALENT_TREES[g.treeId]?.incomplete && <span className="badge red" style={{ marginLeft: 6 }}>?</span>}
+                  {groups.map(g => {
+                    const shut = closedTrees.has(g.treeId);
+                    return (
+                      <div key={g.treeId} className="tree-group">
+                        <button
+                          type="button"
+                          className="tree-name"
+                          aria-expanded={!shut}
+                          title={shut ? 'Expand' : 'Collapse'}
+                          onClick={() => setClosedTrees(prev => {
+                            const next = new Set(prev);
+                            if (!next.delete(g.treeId)) next.add(g.treeId);
+                            return next;
+                          })}
+                        >
+                          <span className="caret" aria-hidden="true">{shut ? '▸' : '▾'}</span>
+                          {g.treeName}
+                          <span className="faint"> · {g.entries.length}</span>
+                          {TALENT_TREES[g.treeId]?.incomplete && <span className="badge red" style={{ marginLeft: 6 }}>?</span>}
+                        </button>
+                        {!shut && g.entries.map(o => (
+                          <OptionRow
+                            key={`${g.treeId}:${o.feature.id}`}
+                            o={o}
+                            selected={selectedId === o.feature.id}
+                            onSelect={() => { setSelectedId(o.feature.id); setSpec(o.ref.spec); }}
+                          />
+                        ))}
                       </div>
-                      {g.entries.map(o => (
-                        <OptionRow
-                          key={`${g.treeId}:${o.feature.id}`}
-                          o={o}
-                          selected={selectedId === o.feature.id}
-                          onSelect={() => { setSelectedId(o.feature.id); setSpec(o.ref.spec); }}
-                        />
-                      ))}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
             </>
