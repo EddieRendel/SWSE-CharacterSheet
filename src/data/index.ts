@@ -80,7 +80,22 @@ export const FORCE_TREE_IDS = forceTreesJson as string[];
 /** Talent trees a class references that still have no talents in them. */
 export const emptyTrees = (): TalentTree[] =>
   Object.values(TALENT_TREES).filter(t => !t.features?.length);
-export const EQUIPMENT = (equipmentJson as { items: Record<string, EquipmentItem> }).items;
+/**
+ * Equipment, with `supplement.equipment` merged over it the same way features are.
+ *
+ * The Foundry compendium is the source for gear, but it has gaps a re-import will not fill:
+ * the Mortar Launcher's own entry cross-references a "Mortar Shells" page whose four shells
+ * exist nowhere in the packs. This is where a hand-checked item or correction goes so that
+ * re-running the import does not undo it.
+ */
+export const EQUIPMENT: Record<string, EquipmentItem> = {
+  ...(equipmentJson as { items: Record<string, EquipmentItem> }).items,
+};
+for (const [id, patch] of Object.entries(
+  (supplement as { equipment?: Record<string, Partial<EquipmentItem>> }).equipment ?? {},
+)) {
+  EQUIPMENT[id] = { ...EQUIPMENT[id], ...patch, id } as EquipmentItem;
+}
 /**
  * What to print for a weapon's damage.
  *

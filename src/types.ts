@@ -226,6 +226,8 @@ export interface EquipmentItem {
   size?: string;
   rateOfFire?: string;
   area?: string;
+  /** Rounds between firing and detonation, for indirect-fire ordnance like mortar shells. */
+  delay?: string;
   twoHanded?: boolean;
   // armor
   armorType?: 'light' | 'medium' | 'heavy';

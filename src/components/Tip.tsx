@@ -205,6 +205,7 @@ export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactN
     ['Group', item.group ? WEAPON_GROUPS[item.group] ?? item.group : undefined],
     ['Rate of fire', item.rateOfFire],
     ['Area', item.area],
+    ['Delay', item.delay],
     ['Reflex', item.reflex ? `+${item.reflex}` : undefined],
     ['Fortitude', item.fortitude ? `+${item.fortitude}` : undefined],
     ['Max Dex', item.maxDex !== undefined ? `+${item.maxDex}` : undefined],

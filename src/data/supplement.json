@@ -103,6 +103,80 @@
       }
     }
   },
+  "_comment_mortar": [
+    "Galaxy at War p.40 gives the Mortar Launcher four shells, and the Foundry entry for the",
+    "launcher even cross-references them — its seeAlso says \"Mortar Shells\". The shells",
+    "themselves are in none of the packs, so they are typed in here from",
+    "swse.fandom.com/wiki/Mortar_Shells and survive a re-import.",
+    "",
+    "The launcher's own damage type is corrected to varies. Upstream says Slashing, which",
+    "cannot be right for a weapon that fires whatever shell you load — the same pack uses",
+    "Varies for the Espo Mortar and for the grenade launchers.",
+    "",
+    "No size is given for a shell in the source, so none is set here rather than invented: size",
+    "is what decides whether a weapon needs two hands or counts as light.",
+    "",
+    "Damage types follow the shell table's own TYPE column, which reads Energy for the frag",
+    "shell where the hand grenade of the same name is Slashing."
+  ],
+  "equipment": {
+    "mortar-launcher": {
+      "damageType": "varies"
+    },
+    "mortar-frag": {
+      "name": "Mortar, Frag",
+      "category": "weapon",
+      "group": "heavy-weapons",
+      "damage": "4d6",
+      "damageType": "energy",
+      "area": "2x2 squares",
+      "delay": "2 rounds",
+      "cost": 300,
+      "weight": 1.8,
+      "book": "war",
+      "notes": "A shell for the Mortar Launcher. Fin-stabilised and self-guiding, with targeting sensors and a high-yield warhead; it lands two rounds after firing and covers a 2x2 square area. Availability: Military."
+    },
+    "mortar-ion": {
+      "name": "Mortar, Ion",
+      "category": "weapon",
+      "group": "heavy-weapons",
+      "damage": "4d6",
+      "damageType": "energy (ion)",
+      "area": "2x2 squares",
+      "delay": "2 rounds",
+      "cost": 450,
+      "weight": 1.8,
+      "book": "war",
+      "notes": "A shell for the Mortar Launcher, dealing ion damage against droids and vehicles. Lands two rounds after firing and covers a 2x2 square area. Availability: Military."
+    },
+    "mortar-stun": {
+      "name": "Mortar, Stun",
+      "category": "weapon",
+      "group": "heavy-weapons",
+      "damage": "4d6",
+      "damageType": "energy",
+      "stun": true,
+      "area": "2x2 squares",
+      "delay": "2 rounds",
+      "cost": 450,
+      "weight": 1.8,
+      "book": "war",
+      "notes": "A shell for the Mortar Launcher, dealing stun damage. Lands two rounds after firing and covers a 2x2 square area. Availability: Military."
+    },
+    "mortar-thermal": {
+      "name": "Mortar, Thermal",
+      "category": "weapon",
+      "group": "heavy-weapons",
+      "damage": "8d6",
+      "damageType": "energy",
+      "area": "4x4 squares",
+      "delay": "2 rounds",
+      "cost": 3000,
+      "weight": 1.8,
+      "book": "war",
+      "notes": "The heaviest shell for the Mortar Launcher. Lands two rounds after firing and covers a 4x4 square area. Availability: Military."
+    }
+  },
   "talentTrees": {},
   "icons": {
     "classes": {},
