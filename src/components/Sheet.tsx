@@ -45,11 +45,17 @@ export function Sheet({
   // it clears once applied, ready for the next roll.
   const [hpAmount, setHpAmount] = useState('');
   const hpStep = Math.max(0, parseInt(hpAmount, 10) || 0);
-  const currentHp = derived.maxHitPoints - char.damage;
+  const currentHp = Math.max(0, derived.maxHitPoints - char.damage);
 
   /** Move current hit points by `hpStep`, clamped to 0…max, then empty the input. */
   const moveHp = (dir: 1 | -1) => {
-    update(c => { c.damage = Math.min(derived.maxHitPoints, Math.max(0, c.damage - dir * hpStep)); });
+    update(c => {
+      // Stored damage can exceed the maximum — the old input let you type any number, and removing
+      // levels lowers the maximum under it. Normalise before adding `hpStep`, or a heal is spent
+      // dragging damage back into range instead of restoring hit points.
+      const damage = Math.min(derived.maxHitPoints, Math.max(0, c.damage));
+      c.damage = Math.min(derived.maxHitPoints, Math.max(0, damage - dir * hpStep));
+    });
     setHpAmount('');
   };
 
