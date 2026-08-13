@@ -40,6 +40,25 @@ export function Sheet({
   const [tab, setTab] = useState<SheetTab>('actions');
   const [viewing, setViewing] = useState<{ id: string; spec?: string } | null>(null);
 
+  // How many hit points the − and + buttons move. It is a scratch amount for the hit you just
+  // took or the healing you just rolled, not part of the character, so it is not persisted — and
+  // it clears once applied, ready for the next roll.
+  const [hpAmount, setHpAmount] = useState('');
+  const hpStep = Math.max(0, parseInt(hpAmount, 10) || 0);
+  const currentHp = Math.max(0, derived.maxHitPoints - char.damage);
+
+  /** Move current hit points by `hpStep`, clamped to 0…max, then empty the input. */
+  const moveHp = (dir: 1 | -1) => {
+    update(c => {
+      // Stored damage can exceed the maximum — the old input let you type any number, and removing
+      // levels lowers the maximum under it. Normalise before adding `hpStep`, or a heal is spent
+      // dragging damage back into range instead of restoring hit points.
+      const damage = Math.min(derived.maxHitPoints, Math.max(0, c.damage));
+      c.damage = Math.min(derived.maxHitPoints, Math.max(0, damage - dir * hpStep));
+    });
+    setHpAmount('');
+  };
+
   // Feats, talents and everything Force-related share one tab.
   const featureGroups = ([
     ['Feats', derived.feats],
@@ -179,21 +198,24 @@ export function Sheet({
           resulting numbers; these are the controls behind them. */}
       <Panel title="Condition &amp; resources">
         <div className="grid g2">
-          <Field label="Damage taken">
+          <Field label="Hit points">
             <div className="row">
-              <button className="sm" title="Take a point of damage"
-                onClick={() => update(c => { c.damage = Math.min(derived.maxHitPoints, c.damage + 1); })}>−1 hp</button>
+              <button className="sm" disabled={hpStep === 0 || currentHp <= 0}
+                title="Take that much damage"
+                onClick={() => moveHp(-1)}>−</button>
               <input
                 className="mono center" style={{ width: 64 }}
-                value={char.damage}
-                onChange={e => update(c => { c.damage = Math.max(0, parseInt(e.target.value, 10) || 0); })}
+                inputMode="numeric" aria-label="Hit points to add or remove" placeholder="hp"
+                value={hpAmount}
+                onChange={e => setHpAmount(e.target.value.replace(/\D/g, ''))}
               />
-              <button className="sm" title="Heal a point"
-                onClick={() => update(c => { c.damage = Math.max(0, c.damage - 1); })}>+1 hp</button>
+              <button className="sm" disabled={hpStep === 0 || char.damage <= 0}
+                title="Heal that many hit points"
+                onClick={() => moveHp(1)}>+</button>
               <button className="sm ghost" disabled={char.damage <= 0} title="Back to full"
                 onClick={() => update(c => { c.damage = 0; })}>Full</button>
               <span className="hint nowrap">
-                {derived.maxHitPoints - char.damage} / {derived.maxHitPoints}
+                {currentHp} / {derived.maxHitPoints}
               </span>
             </div>
           </Field>
