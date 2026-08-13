@@ -119,8 +119,29 @@
     "Damage types follow the shell table's own TYPE column, which reads Energy for the frag",
     "shell where the hand grenade of the same name is Slashing."
   ],
+  "_comment_damage_gaps": [
+    "Three weapons the compendium gives no damage attribute for, whose damage was only ever in",
+    "their prose. The recovered descriptions already carry the conditions — the Stokhli's",
+    "webbing acting as a Net, the Amphistaff's three forms — so only the numbers are added.",
+    "",
+    "The stun flag is deliberately not set on these two. It renders as \"stun setting\" and",
+    "\"Can be set to stun\", which describes a blaster you can switch; these deal stun and",
+    "nothing else, so it is written into the damage line instead. damageType is nulled where",
+    "the line already names the types, so the label does not append a second one."
+  ],
   "equipment": {
     "mortar-launcher": {
+      "damageType": "varies"
+    },
+    "neuronic-whip": {
+      "damage": "2d8 stun + 1d4 slashing",
+      "damageType": null
+    },
+    "stokhli-spray-stick": {
+      "damage": "3d8 stun",
+      "damageType": null
+    },
+    "amphistaff": {
       "damageType": "varies"
     },
     "mortar-frag": {

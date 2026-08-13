@@ -139,12 +139,13 @@ built them on. Use the JSON export/import to move one somewhere else or to share
 - **Faster first load.** All the game data compiles into a single 2.4 MB JS bundle (632 KB
   gzipped), up from 2.0 MB since equipment and species carry their full descriptions rather
   than a clipped line. Lazy-loading the large JSON would cut the initial download.
-- **28 weapons have no damage value** because the Foundry compendium carries none. Four are
-  ammunition-fed and say *varies*; three state their damage only in prose and say *see notes*;
-  the other 22 read *No damage*, which is right for nets, snares, grenades and gauntlets but
-  worth checking against the books. Corrections and missing gear go in `supplement.json`,
-  which now covers equipment as well as features and talent trees — that is where the four
-  mortar shells live, since the packs cross-reference them but do not contain them.
+- **27 weapons have no damage value** because the Foundry compendium carries none. Five say
+  *varies*, being fed by ammunition or, for the Amphistaff, by which of its three forms it is
+  in. The other 22 read *No damage*, which is right for nets, snares, grenades and gauntlets
+  but worth checking against the books — the stun weapons especially. Corrections and missing
+  gear go in `supplement.json`, which covers equipment as well as features and talent trees:
+  the four mortar shells live there, since the packs cross-reference them without containing
+  them, as do the damage lines for the Neuronic Whip and Stokhli Spray Stick.
 - **Cross-device characters.** Local storage means no sync and no backup beyond manual JSON
   export. A sync target or a shared party view would need a server.
 - **Run the test suites in CI.** The Pages workflow only type-checks; `test:rules` and

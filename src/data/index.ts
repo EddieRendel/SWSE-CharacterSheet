@@ -99,12 +99,16 @@ for (const [id, patch] of Object.entries(
 /**
  * What to print for a weapon's damage.
  *
- * The Foundry compendium carries no damage attribute at all for 29 of the 241 weapons, and a
- * blank read as missing data when it usually is not. The ammunition-fed launchers say so in
- * their damage type. Most of the rest deal a condition rather than wounds — nets and snares
- * entangle, smoke and gas obscure, the Carbonite Rifle immobilises — or add to an unarmed
- * attack. A handful state their damage only in prose, such as the Neuronic Whip's 1d4
- * slashing, so those point at the notes instead of claiming there is none.
+ * The Foundry compendium carries no damage attribute for 27 of the 245 weapons, and a blank
+ * read as missing data when it usually is not. Weapons fed by ammunition say so in their
+ * damage type — the launchers, and the Amphistaff, whose damage depends which of its three
+ * forms it is in. The rest deal a condition rather than wounds: nets and snares entangle,
+ * smoke and gas obscure, the Carbonite Rifle immobilises, and the gauntlets only add to an
+ * unarmed attack.
+ *
+ * "see notes" catches anything whose damage exists only in its prose. Nothing in the data
+ * needs it now that the three that did have been filled in from the books via
+ * supplement.json, but a re-import can reintroduce the case.
  */
 export const damageLabel = (item: EquipmentItem): string | undefined => {
   if (item.category !== 'weapon') return undefined;
