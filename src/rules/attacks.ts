@@ -140,6 +140,18 @@ export const dualWeaponMasteryId = (have: { id: string }[]) =>
  * Wookiee Grip lifts the requirement — you need only one hand for weapons that normally
  * take two.
  */
+/**
+ * A weapon a size category smaller than you is a Light Weapon — the other end of the ladder
+ * that makes a larger one take both hands. Weapon Finesse names "a Light Melee Weapon or a
+ * Lightsaber" separately precisely because a lightsaber is your own size, so it is not light.
+ */
+export function isLightWeapon(weapon: EquipmentItem, wielderSize: string): boolean {
+  const ladder = RULES.sizes;
+  const w = ladder.indexOf(weapon.size ?? '');
+  const c = ladder.indexOf(wielderSize);
+  return w >= 0 && c >= 0 && w < c;
+}
+
 export function needsTwoHands(
   weapon: EquipmentItem,
   wielderSize: string,
@@ -205,6 +217,7 @@ const AUTOMATIC = new Set([
   'melee-smash', 'point-blank-shot', 'careful-shot', 'deadeye', 'sneak-attack', 'power-attack',
   'double-attack', 'triple-attack', 'rapid-shot', 'burst-fire', 'weapon-proficiency',
   'exotic-weapon-proficiency', 'dual-weapon-mastery-i', 'dual-weapon-mastery-ii', 'dual-weapon-mastery-iii',
+  'weapon-finesse', 'ataru',
 ]);
 
 export function buildAttack(
@@ -221,11 +234,23 @@ export function buildAttack(
   const proficient = hasFeature(have, 'weapon-proficiency', group)
     || hasFeature(have, 'exotic-weapon-proficiency', weapon.id);
 
+  // Weapon Finesse swaps Dexterity for Strength on attack rolls with a light melee weapon
+  // or a lightsaber. The feat says "may", so take whichever modifier is actually higher.
+  const lightsaber = group === 'lightsabers';
+  const finesse = melee && hasFeature(have, 'weapon-finesse')
+    && (lightsaber || isLightWeapon(weapon, derived.size));
+  const finesseAttack = finesse && derived.mods.dex > derived.mods.str;
+
   // ---- attack ----
   const attackParts: Part[] = [
     { label: 'base attack bonus', value: derived.baseAttackBonus },
-    { label: melee ? 'Strength' : 'Dexterity', value: melee ? derived.mods.str : derived.mods.dex },
+    !melee ? { label: 'Dexterity', value: derived.mods.dex }
+      : finesseAttack ? { label: 'Dexterity (Weapon Finesse)', value: derived.mods.dex }
+        : { label: 'Strength', value: derived.mods.str },
   ];
+  if (finesse && !finesseAttack && derived.mods.dex < derived.mods.str) {
+    notes.push('Weapon Finesse could use Dexterity on the attack roll, but your Strength bonus is higher.');
+  }
   if (!proficient) attackParts.push({ label: 'not proficient', value: -5 });
   if (hasFeature(have, 'weapon-focus', group)) attackParts.push({ label: 'Weapon Focus', value: 1 });
   if (hasFeature(have, 'greater-weapon-focus', group)) attackParts.push({ label: 'Greater Weapon Focus', value: 1 });
@@ -292,14 +317,25 @@ export function buildAttack(
   const inherent = needsTwoHands(weapon, derived.size, have);
   const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
 
+  // Ataru puts Dexterity on lightsaber damage in place of Strength, and says so for the
+  // doubled case too — two-handed it is double Dexterity rather than double Strength. Also
+  // a "may", so the higher modifier wins.
+  const ataru = lightsaber && hasFeature(have, 'ataru');
+  const ataruDamage = ataru && derived.mods.dex > derived.mods.str;
+
   if (melee) {
-    const str = derived.mods.str;
+    const mod = ataruDamage ? derived.mods.dex : derived.mods.str;
+    const ability = ataruDamage ? 'Dexterity' : 'Strength';
+    const grip = inherent ? 'two-handed weapon' : 'two-handed grip';
     damageParts.push({
       label: bothHands
-        ? (inherent ? 'Strength ×2 (two-handed weapon)' : 'Strength ×2 (two-handed grip)')
-        : 'Strength',
-      value: bothHands ? str * 2 : str,
+        ? `${ability} ×2 (${grip}${ataruDamage ? ', Ataru' : ''})`
+        : ataruDamage ? 'Dexterity (Ataru)' : 'Strength',
+      value: bothHands ? mod * 2 : mod,
     });
+    if (ataru && !ataruDamage && derived.mods.dex < derived.mods.str) {
+      notes.push('Ataru could use Dexterity on damage, but your Strength bonus is higher.');
+    }
     if (opts.twoWeapon && (inherent || opts.twoHanded)) {
       notes.push('A weapon in each hand cannot also be held in two, so the doubled Strength bonus does not apply.');
     }

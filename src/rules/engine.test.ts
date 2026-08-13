@@ -1476,6 +1476,57 @@ console.log('\n▸ Attacks');
   check('and the doubling is explained',
     paTwo.notes.some(n => n.includes('twice the number subtracted')), true);
 
+  // Weapon Finesse puts Dexterity on the attack roll for a light melee weapon or a
+  // lightsaber; Ataru puts it on lightsaber damage, doubled by a two-handed grip the same
+  // way Strength is. A nimble Jedi: Strength 10 (+0), Dexterity 18 (+4).
+  const nimble = (sel: Character['selections'] = []) => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 10, dex: 18, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'jedi', hitPoints: i === 0 ? undefined : 6 }));
+    x.selections = sel;
+  });
+  const plainJedi = nimble();
+  const dpj = computeCharacter(plainJedi);
+  const saberOf = (ch: Character, dv: Derived, o = opts) => buildAttack(ch, dv, EQUIPMENT['lightsaber'], o);
+  check('without Weapon Finesse a lightsaber uses Strength', saberOf(plainJedi, dpj).attack, 8 + 0);
+
+  const finesseSel = [{ key: 'feat:1', choiceId: 'feat', featureId: 'weapon-finesse' }];
+  const fin = nimble(finesseSel);
+  const dfin = computeCharacter(fin);
+  check('Weapon Finesse puts Dexterity on a lightsaber attack', saberOf(fin, dfin).attack, 8 + 4);
+  check('and names it in the breakdown',
+    saberOf(fin, dfin).attackParts.some(p => p.label === 'Dexterity (Weapon Finesse)'), true);
+  check('a Tiny knife is light, so it finesses too',
+    buildAttack(fin, dfin, EQUIPMENT['knife'], opts).attack, 8 + 4);
+  check('a Medium club is neither light nor a lightsaber',
+    buildAttack(fin, dfin, EQUIPMENT['club'], opts).attack, 8 + 0);
+  check('and damage is untouched by Finesse — it is an attack-roll feat',
+    saberOf(fin, dfin).damageBonus, 4 + 0);
+
+  // Ataru is a Jedi Knight Lightsaber Forms talent; put it on a real talent slot.
+  const ataruSlot = computeCharacter(nimble(finesseSel)).slots.filter(s => s.kind === 'talent')[0].key;
+  const ata = nimble([...finesseSel, { key: ataruSlot, choiceId: 'talent', featureId: 'ataru' }]);
+  const data_ = computeCharacter(ata);
+  check('Ataru puts Dexterity on lightsaber damage', saberOf(ata, data_).damageBonus, 4 + 4);
+  check('and says so', saberOf(ata, data_).damageParts.some(p => p.label === 'Dexterity (Ataru)'), true);
+  check('two-handed doubles the Dexterity bonus, not Strength',
+    saberOf(ata, data_, { ...opts, twoHanded: true }).damageBonus, 4 + 8);
+  check('labelled as both', saberOf(ata, data_, { ...opts, twoHanded: true })
+    .damageParts.some(p => p.label.includes('Dexterity ×2') && p.label.includes('Ataru')), true);
+  check('Ataru does nothing for a club', buildAttack(ata, data_, EQUIPMENT['club'], opts).damageBonus, 4 + 0);
+
+  // Both are "may", so a stronger character keeps Strength and is told why.
+  const brawn = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 18, dex: 12, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'jedi', hitPoints: i === 0 ? undefined : 6 }));
+    x.selections = [...finesseSel, { key: ataruSlot, choiceId: 'talent', featureId: 'ataru' }];
+  });
+  const dbr = computeCharacter(brawn);
+  check('a strong Jedi keeps Strength on the attack', saberOf(brawn, dbr).attack, 8 + 4);
+  check('and on damage', saberOf(brawn, dbr).damageBonus, 4 + 4);
+  check('with both explained', saberOf(brawn, dbr).notes.filter(n => /Strength bonus is higher/.test(n)).length, 2);
+
   // Two weapons drawn, plus unarmed strike, which is always available.
   check('a profile per drawn weapon plus unarmed', buildAttacks(c, d, opts).length, 3);
 

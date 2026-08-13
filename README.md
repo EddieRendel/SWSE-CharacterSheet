@@ -92,6 +92,11 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   requirement. The toggle remains for holding a one-handed weapon in two.
 - **Power Attack doubles when two-handed**, per its own Special clause: held in two hands it
   adds twice the number you subtracted from your attack rolls.
+- **Weapon Finesse and Ataru swap in Dexterity.** Finesse uses it on attack rolls with a
+  light melee weapon or a lightsaber — light being a weapon a size category smaller than
+  you, which is why a lightsaber needs naming separately. **Ataru** uses it on lightsaber
+  damage, and a two-handed grip doubles *that* rather than Strength. Both say "may", so the
+  higher modifier wins and a note tells you when Strength was the better one.
 - **Unarmed strike** is always listed, stepping up with Martial Arts I/II/III.
 - **Damaging Force powers** get their own section, resolved as a Use the Force check against a
   defense — *Force Lightning: +12 vs Reflex Defense, 8d6 force*.
