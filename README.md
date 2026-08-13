@@ -127,8 +127,11 @@ built them on. Use the JSON export/import to move one somewhere else or to share
 - **Live derived stats** — hit points, all three defenses, damage threshold, second wind, speed
   and the condition track.
 - **Hover cards explain every number** — rules text for features, the equipment line for gear,
-  and a row-by-row sum for attacks, damage, skills, defenses and hit points. On the sheet's
-  **Feats & powers** tab, clicking any entry opens its full text rather than the excerpt.
+  and a row-by-row sum for attacks, damage, skills, defenses and hit points. Where a card
+  clips its prose, clicking opens the whole thing: any entry on the sheet's **Feats & powers**
+  tab, and any item in the carried list, the Actions tab or the equipment browser. Gear
+  descriptions run past 700 characters for 216 items — a double weapon's penalties, a stun
+  setting's range — well past what a card can hold.
 - **Portraits** — upload an image or pick one of the 21 class images; cropped square and scaled
   to 256px JPEG so localStorage isn't blown.
 - **384 icons** for classes, feats, talents and powers, shown in pickers and lists.

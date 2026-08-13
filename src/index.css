@@ -504,6 +504,8 @@ button.linklike {
   cursor: pointer; text-align: left;
 }
 button.linklike:hover { color: var(--accent); background: none; }
+/* Fills its row, so the whole name-and-meta block is a target rather than just the text. */
+button.linklike.block { display: block; width: 100%; }
 
 /* ---------- compact attack rows ---------- */
 .attack-row {

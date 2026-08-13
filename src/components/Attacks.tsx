@@ -8,7 +8,7 @@ import {
   defaultAttackOptions, SITUATIONAL, twoWeaponPenalty, dualWeaponMasteryId,
 } from '../rules/attacks';
 import type { AttackOptions, AttackProfile } from '../rules/attacks';
-import { Panel } from './ui';
+import { Panel, Modal, ItemDetail } from './ui';
 import { Tip, FeatureTip, FeatureTipBody, ItemTipBody, TipRows } from './Tip';
 import { FEATURES } from '../data';
 
@@ -56,11 +56,16 @@ function AttackRow({ a }: { a: AttackProfile }) {
     ...a.notes,
     ...(a.unapplied.length ? [`Also has, not applied automatically: ${a.unapplied.join(', ')}`] : []),
   ];
+  // A weapon's own rules — a double weapon, a net, a stun setting's range — are in its
+  // description rather than its stat line, so the name opens the full entry.
+  const [viewing, setViewing] = useState(false);
   return (
     <div className="attack-row">
       <div className="attack-name">
         <Tip content={<ItemTipBody item={a.weapon} note={a.proficient ? undefined : 'You are not proficient — attacks take −5.'} />}>
-          <span className="breakdown">{a.weapon.name}</span>
+          <button type="button" className="linklike" onClick={() => setViewing(true)}>
+            <span className="breakdown">{a.weapon.name}</span>
+          </button>
         </Tip>
         <span className="faint">· {a.melee ? 'melee' : 'ranged'}</span>
         {!a.proficient && <span className="badge red">not proficient</span>}
@@ -100,6 +105,11 @@ function AttackRow({ a }: { a: AttackProfile }) {
         />
         <span className="faint">{a.weapon.damageType}</span>
       </div>
+      {viewing && (
+        <Modal title="Equipment" onClose={() => setViewing(false)}>
+          <ItemDetail item={a.weapon} />
+        </Modal>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import type { Character, EquipmentItem } from '../types';
 import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
 import { getItem, signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
-import { Panel, Modal, Field } from './ui';
+import { Panel, Modal, Field, ItemDetail } from './ui';
 import { Tip, ItemTipBody, TipRows } from './Tip';
 
 /** How the sheet names each step of the carrying rules. */
@@ -38,6 +38,7 @@ const CATEGORIES = ['weapon', 'armor', 'gear'] as const;
 /** "Armor" and "Gear" are already plural; only weapons take an s. */
 const CATEGORY_LABELS: Record<string, string> = { weapon: 'Weapons', armor: 'Armor', gear: 'Gear' };
 
+
 export function Equipment({
   char, derived, update, compact, bare,
 }: {
@@ -51,6 +52,7 @@ export function Equipment({
 }) {
   const [browsing, setBrowsing] = useState(false);
   const [editing, setEditing] = useState<EquipmentItem | null>(null);
+  const [viewing, setViewing] = useState<EquipmentItem | null>(null);
 
   const add = (itemId: string) =>
     update(c => {
@@ -212,7 +214,13 @@ export function Equipment({
                                   : 'Not worn, so it has no effect on your attacks or defenses.'}
                               />
                             }>
-                              <strong className="breakdown">{item.name}</strong>
+                              <button
+                                type="button"
+                                className="linklike"
+                                onClick={() => setViewing(item)}
+                              >
+                                <strong className="breakdown">{item.name}</strong>
+                              </button>
                             </Tip>
                             {item.custom && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}
                             {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}</div>}
@@ -254,8 +262,14 @@ export function Equipment({
       {browsing && (
         <ItemBrowser
           onAdd={id => add(id)}
+          onView={setViewing}
           onClose={() => setBrowsing(false)}
         />
+      )}
+      {viewing && (
+        <Modal title="Equipment" onClose={() => setViewing(null)}>
+          <ItemDetail item={viewing} />
+        </Modal>
       )}
       {editing && (
         <CustomItemEditor
@@ -282,7 +296,9 @@ export function Equipment({
   );
 }
 
-function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose: () => void }) {
+function ItemBrowser({
+  onAdd, onView, onClose,
+}: { onAdd: (id: string) => void; onView: (item: EquipmentItem) => void; onClose: () => void }) {
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState('');
 
@@ -298,7 +314,9 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
 
   return (
     <Modal
-      title="Equipment"
+      // Not just "Equipment": the detail dialog opens on top of this one, and two
+      // stacked headers reading the same thing tells you nothing about which is which.
+      title="Add equipment"
       onClose={onClose}
       footer={<button onClick={onClose}>Done</button>}
     >
@@ -335,10 +353,12 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
           return (
             <div key={item.id} className="item">
               {/* The row itself carries the full stat card, so you can compare two things
-                  without adding either one first. */}
+                  without adding either one first, and clicking opens the whole entry. */}
               <Tip className="grow block" content={<ItemTipBody item={item} />}>
-                <div className="name breakdown">{item.name}</div>
-                {meta && <div className="meta">{meta}</div>}
+                <button type="button" className="linklike block" onClick={() => onView(item)}>
+                  <div className="name breakdown">{item.name}</div>
+                  {meta && <div className="meta">{meta}</div>}
+                </button>
               </Tip>
               <span className="faint nowrap">{item.weight} kg</span>
               <span className="faint nowrap">{item.cost.toLocaleString()} cr</span>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Character, Feature } from '../types';
-import { BOOK_NAMES, WEAPON_GROUPS, SKILLS, CLASSES, FEATURES, EQUIPMENT, featureIcon, portraitUrl, classIcon } from '../data';
+import type { Character, EquipmentItem, Feature } from '../types';
+import { BOOK_NAMES, WEAPON_GROUPS, SKILLS, CLASSES, FEATURES, EQUIPMENT, damageLabel, featureIcon, portraitUrl, classIcon } from '../data';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 
@@ -76,11 +76,31 @@ export function RulesText({ lines }: { lines?: string[] }) {
   );
 }
 
+/**
+ * Open modals, oldest first. Escape closes only the top one, so a detail dialog opened
+ * from inside a picker does not dismiss the picker along with itself.
+ */
+const modalStack: object[] = [];
+
 export function Modal({
   title, onClose, children, footer, wide,
 }: { title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
+  const self = useRef({});
+
+  // Membership is tracked separately from the key handler: onClose is usually a fresh
+  // arrow function each render, and re-running this would shuffle an older modal to the top.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    modalStack.push(self.current);
+    return () => {
+      const i = modalStack.indexOf(self.current);
+      if (i >= 0) modalStack.splice(i, 1);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === self.current) onClose();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
@@ -267,6 +287,84 @@ export function Descriptors({ feature, compact }: { feature: Feature; compact?: 
 }
 
 /** Full rules display for a feat / talent / power. */
+/**
+ * The item's line from the equipment tables, as label/value pairs. Shared so the hover
+ * card and the full dialog can never disagree about a number.
+ */
+export function itemStatRows(item: EquipmentItem): [string, string][] {
+  const stats: [string, string | undefined][] = [
+    // Says "varies" or "No damage" rather than dropping the row, so a weapon the compendium
+    // gives no dice for does not look like an oversight. The prose below explains which.
+    ['Damage', damageLabel(item) && `${damageLabel(item)}${item.stun ? ' (stun setting)' : ''}`],
+    // Only present when the stun dice differ from the normal ones.
+    ['On stun', item.stunDamage],
+    ['Group', item.group ? WEAPON_GROUPS[item.group] ?? item.group : undefined],
+    ['Rate of fire', item.rateOfFire],
+    ['Area', item.area],
+    ['Delay', item.delay],
+    ['Reflex', item.reflex ? `+${item.reflex}` : undefined],
+    ['Fortitude', item.fortitude ? `+${item.fortitude}` : undefined],
+    ['Max Dex', item.maxDex !== undefined ? `+${item.maxDex}` : undefined],
+    ['Armor', item.armorType],
+    ['Size', item.size],
+    ['Cost', item.cost ? `${item.cost.toLocaleString()} cr` : undefined],
+    ['Weight', item.weight ? `${item.weight} kg` : undefined],
+  ];
+  return stats.filter((s): s is [string, string] => Boolean(s[1]));
+}
+
+/**
+ * Everything the data holds about one item, the way FeatureDetail does for a feat. The
+ * hover card clamps its description at six lines, which is short of half of what the
+ * longest entries carry, so clicking gets you the rest.
+ */
+export function ItemDetail({ item }: { item: EquipmentItem }) {
+  const rows = itemStatRows(item);
+  return (
+    <div>
+      <div className="row" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
+        <h3 style={{ fontSize: 16 }}>{item.name}</h3>
+        <span className={`badge ${item.category === 'weapon' ? 'blue' : item.category === 'armor' ? 'purple' : ''}`}>
+          {item.category}
+        </span>
+        {item.twoHanded && <span className="badge">two-handed</span>}
+        {item.stun && <span className="badge">stun setting</span>}
+        {item.custom && <span className="badge green">custom</span>}
+        {item.book && item.book !== 'unknown' && (
+          <span className="badge">{BOOK_NAMES[item.book] ?? item.book}</span>
+        )}
+      </div>
+
+      {rows.length > 0 && (
+        <div className="table-scroll" style={{ marginBottom: 12 }}>
+          <table>
+            <tbody>
+              {rows.map(([label, value]) => (
+                <tr key={label}>
+                  <td className="faint" style={{ width: '40%' }}>{label}</td>
+                  <td className="mono">{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* The importer joins the compendium's paragraphs into one string, so there are no
+          breaks left to honour — a single block is all the data supports. */}
+      {item.notes
+        ? <div className="rules-text"><p>{item.notes}</p></div>
+        : (
+          <p className="hint">
+            {item.custom
+              ? 'No notes on this custom item — use ✎ to add some.'
+              : 'The compendium carries no description for this item. Look it up in your sourcebook.'}
+          </p>
+        )}
+    </div>
+  );
+}
+
 export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: string }) {
   return (
     <div>

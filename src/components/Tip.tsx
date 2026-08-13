@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EquipmentItem, Feature } from '../types';
-import { FEATURES, BOOK_NAMES, WEAPON_GROUPS, damageLabel } from '../data';
+import { FEATURES, BOOK_NAMES } from '../data';
 import { signed } from '../rules/engine';
-import { descriptorsOf, specLabel } from './ui';
+import { descriptorsOf, specLabel, itemStatRows } from './ui';
 
 const GAP = 8;
 
@@ -198,23 +198,7 @@ export function FeatureTip({
 
 /** What a piece of gear is, at a glance: its line from the equipment tables. */
 export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactNode }) {
-  const stats: [string, string | undefined][] = [
-    // Says "varies" or "No damage" rather than dropping the row, so a weapon the compendium
-    // gives no dice for does not look like an oversight. The prose below explains which.
-    ['Damage', damageLabel(item) && `${damageLabel(item)}${item.stun ? ' (stun setting)' : ''}`],
-    ['Group', item.group ? WEAPON_GROUPS[item.group] ?? item.group : undefined],
-    ['Rate of fire', item.rateOfFire],
-    ['Area', item.area],
-    ['Delay', item.delay],
-    ['Reflex', item.reflex ? `+${item.reflex}` : undefined],
-    ['Fortitude', item.fortitude ? `+${item.fortitude}` : undefined],
-    ['Max Dex', item.maxDex !== undefined ? `+${item.maxDex}` : undefined],
-    ['Armor', item.armorType],
-    ['Size', item.size],
-    ['Cost', item.cost ? `${item.cost.toLocaleString()} cr` : undefined],
-    ['Weight', item.weight ? `${item.weight} kg` : undefined],
-  ];
-  const rows = stats.filter((s): s is [string, string] => Boolean(s[1]));
+  const rows = itemStatRows(item);
   return (
     <div className="tip-body">
       <div className="tip-head">
