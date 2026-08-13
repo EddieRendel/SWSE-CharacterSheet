@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Character, AbilityId } from '../types';
 import { ABILITY_IDS } from '../types';
 import { RULES } from '../data';
-import { abilityMod, signed, isAbilityIncreaseLevel } from '../rules/engine';
+import { abilityMod, signed, abilityIncreaseLevels } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel } from './ui';
 
@@ -26,8 +26,7 @@ export function Abilities({
     update(c => { c.baseAbilities[a] = Math.max(1, Math.min(30, v || 0)); });
 
   // Levels 4, 8, 12, 16 and 20 each grant +1 to two different abilities.
-  const increaseLevels = Array.from({ length: derived.level }, (_, i) => i + 1)
-    .filter(isAbilityIncreaseLevel);
+  const increaseLevels = abilityIncreaseLevels(derived.level);
 
   const toggleIncrease = (level: number, a: AbilityId) =>
     update(c => {

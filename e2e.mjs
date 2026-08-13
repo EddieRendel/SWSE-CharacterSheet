@@ -12,7 +12,10 @@ const step = async (label, fn) => {
   catch (e) { console.log(`  FAIL ${label}: ${e.message.split('\n')[0]}`); errors.push(`${label}: ${e.message.split('\n')[0]}`); }
 };
 
-await page.goto('http://localhost:5173/', { waitUntil: 'networkidle' });
+// Vite moves to 5174 when 5173 is already taken, so a stale server would otherwise be
+// tested instead of the one you just started. Override with E2E_URL to point it anywhere.
+const BASE_URL = process.env.E2E_URL ?? 'http://localhost:5173/';
+await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 
 console.log('\n▸ Character creation');
 await step('app renders', async () => { await page.waitForSelector('.brand', { timeout: 10000 }); });

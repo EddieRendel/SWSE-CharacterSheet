@@ -3,7 +3,7 @@ import type {
   DroidSystem,
 } from '../types';
 import { ABILITY_IDS } from '../types';
-import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TREE_IDS, DROIDS, droidSize, droidDegree } from '../data';
+import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TALENT_TREES, DROIDS, droidSize, droidDegree } from '../data';
 
 export const abilityMod = (score: number) => Math.floor((score - 10) / 2);
 export const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
@@ -12,6 +12,9 @@ export const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 export const isFeatLevel = (level: number) => level === 1 || level % 3 === 0;
 /** Character levels at which two ability scores each increase by 1. */
 export const isAbilityIncreaseLevel = (level: number) => level % 4 === 0;
+/** Those levels up to and including `level`: 4th, 8th, 12th, 16th, 20th. */
+export const abilityIncreaseLevels = (level: number): number[] =>
+  Array.from({ length: level }, (_, i) => i + 1).filter(isAbilityIncreaseLevel);
 
 export type SlotKind =
   | 'starting-feat' | 'class-feature' | 'species-trait'
@@ -41,8 +44,6 @@ export interface Slot {
   auto: boolean;
   /** Pre-filled ref for auto slots. */
   granted?: FeatureRef;
-  /** For Force power slots: the key of the Force Training feat that granted it. */
-  sourceKey?: string;
 }
 
 export interface SlotContext {
@@ -56,16 +57,7 @@ export interface SlotContext {
   adaptableTalents?: { sourceKey: string; level: number }[];
 }
 
-/**
- * The universal Force talent trees — every tree the spreadsheets file under
- * "Force Sensitive". Any character with the Force Sensitivity feat may take a talent
- * from these in place of one from their class, whenever they earn a talent.
- * Tradition-specific trees (Jensaarai Defender, Dathomiri Witch, …) are *not* included;
- * they belong to Force traditions the app does not model.
- */
-export const FORCE_TALENT_TREES = FORCE_TREE_IDS;
-
-const dedupeRefs = (refs: FeatureRef[]): FeatureRef[] => {
+export const dedupeRefs = (refs: FeatureRef[]): FeatureRef[] => {
   const seen = new Set<string>();
   return refs.filter(r => {
     const k = refKey(r);
@@ -75,11 +67,6 @@ const dedupeRefs = (refs: FeatureRef[]): FeatureRef[] => {
   });
 };
 
-/**
- * Whether a feature is available to a character, given the sourcebooks they allow.
- * `allowedBooks: null` means every book. Content already selected is unaffected —
- * this only governs what new pickers offer.
- */
 /**
  * A Near-Human trades one of the Human bonuses for its trait, so whichever was given
  * up is no longer granted.
@@ -96,12 +83,6 @@ export const speciesGrantsBonusSkill = (char: Character, species: Species | null
 export const isDroid = (char: Character) =>
   !!char.speciesId && SPECIES[char.speciesId]?.template === 'droid';
 
-/**
- * Droids have no Constitution score. They gain no bonus hit points from it and apply
- * their Strength modifier to Fortitude Defense instead.
- */
-export const fortitudeAbility = (char: Character): AbilityId => (isDroid(char) ? 'str' : 'con');
-
 /** Installed systems, resolved against the catalogue. */
 export const droidSystems = (char: Character) =>
   (char.droid?.systems ?? []).map(id => DROIDS.systems[id]).filter(Boolean);
@@ -109,6 +90,11 @@ export const droidSystems = (char: Character) =>
 export const isBookAllowed = (char: Character, book: string | undefined) =>
   !char.allowedBooks || !book || char.allowedBooks.includes(book);
 
+/**
+ * Whether a feature is available to a character, given the sourcebooks they allow.
+ * `allowedBooks: null` means every book. Content already selected is unaffected —
+ * this only governs what new pickers offer.
+ */
 export const featureAvailable = (char: Character, id: string) => {
   const f = FEATURES[id];
   return !!f && !f.hidden && isBookAllowed(char, f.book);
@@ -257,7 +243,6 @@ export function buildSlots(char: Character, ctx: SlotContext = {}): Slot[] {
         level: at.level,
         pool, treeGroups,
         auto: false,
-        sourceKey: at.sourceKey,
       });
     }
   }
@@ -273,7 +258,6 @@ export function buildSlots(char: Character, ctx: SlotContext = {}): Slot[] {
         level: ft.level,
         pool: null,
         auto: false,
-        sourceKey: ft.sourceKey,
       });
     }
   }
@@ -377,7 +361,6 @@ export interface Derived {
   destinyPoints: number;
   skills: DerivedSkill[];
   trainedSkillsAllowed: number;
-  trainedSkillsUsed: number;
   classSkills: Set<string>;
   features: FeatureRef[];
   feats: FeatureRef[];
@@ -389,7 +372,6 @@ export interface Derived {
   equippedArmor: EquipmentItem | null;
   armorProficient: boolean;
   armorPenalty: number;
-  totalWeight: number;
   conditionPenalty: number;
   secondWind: number;
   forceSensitive: boolean;
@@ -514,9 +496,12 @@ export function computeCharacter(char: Character): Derived {
   // attack rolls and Strength-/Dexterity-based skill checks.
   const armorPenalty = equippedArmor && !armorProficient ? -(equippedArmor.reflex ?? 0) : 0;
 
-  const totalWeight = char.inventory.reduce((sum, e) => {
-    const it = getItem(char, e.itemId);
-    return sum + (it ? it.weight * e.quantity : 0);
+  // Everything in the inventory counts, whether it is worn or stowed. Summed once here
+  // and reported only as `carrying.weight`, so the sheet and the equipment list cannot
+  // drift apart the way two separate reduces let them.
+  const carriedWeight = char.inventory.reduce((kg, entry) => {
+    const item = getItem(char, entry.itemId);
+    return kg + (item ? item.weight * entry.quantity : 0);
   }, 0);
 
   // ---- defenses ----
@@ -601,12 +586,7 @@ export function computeCharacter(char: Character): Derived {
   const damageThreshold = fortitude + sizeDt + dtBonus;
 
   // ---- what you can carry ----
-  // Limits are the square of the Strength score, scaled by size. Everything in the
-  // inventory counts, whether it is worn or stowed.
-  const carriedWeight = char.inventory.reduce((kg, entry) => {
-    const item = getItem(char, entry.itemId);
-    return kg + (item ? item.weight * entry.quantity : 0);
-  }, 0);
+  // Limits are the square of the Strength score, scaled by size.
   const carrySize = RULES.carryingCapacity.sizeMultiplier[size] ?? 1;
   const strScore = abilities.str;
   const capacity = {
@@ -715,7 +695,7 @@ export function computeCharacter(char: Character): Derived {
     defenses: { reflex, fortitude, will, flatFooted },
     defenseBreakdown, damageThreshold, size, speed, carrying, languages,
     forcePoints, destinyPoints: char.destinyPoints,
-    skills, trainedSkillsAllowed, trainedSkillsUsed: char.trainedSkills.length, classSkills,
+    skills, trainedSkillsAllowed, classSkills,
     features,
     feats: ofType('feat'),
     talents: ofType('talent'),
@@ -723,7 +703,7 @@ export function computeCharacter(char: Character): Derived {
     forceTechniques: ofType('force-technique'),
     forceSecrets: ofType('force-secret'),
     starshipManeuvers: ofType('starship-maneuver'),
-    equippedArmor, armorProficient, armorPenalty, totalWeight,
+    equippedArmor, armorProficient, armorPenalty,
     conditionPenalty, secondWind, forceSensitive,
     isDroid: droid,
     droidSystems: droid ? droidSystems(char) : [],

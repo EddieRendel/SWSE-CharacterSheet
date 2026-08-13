@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Character } from '../types';
-import { isAbilityIncreaseLevel } from '../rules/engine';
+import { abilityIncreaseLevels } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Levels } from './Levels';
 import { Features } from './Features';
@@ -44,31 +44,6 @@ interface Outstanding {
   over?: boolean;
 }
 
-/**
- * Choices that exceed what the character is entitled to. Removing the level that raised
- * Intelligence is the usual cause: the allowances shrink, but the skills and languages
- * already picked stay put.
- */
-export const hasConflicts = (char: Character, derived: Derived) =>
-  char.trainedSkills.length > derived.trainedSkillsAllowed
-  || derived.languages.chosen.length > derived.languages.allowed;
-
-/**
- * Everything a level still owes the character: unfilled slots, unassigned ability
- * increases, and untrained skills. Exported so the tab can carry the same count.
- */
-export function outstandingCount(char: Character, derived: Derived): number {
-  if (!char.levels.length) return 0;
-  const increases = Array.from({ length: derived.level }, (_, i) => i + 1)
-    .filter(isAbilityIncreaseLevel)
-    .reduce((n, level) => n + (2 - (char.abilityIncreases[level] ?? []).length), 0);
-  // Absolute, so having too many counts as something to deal with just as having too few does.
-  return derived.unfilledSlots.length
-    + Math.max(0, increases)
-    + Math.abs(derived.trainedSkillsAllowed - char.trainedSkills.length)
-    + Math.abs(derived.languages.allowed - derived.languages.chosen.length);
-}
-
 export function EditCharacter({
   char, derived, update,
 }: { char: Character; derived: Derived; update: (fn: (c: Character) => void) => void }) {
@@ -99,8 +74,7 @@ export function EditCharacter({
     }
 
     // 4th, 8th, 12th… each grant +1 to two different abilities.
-    const owed = Array.from({ length: derived.level }, (_, i) => i + 1)
-      .filter(isAbilityIncreaseLevel)
+    const owed = abilityIncreaseLevels(derived.level)
       .reduce((n, level) => n + (2 - (char.abilityIncreases[level] ?? []).length), 0);
     if (owed > 0) {
       out.push({ id: 'abilities', count: owed, label: `${owed} ability increase${owed > 1 ? 's' : ''} to assign` });

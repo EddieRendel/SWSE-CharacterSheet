@@ -1,6 +1,8 @@
 import type { Character, FeatureRef, Requirements, AbilityId } from '../types';
-import { CLASSES, FEATURES, SKILLS, SPECIES, WEAPON_GROUPS, TALENT_TREES } from '../data';
-import { countFeature, hasFeature, FORCE_TALENT_TREES } from './engine';
+import {
+  CLASSES, FEATURES, SKILLS, SPECIES, WEAPON_GROUPS, TALENT_TREES, RULES, specName, FORCE_TALENT_TREES,
+} from '../data';
+import { countFeature, hasFeature } from './engine';
 import type { Derived } from './engine';
 import { specOptionsFor, groupOfSpec } from './specs';
 
@@ -21,9 +23,7 @@ const ABILITY_NAMES: Record<AbilityId, string> = {
 
 const refLabel = (r: FeatureRef) => {
   const name = FEATURES[r.id]?.name ?? r.id;
-  if (!r.spec) return name;
-  const spec = SKILLS[r.spec]?.name ?? WEAPON_GROUPS[r.spec] ?? r.spec;
-  return `${name} (${spec})`;
+  return r.spec ? `${name} (${specName(r.spec, FEATURES[r.id])})` : name;
 };
 
 /**
@@ -191,9 +191,10 @@ export function checkRequirements(
   return { met: checks.every(c => c.met), checks };
 }
 
-const SIZE_ORDER = ['Fine', 'Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
+// The one size ladder lives in rules.json; attacks.ts reads the same array to decide
+// what a weapon is light enough to finesse and heavy enough to need both hands.
 const sizeAtLeast = (actual: string, min: string) =>
-  SIZE_ORDER.indexOf(actual) >= SIZE_ORDER.indexOf(min);
+  RULES.sizes.indexOf(actual) >= RULES.sizes.indexOf(min);
 
 /** Can this feature be taken again, given what the character already has? */
 export function canTakeAgain(featureId: string, have: FeatureRef[], spec?: string): boolean {
@@ -217,6 +218,11 @@ export interface SelectResult extends ReqResult {
   viableSpecs: string[];
 }
 
+const DROID_FORBIDDEN = new Set(['force-sensitivity', 'force-training', 'force-boon']);
+
+/** Spec kinds whose options are features in their own right, with their own prerequisites. */
+const PICKS_A_FEATURE = new Set(['talent', 'force-power', 'force-technique', 'force-secret']);
+
 /**
  * Full eligibility for selecting a feature into a slot.
  *
@@ -225,11 +231,6 @@ export interface SelectResult extends ReqResult {
  * a reason to lock it. Weapon Focus is open to anyone proficient with at least one
  * weapon group, and only locked for someone proficient with none.
  */
-const DROID_FORBIDDEN = new Set(['force-sensitivity', 'force-training', 'force-boon']);
-
-/** Spec kinds whose options are features in their own right, with their own prerequisites. */
-const PICKS_A_FEATURE = new Set(['talent', 'force-power', 'force-technique', 'force-secret']);
-
 export function canSelect(
   featureId: string,
   char: Character,

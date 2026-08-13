@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Character, FeatureType } from './types';
 import { computeCharacter } from './rules/engine';
-import { loadAll, saveAll, newCharacter, exportCharacter, importCharacterFile } from './storage';
+import { loadAll, saveAll, newCharacter, exportCharacter, importCharacterFile, uid } from './storage';
 import {
-  DATA_GAPS, DATA_REPAIRS, SPECIES, CLASSES, FEATURES, SKILLS, EQUIPMENT, ALL_BOOKS,
+  DATA_REPAIRS, SPECIES, CLASSES, FEATURES, SKILLS, EQUIPMENT, ALL_BOOKS,
 } from './data';
 import { Overview } from './components/Overview';
-import { EditCharacter, outstandingCount, hasConflicts } from './components/EditCharacter';
+import { EditCharacter } from './components/EditCharacter';
+import { outstandingCount, hasConflicts } from './components/outstanding';
 import { Sheet } from './components/Sheet';
 import { FeatureBrowser } from './components/FeaturePicker';
 import { Panel, Portrait } from './components/ui';
@@ -28,6 +29,12 @@ const COUNTS = {
   species: Object.values(SPECIES).filter(s => !s.hidden).length,
   skills: Object.keys(SKILLS).length,
   equipment: Object.keys(EQUIPMENT).length,
+  // Counted for the same reason as the rest. These two used to be read from a generated
+  // dataGaps.json that stopped being regenerated: it still listed 55 entries as having no
+  // rules text long after every one of them had been filled in by a later import, so the
+  // panel promised a "?" badge that nothing could render.
+  noText: VISIBLE.filter(f => f.incomplete || !f.description.join('').trim()).length,
+  summaryOnly: VISIBLE.filter(f => f.summaryOnly).length,
 };
 
 // Levels, feats, abilities and skills all move together when you gain a level, so they
@@ -111,7 +118,9 @@ export default function App() {
   const duplicate = (id: string) => {
     const c = characters.find(x => x.id === id);
     if (!c) return;
-    const copy: Character = { ...structuredClone(c), id: `${Date.now().toString(36)}-copy`, name: `${c.name} (copy)`, updatedAt: Date.now() };
+    // uid() rather than a timestamp: two copies made in the same millisecond would
+    // otherwise share an id, and the id is what every selection is keyed against.
+    const copy: Character = { ...structuredClone(c), id: uid(), name: `${c.name} (copy)`, updatedAt: Date.now() };
     setCharacters(prev => [copy, ...prev]);
   };
 
@@ -297,26 +306,31 @@ function CharacterList({
           {COUNTS.equipment} equipment items. Characters are stored in this browser only —
           use <strong>Export</strong> to back one up or move it to another machine.
         </p>
+        {COUNTS.noText > 0 && (
+          <p className="hint">
+            {COUNTS.noText} entries are referenced by the rules data but have no text of their own.
+            They are still selectable and are marked <span className="badge red">?</span> where they
+            appear — look those up in your sourcebook.
+          </p>
+        )}
         <p className="hint">
-          {DATA_GAPS.length} entries are referenced by the rules data but have no text of their own.
-          They are still selectable and are marked <span className="badge red">?</span> where they appear —
-          look those up in your sourcebook. Equipment is imported from the Foundry compendium
-          rather than transcribed by hand, but check anything that matters against your books.
+          {COUNTS.summaryOnly} entries are condensed from the summary spreadsheets rather than the
+          full rules text, and are marked <span className="badge">summary only</span> where they
+          appear — check your sourcebook for the complete wording. Equipment is imported from the
+          Foundry compendium rather than transcribed by hand, so check anything that matters
+          against your books.
         </p>
 
-        <details style={{ marginTop: 10 }}>
-          <summary className="hint" style={{ cursor: 'pointer' }}>
-            {DATA_REPAIRS.length} corrections applied to the source data
-          </summary>
-          <ul className="hint" style={{ marginTop: 8, paddingLeft: 18, lineHeight: 1.8 }}>
-            {DATA_REPAIRS.map((r, i) => <li key={i}>{r}</li>)}
-          </ul>
-          <p className="hint" style={{ marginTop: 6 }}>
-            The tree remappings are inferred: those classes pointed at talent trees that were never
-            defined, while the trees they need sat unused under other names. Without the remapping,
-            Force Adept, Force Disciple and Sith Lord had no selectable talents at all.
-          </p>
-        </details>
+        {DATA_REPAIRS.length > 0 && (
+          <details style={{ marginTop: 10 }}>
+            <summary className="hint" style={{ cursor: 'pointer' }}>
+              {DATA_REPAIRS.length} corrections applied to the source data
+            </summary>
+            <ul className="hint" style={{ marginTop: 8, paddingLeft: 18, lineHeight: 1.8 }}>
+              {DATA_REPAIRS.map((r, i) => <li key={i}>{r}</li>)}
+            </ul>
+          </details>
+        )}
       </Panel>
     </>
   );

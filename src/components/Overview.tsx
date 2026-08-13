@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { AbilityId, Character, Species } from '../types';
 import { SPECIES, FEATURES, CLASSES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, RULES, featureName } from '../data';
-import { signed, isBookAllowed } from '../rules/engine';
+import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel, Field, Modal, FeatureDetail, RulesText, PortraitButton } from './ui';
 import { Droid } from './Droid';
@@ -140,13 +140,18 @@ function SpeciesPicker({
   const [selected, setSelected] = useState<string | null>(current);
   const [query, setQuery] = useState('');
 
+  // Depends on the book list rather than the whole character, which changes on every
+  // keystroke — so the filter is named against `allowedBooks` directly instead of
+  // closing over `char` and claiming otherwise.
+  const allowedBooks = char.allowedBooks;
   const available = useMemo(
     () => Object.values(SPECIES)
       // Droid models and species outside the character's books stay out, but never
       // hide the one already chosen.
-      .filter(sp => sp.id === current || (!sp.hidden && isBookAllowed(char, sp.book)))
+      .filter(sp => sp.id === current
+        || (!sp.hidden && (!allowedBooks || !sp.book || allowedBooks.includes(sp.book))))
       .sort((a, b) => a.name.localeCompare(b.name)),
-    [char.allowedBooks, current],
+    [allowedBooks, current],
   );
 
   const list = useMemo(() => {
@@ -265,9 +270,6 @@ function Sources({
   const allowed = char.allowedBooks;
   /** Is this book ticked? Used for the checkboxes themselves. */
   const isOn = (b: string) => !allowed || allowed.includes(b);
-  /** Would content from this book be offered? Untagged content is always allowed,
-   *  matching isBookAllowed — we cannot exclude what we cannot attribute. */
-  const offers = (b: string | undefined) => isBookAllowed(char, b);
 
   const setBooks = (books: string[] | null) => update(c => { c.allowedBooks = books; });
 
@@ -279,20 +281,25 @@ function Sources({
       c.allowedBooks = next.length === ALL_BOOKS.length ? null : next;
     });
 
-  // What the current restriction actually costs, so the effect is visible.
+  // What the current restriction actually costs, so the effect is visible. Keyed on the
+  // book list alone: `char` as well would re-walk all 2,184 features and every species on
+  // every keystroke anywhere in the character, and `allowed` is the only part that matters.
   const counts = useMemo(() => {
+    // Untagged content is always allowed, matching isBookAllowed — we cannot exclude
+    // what we cannot attribute.
+    const offered = (b: string | undefined) => !allowed || !b || allowed.includes(b);
     const all = Object.values(FEATURES).filter(f => !f.hidden);
-    const visible = all.filter(f => offers(f.book));
     const classes = Object.values(CLASSES);
+    const species = Object.values(SPECIES).filter(sp => !sp.hidden);
     return {
-      features: visible.length,
+      features: all.filter(f => offered(f.book)).length,
       totalFeatures: all.length,
-      classes: classes.filter(c => offers(c.book)).length,
+      classes: classes.filter(c => offered(c.book)).length,
       totalClasses: classes.length,
-      species: Object.values(SPECIES).filter(sp => !sp.hidden && offers(sp.book)).length,
-      totalSpecies: Object.values(SPECIES).filter(sp => !sp.hidden).length,
+      species: species.filter(sp => offered(sp.book)).length,
+      totalSpecies: species.length,
     };
-  }, [allowed, char]);
+  }, [allowed]);
 
   return (
     <Panel

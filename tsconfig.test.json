@@ -1,0 +1,28 @@
+{
+  /* The rules assertions run under tsx, which strips types without checking them — so
+     without this project the largest correctness artifact in the repo would never be
+     type-checked. It needs its own project rather than joining tsconfig.app.json because
+     it runs in Node: it reads the source tree with node:fs and uses import.meta.dirname,
+     neither of which exists under "types": ["vite/client"]. */
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "es2023",
+    /* DOM as well as Node: the suite runs under Node but imports the app's own modules,
+       which are written against the browser (localStorage, canvas, alert). */
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/**/*.test.ts"]
+}

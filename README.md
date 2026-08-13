@@ -27,7 +27,8 @@ Other commands, none of them required:
 ```bash
 npm run build       # production build into dist/
 npm run preview     # serve the built dist/ locally
-npm run test:rules  # 459 assertions against the rules engine
+npm run lint        # oxlint
+npm run test:rules  # the assertions behind the rules engine
 npm run test:e2e    # drives a real browser (needs `npm run dev` already running)
 ```
 
@@ -160,10 +161,41 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   them, as do every stun value below.
 - **Cross-device characters.** Local storage means no sync and no backup beyond manual JSON
   export. A sync target or a shared party view would need a server.
-- **Run the test suites in CI.** The Pages workflow only type-checks; `test:rules` and
-  `test:e2e` still run by hand.
+- **`test:e2e` still runs by hand.** CI covers the build, the lint and the rules assertions, but
+  the end-to-end suite needs a browser and a running dev server.
 - **Homebrew** goes in `src/data/supplement.json`, merged over imported data at load time and
   surviving re-imports — but nothing in it is validated.
+
+## Making changes
+
+`main` is the deployed branch — pushing to it publishes the site — so changes go through a
+branch and a pull request:
+
+```bash
+git checkout -b some-change
+# …work…
+git push -u origin some-change
+```
+
+GitHub then offers a **Compare & pull request** button. Opening the PR runs two things:
+
+- **CI** — `npm run build` (which type-checks), `npm run lint` and the rules assertions.
+- **Codex review** — an automatic review comment. Ask for another pass with `@codex review`, or
+  aim it: `@codex review the prerequisite changes`.
+
+Codex reads the **`## Code Review Rules`** section of [AGENTS.md](AGENTS.md), which is where this
+project's real traps are written down — never editing the generated data files, needing an
+assertion for every rules change, and the rest. Add to it when a review keeps catching the same
+thing by hand.
+
+Merging the PR deploys, since the Pages workflow still triggers on a push to `main`.
+
+Enabling the review is a one-off, done in Codex rather than in this repository: connect the
+repository to Codex cloud, turn on **Code review** for it, then **Automatic reviews** so every PR
+gets one without being asked. It needs push or admin permission on the repository, and bills
+against your ChatGPT plan rather than an API key — so there is no secret to add here and nothing
+to keep in sync. The steps are in
+[Codex code review in GitHub](https://learn.chatgpt.com/docs/third-party/github).
 
 ## Licence
 

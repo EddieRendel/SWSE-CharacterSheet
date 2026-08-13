@@ -3,6 +3,7 @@
  * Run with: npm run test:rules
  */
 import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses } from './engine';
+import type { Derived } from './engine';
 import { checkClassRequirements, canSelect, checkRequirements } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
 import {
@@ -11,7 +12,7 @@ import {
 } from './attacks';
 import { newCharacter } from '../storage';
 import type { Character, AbilityId, Feature } from '../types';
-import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, featureIcon, featureName, classIcon, weaponIcon, portraitUrl } from '../data';
+import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -855,6 +856,20 @@ console.log('\n▸ Data integrity');
   }
   for (const f of Object.values(FEATURES)) for (const r of f.requirements?.features ?? []) if (!FEATURES[r.id]) dangling++;
   check('dangling references', dangling, 0);
+
+  // The About panel counts these from the data rather than quoting a file. It used to read
+  // a generated dataGaps.json that stopped being regenerated and went on claiming 55
+  // entries had no rules text long after every one had been filled in.
+  const shown = Object.values(FEATURES).filter(f => !f.hidden);
+  check('nothing selectable is left without rules text',
+    shown.filter(f => f.incomplete || !f.description.join('').trim()).length, 0);
+  check('the summary-only badge still has entries to mark',
+    shown.some(f => f.summaryOnly), true);
+
+  // One size ladder, in rules.json. prereqs.ts used to carry a second copy of this array.
+  check('the size ladder has a single definition',
+    RULES.sizes,
+    ['Fine', 'Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal']);
 
   // Every talent tree a class draws from now has content, and the three Force Adept
   // trees in particular are distinct trees rather than aliases of the generic Force ones.
@@ -1752,6 +1767,18 @@ console.log('\n▸ Attacks');
   check('Mind Trick deals no damage, so is excluded',
     powers.some(p => p.id === 'mind-trick'), false);
 
+  // buildPowers and buildForcePointAbilities read the same prose, and used to each
+  // assemble it themselves — one of the two collapsing whitespace and the other not.
+  // They share a helper now, which collapses; these pin the totals it has to keep.
+  {
+    const everyPower = Object.values(FEATURES).filter(f => f.type === 'force-power');
+    const damaging = everyPower.filter(f =>
+      /(\d+d\d+)\s*(?:points of\s*)?([A-Za-z]+)?\s*damage/i
+        .test([...(f.description ?? []), ...(f.benefit ?? []), ...(f.special ?? [])]
+          .join(' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')));
+    check('29 Force powers deal damage', damaging.length, 29);
+  }
+
   const lightning = powers.find(p => p.id === 'force-lightning')!;
   check('Force Lightning deals 8d6', lightning.damage, '8d6');
   check('against Reflex Defense', lightning.versus, 'Reflex Defense');
@@ -1836,6 +1863,9 @@ console.log('\n▸ What you can carry');
   // Battle armor is 16 kg, so four is one kilo over the heavy threshold.
   const heavy = computeCharacter(soldier(14, packed(4)));
   check('a heavy load is recognised', [heavy.carrying.weight, heavy.carrying.level], [64, 'heavy']);
+  // Summed once in the engine. This used to be two identical reduces feeding two public
+  // fields, which the sheet and the equipment list read from separately.
+  check('carried weight is the inventory, counted once', heavy.carrying.weight, 16 * 4);
   check('speed drops to three quarters', heavy.speed, 4);
   check('and seven skills take the penalty', heavy.carrying.penalisedSkills.length, 7);
   const stealth = (d: typeof heavy) => d.skills.find(s => s.id === 'stealth')!.total;
@@ -1902,6 +1932,21 @@ console.log('\n▸ Prerequisites the sheet can check');
   const all = Object.values(FEATURES);
   const leftover = all.flatMap(f => f.unparsedPrerequisites ?? []);
   check('fewer than a hundred phrases are still unparsed', leftover.length < 100, true);
+
+  // Size prerequisites read the ladder out of rules.json now, so gate both directions.
+  {
+    const sized = (speciesId: string) => {
+      const c = make(x => { x.speciesId = speciesId; x.levels = [{ classId: 'soldier' }]; });
+      return computeCharacter(c);
+    };
+    const wookiee = sized('wookiee');   // Medium
+    const ewok = sized('ewok');         // Small
+    const atLeastMedium = { size: 'Medium' };
+    check('a Medium character meets a Medium size requirement',
+      checkRequirements(atLeastMedium, make(x => { x.speciesId = 'wookiee'; }), wookiee).met, true);
+    check('a Small one does not',
+      checkRequirements(atLeastMedium, make(x => { x.speciesId = 'ewok'; }), ewok).met, false);
+  }
 
   // The shorthand the sheets use has to resolve to the right thing.
   check('"Atk Combo (Melee) & (Ranged)" becomes both feats',
@@ -2116,6 +2161,24 @@ console.log('\n▸ One entry per thing');
 console.log('\n▸ Choices made when a feature is taken');
 // ---------------------------------------------------------------------------
 {
+  // Naming a specialization used to be written out three times — in data/index.ts, in
+  // ui.tsx and in prereqs.ts — and two of them ordered the fallbacks differently, so an id
+  // carried by both a feature and an item could read one way in the picker and another on
+  // the sheet. One definition now. This pins the precondition that made merging them safe:
+  // where the two maps collide, they agree on the name, so precedence cannot matter.
+  {
+    const collisions = Object.keys(FEATURES).filter(id => id in EQUIPMENT);
+    check('the feature and equipment maps collide on four ids', collisions.sort(),
+      ['durasteel-shell', 'lightsaber', 'plasteel-shell', 'translator-unit-dc-10']);
+    check('and agree on every one of their names',
+      collisions.filter(id => FEATURES[id].name !== EQUIPMENT[id].name), []);
+    check('a skill specialization reads as the skill', specName('perception'), 'Perception');
+    check('a weapon group reads as the group', specName('lightsabers'), 'Lightsabers');
+    check('an unknown id falls back to itself', specName('not-a-thing'), 'not-a-thing');
+    check('featureName composes the two',
+      featureName('weapon-focus', 'lightsabers'), 'Weapon Focus (Lightsabers)');
+  }
+
   // "Choose one Talent from the Lightsaber Forms Talent Tree" has to become a choice you
   // can actually make, and one the sheet then shows.
   const jedi = make(x => {

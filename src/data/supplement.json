@@ -28,6 +28,11 @@
     "  \"icons\": { \"features\": { \"my-talent\": \"my-talent.jpg\" } }",
     "Only listed icons are rendered, so a missing file can never show as a broken image."
   ],
+  "provenance": [
+    "feature \"superior-tech\": requirements.levle -> requirements.level (prereq was never enforced)",
+    "49 species prerequisites retargeted from features -> species",
+    "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all."
+  ],
   "_comment_lightsaber_chain": [
     "Saga Edition has two separate chains. The Elite Trooper one in Weapon Master chooses a",
     "weapon group and is correct as imported — nothing here touches it. The Jedi Knight one in",

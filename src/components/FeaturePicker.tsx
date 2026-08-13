@@ -4,8 +4,9 @@ import type { Derived, Slot } from '../rules/engine';
 import { canSelect } from '../rules/prereqs';
 import { specOptionsFor, SPEC_LABELS } from '../rules/specs';
 import { featureAvailable } from '../rules/engine';
-import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon } from '../data';
-import { Modal, FeatureDetail, specLabel, Descriptors, descriptorsOf, FeatureIcon } from './ui';
+import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
+import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
+import { descriptorsOf } from './labels';
 
 /** Which feature type a slot draws from when it has no explicit pool. */
 const TYPE_FOR_KIND: Record<string, Feature['type']> = {
@@ -352,7 +353,7 @@ function OptionRow({
     >
       <FeatureIcon id={o.feature.id} spec={o.ref.spec} />
       <span className="grow">
-        {o.feature.name}{o.ref.spec ? ` (${specLabel(o.ref.spec, o.feature)})` : ''}
+        {featureName(o.feature.id, o.ref.spec)}
       </span>
       <Descriptors feature={o.feature} compact />
       {o.result.duplicate && <span className="badge">taken</span>}

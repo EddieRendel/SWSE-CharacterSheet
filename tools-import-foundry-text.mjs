@@ -78,6 +78,10 @@ function text(html) {
     .replace(/ ?\n ?/g, '\n')
     .replace(/ +([,.;:!?)\]])/g, '$1')
     .replace(/([([]) +/g, '$1')
+    // Deliberate: \x01 and \x02 are placeholders this function itself substitutes in
+    // earlier, to carry <strong>/<em> through the entity-stripping pass above without
+    // the `&[a-z]+;` rule eating them. They cannot occur in wiki text.
+    // oxlint-disable-next-line no-control-regex
     .replace(/\x01(\/?)(strong|em)\x02/g, '<$1$2>')
     // Emphasis that swallowed the padding space reads as `<em> Dark Side </em>`.
     .replace(/<(strong|em)> +/g, '<$1>')

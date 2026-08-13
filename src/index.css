@@ -197,7 +197,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .level-divider:hover:not(:disabled) { background: var(--bg-3); }
 .level-divider .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
 .level-divider:hover .caret { color: var(--accent); }
-.level-divider .rule { flex: 1; height: 1; background: var(--border); }
+.level-divider .rule { flex: 1; height: 1px; background: var(--border); }
 
 /* Panel headers pair a title with action buttons. On a phone the two together were wider
    than the screen — the sheet's Actions / Feats / Equipment switcher was the worst — so
@@ -290,7 +290,13 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 .rules-text p { margin: 0 0 8px; color: var(--text-dim); font-size: 13px; }
 .rules-text strong { color: var(--text); }
-.rules-text .label { color: var(--accent); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+/* The Benefit / Normal / Special headings. Siblings of .rules-text, not children of it —
+   which is why the old `.rules-text .label` never matched and the styles had been copied
+   inline onto all three headings instead. */
+.rules-section-label {
+  color: var(--accent); font-weight: 600; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px;
+}
 
 /* ---------- modal ---------- */
 .overlay {
@@ -401,9 +407,6 @@ button.chip { cursor: pointer; color: var(--text); }
 button.chip:hover:not(:disabled) { border-color: var(--accent-dim); color: var(--accent); }
 button.chip:disabled { cursor: default; }
 
-.bar { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
-.bar > div { height: 100%; background: var(--green); transition: width 0.2s; }
-
 .notice {
   background: rgba(78,168,222,0.08); border: 1px solid #2b455c;
   border-radius: 6px; padding: 10px 12px; font-size: 12px; color: var(--text-dim);
@@ -462,7 +465,6 @@ button.chip:disabled { cursor: default; }
   color: var(--text-faint); font-weight: 700; letter-spacing: 0.02em;
   background: var(--bg-3);
 }
-.portrait.square { border-radius: var(--radius); }
 
 .portrait-choices {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
