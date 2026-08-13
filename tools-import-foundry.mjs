@@ -126,7 +126,13 @@ function toParagraphs(html) {
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;|&rsquo;/g, "'")
     .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
-    .split('\n').map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    .split('\n').map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean)
+    // Wiki navigation, not rules. "Reference Book: Star Wars Saga Edition <book>" opens
+    // nearly every entry and duplicates the book and page taken from the source string;
+    // keeping it meant 377 of 535 equipment notes consisted of nothing but that line, the
+    // real text having been discarded as a later paragraph. "See also:" is a cross-reference
+    // list. Both are asserted absent by the rules-text tests.
+    .filter(p => !/^\s*(Reference Book|See also)\s*:/i.test(p));
 }
 
 const changeMap = it => {
@@ -476,7 +482,12 @@ for (const [packName, category] of [['weapon', 'weapon'], ['armor', 'armor'], ['
       book: bookOfSource(it),
       weight: num(ch.weight?.[0] ?? it.system?.weight),
       cost: num(ch.cost?.[0] ?? it.system?.cost),
-      notes: toParagraphs(it.system?.description)[0]?.slice(0, 240),
+      // The whole description, not a clipped opening line. Several weapons carry no damage
+      // attribute at all and explain themselves only in prose — the Neuronic Whip's 1d4
+      // slashing, the Amphistaff's three forms, the Carbonite Rifle immobilising rather than
+      // wounding — so the text is the only place that answer exists. The hover card clamps
+      // it to six lines, so length costs nothing on screen.
+      notes: toParagraphs(it.system?.description).join(' ') || undefined,
     };
     if (category === 'weapon') {
       Object.assign(base, {

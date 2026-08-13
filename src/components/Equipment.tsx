@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Character, EquipmentItem } from '../types';
-import { EQUIPMENT, WEAPON_GROUPS } from '../data';
+import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
 import { getItem, signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel, Modal, Field } from './ui';
@@ -220,7 +220,7 @@ export function Equipment({
                           </td>
                           {!compact && (
                             <td className="faint">
-                              {cat === 'weapon' && <>{item.damage} {item.damageType}{item.stun ? ' · stun' : ''}{item.area ? ` · ${item.area}` : ''}</>}
+                              {cat === 'weapon' && <>{damageLabel(item)}{item.stun ? ' · stun' : ''}{item.area ? ` · ${item.area}` : ''}</>}
                               {cat === 'armor' && <>+{item.reflex} / +{item.fortitude} / +{item.maxDex}</>}
                               {cat === 'gear' && (item.notes ?? '—')}
                             </td>
@@ -324,7 +324,7 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
           // net — and used to render a stranded separator.
           const meta = item.category === 'weapon'
             ? [
-              [item.damage, item.damageType].filter(Boolean).join(' '),
+              damageLabel(item),
               WEAPON_GROUPS[item.group ?? ''] ?? item.group,
             ].filter(Boolean).join(' · ')
             : item.category === 'armor'

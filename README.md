@@ -136,8 +136,14 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   mis-restricting isn't.
 - **Icon coverage** is 384 of 2184 entries — good for the Core Rulebook and every Force power,
   thin for talents from later books. `exotic-weapons` is the one weapon group with no art.
-- **Faster first load.** All the game data compiles into a single 2 MB JS bundle (489 KB
-  gzipped). Lazy-loading the large JSON would cut the initial download.
+- **Faster first load.** All the game data compiles into a single 2.4 MB JS bundle (632 KB
+  gzipped), up from 2.0 MB since equipment and species carry their full descriptions rather
+  than a clipped line. Lazy-loading the large JSON would cut the initial download.
+- **29 weapons have no damage value** because the Foundry compendium carries none. Three are
+  ammunition-fed and say *varies*; three state their damage only in prose and say *see notes*;
+  the other 23 read *No damage*, which is right for nets, snares, grenades and gauntlets but
+  worth checking against the books for a few — the Mortar Launcher especially. Correcting one
+  needs a place to put it: `supplement.json` covers features and talent trees, not equipment.
 - **Cross-device characters.** Local storage means no sync and no backup beyond manual JSON
   export. A sync target or a shared party view would need a server.
 - **Run the test suites in CI.** The Pages workflow only type-checks; `test:rules` and

@@ -81,6 +81,23 @@ export const FORCE_TREE_IDS = forceTreesJson as string[];
 export const emptyTrees = (): TalentTree[] =>
   Object.values(TALENT_TREES).filter(t => !t.features?.length);
 export const EQUIPMENT = (equipmentJson as { items: Record<string, EquipmentItem> }).items;
+/**
+ * What to print for a weapon's damage.
+ *
+ * The Foundry compendium carries no damage attribute at all for 29 of the 241 weapons, and a
+ * blank read as missing data when it usually is not. The ammunition-fed launchers say so in
+ * their damage type. Most of the rest deal a condition rather than wounds — nets and snares
+ * entangle, smoke and gas obscure, the Carbonite Rifle immobilises — or add to an unarmed
+ * attack. A handful state their damage only in prose, such as the Neuronic Whip's 1d4
+ * slashing, so those point at the notes instead of claiming there is none.
+ */
+export const damageLabel = (item: EquipmentItem): string | undefined => {
+  if (item.category !== 'weapon') return undefined;
+  if (item.damage) return `${item.damage}${item.damageType ? ` ${item.damageType}` : ''}`;
+  if (/varies/i.test(item.damageType ?? '')) return 'varies';
+  return /\b\d+d\d+\b/.test(item.notes ?? '') ? 'see notes' : 'No damage';
+};
+
 export const DATA_GAPS = gapsJson as string[];
 export const DATA_REPAIRS = repairsJson as string[];
 

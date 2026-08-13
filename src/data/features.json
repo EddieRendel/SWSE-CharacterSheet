@@ -32789,6 +32789,16 @@
     "name": "Destruction",
     "type": "force-power",
     "book": "unknown",
-    "summaryOnly": true
+    "summaryOnly": true,
+    "description": [
+      "Homebrew Reference Book: Dark Forces Campaign Guide",
+      "You are able to draw massive amounts of energy from The Dark Side of The Force and discharge it using your own body as a conduit. The resulting blast inflicts massive damage and throws the targets asunder.",
+      "[Dark Side]",
+      "Time: Standard Action",
+      "Targets: One target within 12 squares and line of sight",
+      "Make a Use the Force check. If your Use the Force check equals or exceeds the target’s Reflex Defense, the target takes 6d6 damage (half damage if the target possess the Evasion Talent) and half damage if it misses (no damage if the target possess the Evasion Talent).",
+      "Any creature or object adjacent to the target takes half damage if the attack hits (no damage if the target possess the Evasion Talent) and no damage if it misses. Additionally, all targets hit by the attack are pushed one square away from the initial target.",
+      "Special: You can spend a Force Point to increase the number of squares the targets are pushed equal to your Charisma modifier."
+    ]
   }
 }

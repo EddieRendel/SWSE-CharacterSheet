@@ -201,7 +201,6 @@
       "cost": "1000",
       "weight": "20 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "The Remote Viewer is a small, self-contained visual and audio sensor attached to a micro-sized repulsorlift unit. Functioning as one of a Droid's regular audio and visual sensors, the Remote Viewer can be externally mounted, concealed, or made to look like one of the Droid's regular sensors. However, the Droid can detach the unit and send it to inspect an area remotely. The Remote Viewer can travel up to 12 squares away from the Droid, has a Speed of 4, a Reflex Defense of 18, a Fortitude Defense of 12, and it runs for 30 minutes before needing to be recharged for 1 hour."
       ]
     },
@@ -213,7 +212,6 @@
       "weight": "(2 x Cost Factor) Kilograms",
       "availability": "Illegal",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Illegal modification is derived from the Projectile Appendage system available for noncombat Droids. A Rocket Arm is essentially a hollowed-out Droid arm in which the servo control has been replaced by a short-range rocket engine and fuel. The arm's fine control is eliminated, but the Droid can point its arm at a target and fire. The arm detaches and flies at the target, detonating the remaining fuel on impact. Rocket Arms are unguided projectiles without targeting computers.",
         "This Illegal modification costs 2,000 credits and installation requires a DC 20 Mechanics check. Failure on the Mechanics check means the rocket might not detach properly when fired, exploding and dealing its damage to the Droid and all targets in a 1-square Splash radius. The Rocket Arm is considered to be a Heavy Weapon that deals 3d8 points of damage upon detonation, with a 1-square Splash."
       ]
@@ -225,7 +223,6 @@
       "cost": "80 x Cost Factor",
       "weight": "(15 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Each type of Droid Appendage performs one specific function. The Multifunction Apparatus, however, allows up to three Tools or Weapons to be attached to a single Appendage. The Multifunction Apparatus is commonly used to mount multiple Weapons. Only one Tool or Weapon can be active at a time, but switching to a different Tool or Weapon requires only a Swift Action."
       ]
     },
@@ -236,7 +233,6 @@
       "cost": "2 x Cost Factor x (Speed Squared)",
       "weight": "(4 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Using an integrated system of gyroscopes, hydraulics, and high-speed processing, this system gives a Droid greater stability. The Droid gains a +5 stability bonus to checks and Defenses to resist attempts to knock it Prone. This bonus stacks with the bonus provided by the Extra Legs Locomotion System."
       ]
     },
@@ -248,7 +244,6 @@
       "weight": "3 Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "One of the first things enemy forces do after discovering a Droid is prevent the Droid from establishing communications to request rescue or call for help from its allies. A Communications Countermeasure system prevents jamming of a Droid's communications. The system broadcasts signals on multiple frequencies to counteract interference. A Droid with a Communications Countermeasures gains a +5 Equipment bonus to all Use Computer checks made to overcome Communications Jamming."
       ]
     },
@@ -272,9 +267,9 @@
       "cost": "100",
       "weight": "2 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This handheld or installed Droid Accessory is a powerful spotlight that shines visible, infrared, or ultraviolet light. It has a 6-km range and is powered by the Droid's own internal power supply. Droids able to see the projected light gain a +2 Equipment bonus to Perception checks to Search and Notice Targets and to other situations in which the Gamemaster judges that the light provides an advantage. This bonus stacks with bonuses granted by Helmet Packages and Improved Sensor Packages.",
-        "The light can also be used to blind targets in a 6-Square Cone. All targets within the cone receive a -10 penalty to Stealth checks. As a Standard Action, the Droid makes a ranged attack against each target's Fortitude Defense."
+        "The light can also be used to blind targets in a 6-Square Cone. All targets within the cone receive a -10 penalty to Stealth checks. As a Standard Action, the Droid makes a ranged attack against each target's Fortitude Defense.",
+        "If the attack is successful, the target receives a -5 penalty to attack rolls, Perception checks, Pilot checks, and other Skill Checks until the end of the Droid's next turn. If the attack does not exceed a target's Fortitude Defense, the target receives a -2 penalty instead. This Droid Accessory can be used only by Droids of Tiny size or larger."
       ]
     },
     "survival-kit-droid-accessory": {
@@ -284,7 +279,6 @@
       "cost": "100",
       "weight": "1 Kilogram",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids do not worry about water, food, or the elements, but their masters do. A Survival Kit is the perfect Droid Accessory for long treks into the wilderness. It contains a small refrigeration unit, a water recycler and dispenser, a rechargeable Glow Rod, and a fire sparker. When aiding a Survival check, a Droid with this Droid Accessory gives a +4 bonus to the check rather than the normal +2 bonus."
       ]
     },
@@ -295,7 +289,6 @@
       "cost": "5000",
       "weight": "10 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Strict governmental regulations apply to 4th-Degree Droids. However, Droid Manufacturers know that money can be made by manufacturing Droids for war, so they develop Droid Systems such as the Tactician Battle Computer to circumvent restrictions on 4th-Degree Droids. This software package and transmitter can be installed on any Droid. Additionally, small transceivers must also be installed on the Ranged Weapons used with the package. Restrictions prohibit the Droid from using any Weapons other than those with transceivers associated with its Tactician Battle Computer. In fact, if the Droid running the Tactician Battle Computer picks up a Weapon not equipped with the transceiver, the Tactician Battle Computer shuts down and can be restarted only after succeeding on a DC 20 Mechanics check.",
         "The Droid spends a Standard Action to analyze the current battle conditions. The Droid transmits its findings to the sensors installed on the Weapons of its allies. The Droid automatically grants a +2 bonus to the next attack roll made by a number of allies equal to it's Intelligence modifier (minimum 1). If an ally does not make its next attack before the end of its next turn, this bonus is lost. Only Ranged Weapons can be used with the Tactician Battle Computer"
       ]
@@ -328,7 +321,6 @@
       "cost": "300",
       "weight": "3 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "In spite of all the utilitarian functions that a Droid can perform, owners might want to use their Droids for entertainment. A Holographic Game System provides fifteen of the galaxy's more popular games, including Dejarik and Sabacc. The Droid can serve as it's master's opponent, or it can run the game so it's master can play with another being. The game is projected through the Droid's Holoprojector (sold separately) and does not require a solid surface for game play. The Holographic Game System is sufficiently advanced to allow a player to interact with the board as if he or she is actually picking up the holographic playing pieces. The Holographic Game System is adaptable, allowing ten additional games to be added to its database with a successful DC 15 Use Computer check."
       ]
     },
@@ -349,7 +341,6 @@
       "cost": "10 x Cost Factor",
       "weight": "5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Mounted on an Appendage, a Mesh Tape Dispenser enables a Droid to quickly apply Mesh Tape to anything within reach of its manipulator (usually an adjacent square). In addition to it's more conventional uses, an installed Mesh Tape Dispenser can be used by a Droid to entangle an adjacent enemy. With a successful melee attack, the Droid can hinder either the target's arms or its legs. If the target's arms are hindered, it incurs a -2 penalty to all attack rolls and Dexterity-based Skill Checks. If the target's legs are hindered, it's Speed is reduced by 2 squares, and it cannot Run. If the Droid has the Pin Feat and succeeds at an opposed Grapple check, the enemy is considered Pinned until the Mesh Tape is removed (instead of until the start of the Droid's next turn)."
       ]
     },
@@ -385,7 +376,6 @@
       "cost": "50",
       "weight": "2 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Scoundrels have a habit of fleeing starports with the authorities on their heels. When a captain cannot leave a crew member back at the ship, a Remote Starship Starter comes in handy. A Droid equipped with this radio transmitter can signal the ship to begin the preflight processes; the ship transmits preflight diagnostics back to the Droid as a Free Action. Although the Droid is not able to operate the ship remotely, having the ship prepared for departure can save the crew vital minutes during an escape."
       ]
     },
@@ -396,7 +386,6 @@
       "cost": "2000 x Cost Factor",
       "weight": "(10 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Droid sometimes needs to be stowed in places where it usually would not fit. For example, a Droid stowed in a smaller cargo space might surprise an enemy. The Collapsible Construction modification allows a Droid to lower its size category by one when it shuts down. The Droid Brain enters stand-by mode while it compacts itself into a smaller size. The Droid can reactivate at any time as a Standard Action."
       ]
     },
@@ -408,7 +397,6 @@
       "weight": "2 Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Many star systems prohibit Droids from carrying lethal weapons or having such systems installed without the proper permits. A Taser is a nonlethal projectile weapon that Droids can use to defend themselves. It fires two small projectiles attached to long, thin wires that deliver an electric charge that incapacitates an organic target's nervous and muscular systems. If the target is a Droid, the electric current acts like an Ion gun and interferes with the Droid's systems. Additionally, a Taser can be used as a melee weapon like an Electroshock Probe."
       ]
     },
@@ -429,7 +417,6 @@
       "cost": "100",
       "weight": "0.5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Some Droids are equipped with Internal Comlinks to broadcast messages. However, these devices require the Droid to speak out loud, and in some situations such an act is inadvisable. A Droid equipped with an Antitheft Comlink Locator can send a distress signal to its master's Comlink with no apparent activity by the Droid. The distress signal broadcasts no information, but it can it be tracked. The signal continues to broadcast if the Droid is deactivated, but it shuts down if the Droid is destroyed."
       ]
     },
@@ -504,7 +491,6 @@
       "weight": "(10 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "The Micro Shield is a Tool that prevents incoming attacks from hitting and damaging the wielder. Attached to one of the Droid's Appendages, the Micro Shield is composed of a central hub with two wide arcs mounted on struts above and below the hub. When inactive, the arcs rest against the hub in the shape of a large humanoid eye. When the Droid activates the unit as a Swift Action, the arcs slide away from the hub, activating a translucent energy shield that provides a +1 Equipment bonus to the user's Reflex Defense. The Micro Shield is originally designed to be installed on a Droid's arm, but a handheld version that runs on a single Energy Cell is available for 400 credits. The Energy Cell provides enough power to run the Micro Shield continuously for 1 hour."
       ]
     },
@@ -526,7 +512,6 @@
       "weight": "(10 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Droid purchased on a water world such as Mon Calamari comes with an Underwater Drive as a standard option. The drive process is simple. The engine draws water in through the front of the drive and expels it quickly out the back. An Underwater Drive gives the Droid a Swim Speed equal to its base land Speed."
       ]
     },
@@ -537,7 +522,6 @@
       "cost": "200",
       "weight": "(20 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Droid Accessory enables a Droid to radiate heat from its torso, providing warmth necessary for a master's survival in the wilderness or in deep space. The heat can be adjusted to provide ambient warmth or to boil water and cook food on the Droid's exterior. The Radiant Heating Element can also be used by the Droid as a defensive tool. When the Radiant Heat Element is on its highest setting, any character ending its turn in a square adjacent to the Droid takes 1d4 Fire damage from the Droid. The Droid itself takes 1 point of damage from the heat each turn."
       ]
     },
@@ -548,7 +532,6 @@
       "cost": "5000",
       "weight": "10 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Space Beacons are used by pilots and flight crews to mark specific locations or to help navigate through hazardous areas of space. A beacon is 250 millimeters long and can transmit a signal throughout an entire star system, if it is not blocked by nebular gases or signal jamming systems. The Space Beacon Launcher- modeled after a small version of the standard Space Mine Launcher- enables a Droid to quickly position Space Beacons while in flight. The system can carry up to 12 beacons. Additional storage can be added, increasing the cost of the launcher by 10% for each additional beacon (up to a maximum of 24 beacons). Locating a beacon requires a DC 10 Use Computer check when using a ship's sensor system."
       ]
     },
@@ -559,7 +542,6 @@
       "cost": "500",
       "weight": "0.5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "An advanced version of the Restraining Bolt, the Droid Remote Control allows the owner to use a Droid Caller to move the Droid using its own Locomotion System. The Droid cannot be compelled to use any of its other Droid Systems or possessions. It simply moves as directed at one-half its Speed."
       ]
     },
@@ -570,7 +552,6 @@
       "cost": "500",
       "weight": "(600 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids look forward to an Oil Bath after a long period of work. This standard maintenance procedure lubricates the Droid's servos and joints, allowing the Droid to move as if it has just come off the assembly line. A Droid Oil Bath is recommended at least once a week for a Droid working in a harsh environment, and once a month for a Droid working in a temperate climate or on board a ship.",
         "A Droid immersed in an Oil Bath for at least 30 minutes can activate a Second Wind, even if it has already done so that day. The price of a Droid Oil Bath depends on the size of the Droid: Small Droids and smaller, 100 credits; Medium Droids, 1,000 credits; Large Droids, 5,000 credits; Huge Droids and larger, 10,000 credits."
       ]
@@ -597,7 +578,6 @@
       "weight": "(100 x Cost Factor) Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Most Combat Droids are effective at using Blasters and other Ranged Weapons. Some Droid Models, however, fail miserably at melee combat and are quickly dispatched by enemies that gain the upper hand in close quarters. To improve a Droid's melee defenses, an Electric Defense Grid can be installed either on top of or as part of the Droid's Armor or outer shell. Whenever a Droid with an Electric Defense Grid is damaged by a melee attack, the attacker automatically takes 5 points of Energy damage. Melee Weapons that rely on Energy to cause damage, such as Lightsabers, are immune to the effect of the Electric Defense Grid."
       ]
     },
@@ -620,7 +600,6 @@
       "weight": "(2 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Some 4th-Degree Droids lack built-in Weapons attached directly to the Droids' Appendages. This attachment gives a Droid access to a Weapon without having to visibly carry it. Installed in a Droid's leg, the Hidden Holster can hold a Weapon one size category smaller than the Droid, or smaller. As a Free Action, the Droid can activate the Hidden Holster, which opens up, providing access to the Weapon. The Hidden Holster provides the benefit of the Quick Draw Feat with whatever Weapon the Droid is keeping in the Hidden Holster- the Droid can draw or holster the Weapon as a Swift Action. To gain this benefit, the Droid must have the Feat's +1 Base Attack Bonus prerequisite."
       ]
     },
@@ -631,7 +610,6 @@
       "cost": "20",
       "weight": "0.5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Binary is the primary language of Droids. This Translator Unit is installed on a Droid's Basic-output jack, a standard jack found on most Droids that enables them to connect to a terminal or a Datapad and to express themselves in written Basic. The translator converts audible Binary into audible Basic, transmitting the spoken words to an earphone receiver. The less expensive version requires a large headphone set, while the more expensive version transmits to an earbud receiver. Detecting the earbud requires a Perception check of DC 20."
       ]
     },
@@ -669,7 +647,6 @@
       "weight": "1 Kilogram",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Interplanetary banks and crime lords have one common interest: They need to know how much money a client has before they do business. Whether a line of credit or hard currency, a Credit Reader determines whether a target's credits are real or if a line of credit exists for that being. The Credit Reader gives the Droid a +5 bonus to any Perception check against any Deception check made to forge credit accounts or financial documents. The Droid can also instantly count any sum of hard credits presented to it as a Free Action."
       ]
     },
@@ -680,9 +657,9 @@
       "cost": "200",
       "weight": "(2 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids are sometimes used as messengers to deliver important messages and items across the galaxy. To protect items entrusted into their care, these Droids can have hidden Courier Compartments installed in their Droid Chassis. Such compartments are also favorites of smugglers who own Droids. A Droid with a Courier Compartment might walk right past a starport inspection team that is on the way to tear its master's ship apart.",
-        "Courier Compartments can be installed in four locations within a Droid. A Courier Compartment in the torso can hold an item that is 3 sizes smaller than the Droid's size. A Courier Compartment in the arm or leg can hold an item that is 4 sizes smaller than the Droid's size. A head compartment can hold an item that is 5 sizes smaller. Detecting a Courier Compartment requires a successful Perception check with a DC equal to the Droid's Will Defense +5."
+        "Courier Compartments can be installed in four locations within a Droid. A Courier Compartment in the torso can hold an item that is 3 sizes smaller than the Droid's size. A Courier Compartment in the arm or leg can hold an item that is 4 sizes smaller than the Droid's size. A head compartment can hold an item that is 5 sizes smaller. Detecting a Courier Compartment requires a successful Perception check with a DC equal to the Droid's Will Defense +5.",
+        "A common accessory in a Courier Compartment is a Toaster, which destroys the contents of the Courier Compartment with a brief blast of plasma energy triggered by the Droid. Installing a Toaster into a Courier Compartment doubles the cost of the Courier Compartment."
       ]
     },
     "concealed-item-droid-accessory": {
@@ -693,7 +670,6 @@
       "weight": "0 kg",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This system enables the Droid to have a Weapon or a Tool built into a hidden compartment in its body, an Appendage, or it's head. With this system, a Weapon can also be camouflaged to look like a standard Tool or Appendage. For example, an arm can hide a Blaster Rifle, or a beam cutter might actually be a Blaster Pistol. Typically, the size of the Appendage must be similar to the size of the concealed Weapon or Tool. If the item is fully concealed by the Droid's Armor or outer covering, it cannot be detected by visual observation alone. If a Weapon is not fully concealed and portions are visible, such as a muzzle or blade, then when being searched for Weapons the Droid gains a +5 bonus to Stealth checks to conceal the Weapon, plus any Weapon size modifier that applies. The Droid also gains a +10 bonus to Deception checks to create Deceptive Appearances with regards to the Concealed Item.",
         "The cost of concealing a Weapon or a Tool equals the base cost of the item plus the cost of the Appendage and/or Compartment Space x 2. The Gamemaster can increase the cost multiplier to account for complex or unusual installations. Deploying a fully Concealed Weapon is a Swift Action, and it is subject to the same bonuses and penalties as drawing a Weapon."
       ]
@@ -705,7 +681,6 @@
       "cost": "Appendage Cost x 2",
       "weight": "(2 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Magnetic Feet are a common means of Locomotion. Droids specializing in extra-vehicular activities are often equipped with them. Magnetic Hands function like Magnetic Feet. When used in concert with Magnetic Feet, they provide a +2 bonus to any Climb checks made while maneuvering around a hull in space, as well as a +5 bonus to Defenses against any attempt to knock the Droid off the hull. When Magnetic Hands are activated, the Droid cannot make attacks or use anything requiring its hands, including Weapons."
       ]
     },
@@ -717,9 +692,9 @@
       "weight": "5 Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "When behind enemy lines, a Droid takes every possible precaution to ensure that anyone who finds it is unable to call for help or alert others about the Droid's presence. The Communications Jammer allows a Droid to jam any Comlink signal by interfering with a facility's communications systems or by directly jamming signals in the Droid's general vicinity.",
-        "A Communications Jammer grants a Droid a +5 Equipment bonus when making a Use Computer check to slice into a computer system and shut it down. The Droid also gets the +5 Equipment bonus to maintain that status if any slicers attempt to stop the jamming. Once the Droid has successfully connected with the communications system and begun jamming, it can continue jamming the system until it disconnects or it is forced out."
+        "A Communications Jammer grants a Droid a +5 Equipment bonus when making a Use Computer check to slice into a computer system and shut it down. The Droid also gets the +5 Equipment bonus to maintain that status if any slicers attempt to stop the jamming. Once the Droid has successfully connected with the communications system and begun jamming, it can continue jamming the system until it disconnects or it is forced out.",
+        "The signal jammer emits signals at multiple frequencies to interfere with any Comlink signals within a 1-kilometer radius of the Droid. The Droid must make a DC 25 Use Computer check to successfully jam any incoming or outgoing Comlink signals."
       ]
     },
     "climbing-claws": {
@@ -743,7 +718,6 @@
       "weight": "(20 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "The Silence-Bubble Generator creates an energy sphere that dampens sound waves. The apparatus is originally marketed as a way for music lovers to enjoy their favorite music without being disturbed by noise. However, spies and crime lords also find the generator useful. Activating the Silence-Bubble Generator is a Standard Action. The bubble covers all squares within 3 squares of the Droid. Any attempt to hear anything inside the bubble by someone outside of the bubble takes a -10 penalty to Perception checks."
       ]
     },
@@ -755,7 +729,6 @@
       "weight": "1 Kilogram",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Droid Accessory is a favorite of nobles who want to keep their conversations private. A Droid with an Interference Generator emits a low-frequency sound that interferes with any listening Equipment such as bugs, microphones, or other audio Recording Devices. The deluxe version also interferes with video and holographic Recording Devices. The Interference Generator masks everything in the squares adjacent to the Droid. Anyone Eavesdropping or reviewing recordings of targets protected by an Interference Generator must make a DC 30 Perception or Use Computer check to pick up even scattered words and phrases."
       ]
     },
@@ -767,7 +740,6 @@
       "weight": "2 Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids that rely on a Remote Receiver for instructions cannot stray too far from the Remote Processor without risking losing contact and becoming stranded. A Remote Receiver Signal Booster can prevent this loss of contact. The Remote Receiver Signal Booster increases the Remote Receiver's reception strength, extending the range of a Droid by 50%. A successful DC 30 Use Computer check made by the Droid can further extend the range up to 100% for 1 hour."
       ]
     },
@@ -790,7 +762,6 @@
       "weight": "(Maximum Damage x 0.1) Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Web Enhancements (Star Wars Miniatures Previews)",
         "A miniaturized self-destruct system functions as a normal Self-Destruct System, but it functions as if the droid were two sizes larger. This costs 5 times as much as a normal Self-Destruct System."
       ]
     },
@@ -802,7 +773,6 @@
       "weight": "2 Kilograms",
       "availability": "Illegal",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Highly Illegal, a Personality Downloader is a custom-built electronic unit designed to quickly suppress an existing Droid's personality with a new one. Thieves, pirates, smugglers, infiltrators, and other scoundrels occasionally use a Personality Downloader to take control of an enemy's Droid for their own use. Using the device requires the attacker to plug the Personality Downloader into one of the Droid's data ports. Droids with Locked Access or without accessible data ports must be coaxed into complying. Once the Personality Downloader is attached, the user makes a Use Computer check opposed by the Droid's Will Defense. If the check is successful, the personality copies itself to the Droid's Processor and suppresses the existing personality in 5 minutes. The process is imperfect, however. To maintain control, every 10 minutes the new personality must make another Use Computer check opposed by the original personality. The invading personality continues to use the attacking character's Use Computer skill, even though the actual character is not actively involved after the initial download is successful."
       ]
     },
@@ -814,7 +784,6 @@
       "weight": "5000 Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droid Battle Stations provide the functionality of regular Droid Command Stations, and they can be used to direct Droids in combat. Droid Battle Stations are typically large installations, capable of coordinating hundreds or thousands of Droids of all types. Some Droid Battle Stations emulate Droid Commanders. When the Droid Battle Station is installed, select two Talents from the Droid Commander Prestige Class. These Talents can be used by the character operating the Droid Battle Station as if the character has those Talents. The number of times each Talent can be used is calculated per station, not per character, so switching characters in the middle of a battle does not grant additional uses. Droids with the Droid Commander Prestige Class cannot use these Talents more often even if they duplicate Talents the Droid already possesses."
       ]
     },
@@ -826,7 +795,6 @@
       "weight": "3 Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Standard on the YVH Battle Droid, a YV Sensor Package can be successfully installed on other Droids, including Mouse Droids (see MSE-6 Repair Droid). The YV Sensor Package features highly specialized sensors calibrated specifically to detect Yuuzhan Vong, including those concealed by Ooglith Masquers or other methods. The YV Sensor Package grants a +10 bonus to Perception checks to detect Yuuzhan Vong within 12 squares and with in line of sight of the Droid."
       ]
     },
@@ -846,7 +814,6 @@
       "cost": "1000",
       "weight": "2 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids operating covertly must avoid drawing attention to themselves. The Sensor Countermeasure Package broadcasts signals that interfere with incoming sensor signals. A Droid equipped with the Sensor Countermeasure Package can make a Use Computer check to avoid being detected. If the Use Computer check equals or exceeds a Perception check made to detect the Droid through any form of non visual sensor Equipment, the Droid remains undetected."
       ]
     },
@@ -858,7 +825,6 @@
       "weight": "3 Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This defense system protects Droids in dangerous situations. As a Standard Action, the Audio-Radial Stunner broadcasts a short-ranged, high-pitched frequency on all channels, calling attention to the Droid and stunning any nearby creatures. Until the end of the Droid's next turn, any creature that starts its turn adjacent to the Droid must make a DC 20 Endurance check. Failure causes the creature to move -1 step on the Condition Track. The Audio-Radial Stunner shuts down if the Droid is deactivated or destroyed."
       ]
     },
@@ -869,7 +835,6 @@
       "cost": "1 x Millimeters2",
       "weight": "1 + (0.1 x Millimeters2) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Droid Accessory gives the Droid a small, built-in video screen to display text, translations, diagnostics, programming, pictures, and other information. Screen sizes vary from 50mm to 500mm and are priced at 1 credit per square millimeter of screen size."
       ]
     },
@@ -881,7 +846,6 @@
       "weight": "1 Kilogram",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Hand accessory enables a Droid to recharge a standard Power Pack for it's master. As a Swift Action, the Droid can plug in and transfer energy to the Power Pack. Recharging a Power Pack depletes energy from the Droid. For each recharge, the Droid loses Hit Points equal to one of the blaster's damage-dice type. Thus, a Droid recharging a Power Pack for a Heavy Blaster Pistol (3d8) takes 8 points of damage (since the die type is d8)."
       ]
     },
@@ -892,7 +856,6 @@
       "cost": "200",
       "weight": "5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Probe Droids try to coax a little more range out of their sensor equipment to get that extra amount of information about the area they are scanning. A Sensor Booster is a Droid Accessory that extends the range of its sensors to a maximum of 2 kilometers, if the Droid has a Sensor Pack installed."
       ]
     },
@@ -904,7 +867,6 @@
       "weight": "(50 x Cost Factor) Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Mining and other 5th-Degree Droids can use a Burrower Drive to tear through large chunks of ore embedded in the crust of a planet or in an asteroid. A Burrower Drive enables a Droid to move at half-speed underground. It can also move vertically up or down at a similar rate.",
         "A Burrower Drive can be used as a Weapon. The Droid makes a melee attack. If the attack is successful, the Droid deals damage equal to the amount it would do if it had used a Self-Destruct System. However, each successful attack moves the Droid -1 step on the Condition Track with a Persistent Condition, as the drill gears and bits strip down and damage the Droid."
       ]
@@ -917,7 +879,6 @@
       "weight": "500 Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Droid can be equipped with a powerful cutting torch and a welding system for use in repair operations and for cutting materials, doors, or other items. This bulky and heavy device can be installed only on Droids of Medium size or larger. The precision welder can be used for small repairs and for large construction welds, typically in half the time required by a normal welding unit. The cutting torch has a range of 1 square and deals 4d10 damage. When in contact with an object for two or more consecutive rounds, the torch also ignores 5 points of Damage Reduction and reduces the object's Damage Threshold by 10 points."
       ]
     },
@@ -928,7 +889,6 @@
       "cost": "4000",
       "weight": "5000 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droid Recharge Stations are found anywhere Droids are commonly used: Starships, residences, starports, industrial facilities, and similar locations. Public Droid Recharge Stations are available for a fee of 20 credits per recharge. Droids typically require 1 hour to recharge. The station is not self-powered, and must be linked to an outside power source. Droids also use Droid Recharge Stations while waiting until their services are called upon. Droid Recharge Stations provide basic droid diagnostics with a DC 10 Use Computer check, revealing the Droid's current Hit Points, position on the Condition Track, and the operational status of all Droid Systems, Appendages, and Tools. Aboard Starships, Droids parked in a Droid Recharge Station are secured for travel. A Droid Recharge Station can be universal for all Droids up to a certain size- typically Small, Medium, or Large- or designed for a specific Droid Degree or Droid Model."
       ]
     },
@@ -940,7 +900,6 @@
       "weight": "2 Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "The portable Remote Receiver Jammer is developed during the Clone Wars to scramble Battle Droid Remote Processor links at short range, rendering the Droids useless. The jammer incorporates a backpack transmitter and a handheld computer controller. Remote Receiver Jammers have three significant weaknesses: They have an extremely short range; datalinks are notoriously difficult to disrupt; and many Droids have Backup Processors. A Remote Receiver Jammer can be activated as a Standard Action, and the jammer affects all Droids with Remote Receivers and no Backup Processors. When the jammer is activated, the Droid using the jammer makes a Use Computer check. At the start of any affected Droid's turn, compare the results of the Use Computer check to the Droid's Will Defense; if the Use Computer check is equal to or higher than the Droid's Will Defense, the Droid can take no Actions and is Flat-Footed until the start of it's next turn. The Droid activating the Remote Receiver Jammer must activate it each turn, making a new Use Computer check each time."
       ]
     },
@@ -951,7 +910,6 @@
       "cost": "400",
       "weight": "1 Kilogram",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Droid Accessory ensures that a Droid is able to obey only its master. With a Voice-Print Command Lock installed, a Droid follows only commands issued by a single source. The Droid analyses the voice print of its master and ignores commands from anyone else. A recording of the master's voice can be used, but getting the Droid to obey a recorded command requires a Use Computer check against the Droid's Will Defense with a +5 bonus to the Droid's Will Defense."
       ]
     },
@@ -975,7 +933,6 @@
       "cost": "Appendage Cost x 2",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A disassembled Droid is usually not a threat. Most beings overlook a pile of droid parts on the floor and keep moving. This package allows a Droid to voluntarily remove an arm or a hand and operate it as if it were still attached to the Droid's body.",
         "This Equipment comes in basic and deluxe versions. The 1500-credit basic package enables one specified Appendage to operate on its own. The Appendage has a small repulsor unit inside it, allowing it to move (Hovering) up to 6 squares, and remains functional at a maximum range of 24 squares. While detached, the Appendage can perform any action it would normally be able to if attached to the Droid. The 6,000-credit deluxe package enables multiple limbs to be active at once. A Droid can control a number of Appendages equal to 1 + its Intelligence modifier (minimum 1)."
       ]
@@ -997,7 +954,6 @@
       "weight": "1 Kilogram",
       "availability": "Illegal",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Some automated security systems check biometric data before granting access to an area. Droids cannot provide retinal scans, fingerprints, or other unique biological features. The ID Dodge simulates such information, allowing a Droid to access secure areas. This Droid Accessory allows the Droid to use a Deception check instead of a Use Computer check on any security device that requires organic biometric identification."
       ]
     },
@@ -1008,7 +964,6 @@
       "cost": "1000",
       "weight": "1 Kilogram",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droid brains work well in concert with each other, and Improved Coordination Circuitry enhances this ability. This Droid Accessory links Droids' skill routines, allowing them to aid in tasks more effectively. Each circuit is keyed to a specific Skill. When a Droid with Improved Coordination Circuitry Aids Another Droid with the circuitry, the bonus increases to +4. A Droid must be Trained in the Skill to gain the +4 bonus."
       ]
     },
@@ -1020,7 +975,6 @@
       "weight": "(2 x Shield Rating x Cost Factor) Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This Droid Accessory enables a Droid with a Shield Generator installed to expand its own shield by a single square, allowing an adjacent Medium or smaller ally to benefit from the Droid's SR. Activating the Shield Expansion Module is a Standard Action, and the Droid chooses the single adjacent affected square; any creature in that square uses the Droid's SR as long as it remains in that square and the Droid remains adjacent to that square. Only Droids of Small or larger size can use this Droid Accessory. Droids of Medium or smaller size can install only one Shield Expansion Module. Droids of Large or larger size can install up to two Shield Expansion Modules. A second Shield Expansion Module protects an additional square."
       ]
     },
@@ -1043,7 +997,6 @@
       "cost": "1000",
       "weight": "2 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Specialized Subprocessors are customized processing units designed to aid Droids in specific tasks. Varying in size, abilities, cost, and difficulty of installation, each Specialized Subprocessor enables a Droid to carry out a specific calculation or analysis more quickly or simultaneously with other tasks. A Specialized Subprocessor grants a Droid a single extra Swift Action each turn that can only be used to perform an action related to a single Skill, chosen at the time the Specialized Subprocessor is created. A Droid can only have one Specialized Subprocessor. For examples of Specialized Subprocessors, see the modifications sections of some Droids, such as the GD16-Series Pilot Droid."
       ]
     },
@@ -1054,7 +1007,6 @@
       "cost": "2000",
       "weight": "1 Kilogram",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Audio Enhancers increase the sensitivity of a Droid's aural sensors, enabling it to pick up sounds not normally perceived by standard sensors. When Eavesdropping or Listening for distant and ambient sounds, a Droid equipped with Audio Enhancers can reroll Perception checks, keeping the better of the two results. All other modifiers for the Perception check still apply."
       ]
     },
@@ -1066,9 +1018,9 @@
       "weight": "1000 Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "On Starships and at other installations requiring a large Droid population, centralized Droid Command Stations direct and control Droids as they carry out their daily operations. A Droid or an organic overseer can operate the Droid Command Station. On large Starships or major facilities, the Droid Command Station is manned at all hours. Smaller operations might use the Droid Command Station to issue commands and to provide automated oversight. Droids in the command station's Pool must have a Comlink, an Internal Comlink, or a Remote Processor in order to maintain contact with the Droid Command Station. Accessing the station requires the appropriate password or Code Cylinder. The Droid Command Station typically has an Intelligence score of 14 (or the ship's Intelligence, whichever is higher) and a Will Defense of 15. Standard Droid Command Stations provide the following functions with the indicated Use Computer or Mechanics check:",
-        "Issue a routine command to order a Droid in the Droid Pool to carry out a specific task. If the Droid is familiar with the task, or if the Droid is Trained in the associated Skill, no Skill Check is required. If the command is unusual or highly specific, a Use Computer check might be required at the Gamemaster's discretion. The user gains a +10 Equipment bonus to Use Computer, Persuasion, and Perception checks against the Droid. Commands can be issued verbally or by keypad."
+        "Issue a routine command to order a Droid in the Droid Pool to carry out a specific task. If the Droid is familiar with the task, or if the Droid is Trained in the associated Skill, no Skill Check is required. If the command is unusual or highly specific, a Use Computer check might be required at the Gamemaster's discretion. The user gains a +10 Equipment bonus to Use Computer, Persuasion, and Perception checks against the Droid. Commands can be issued verbally or by keypad.",
+        "Coordinate multiple Droids in the Pool, enabling them to complete tasks more efficiently. With a DC 15 Use Computer check by the station operator, each Droid aiding in a given task provides a +3 bonus instead of a +2 bonus and automatically succeeds on checks to Aid Another."
       ]
     },
     "weapon-detector-package": {
@@ -1079,7 +1031,6 @@
       "weight": "5 Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Droids use sophisticated Sensor Systems, which can easily be adjusted to offer additional security. A Weapon-Detector Package features a high-frequency receiver that can detect the hum of a deactivated Vibro weapon. It can also perform a chemical analysis to detect tibanna gas residue on blasters.",
         "A Weapon-Detector Package allows a Droid to add its Intelligence modifier to Perception checks made to Search for Weapons."
       ]
@@ -1101,8 +1052,6 @@
       "cost": "100",
       "weight": "1 Kilogram",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
-        "See also: Droid Data Ports",
         "A Scomp Link is a universal data port mounted on an extendable arm, available for many types of Droids. Astromech Droids have them as standard Equipment. Scomp Link ports are standard input/output links, found on computer systems and Starships throughout the galaxy. Using a Scomp Link gives a Droid a +2 Equipment bonus to Use Computer checks to Access Information when the computer's Attitude toward it is Helpful or Friendly."
       ]
     },
@@ -1139,7 +1088,6 @@
       "weight": "(2 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "4th-Degree Droids are programmed for combat and security, but other Droids can defend themselves as well. A popular modification is a Projectile Appendage, usually a Hand on humanoid Droids. When the projectile is activated, the Appendage flies toward the target. A Droid might use a Projectile Appendage in order to stun an aggressor or knock a blaster away rather than risking destruction in a blaster fight.",
         "The basic package is a tension-spring device that costs 250 credits to install. A Projectile Appendage is considered to be a Simple Weapon (Ranged) that deals 2d8 damage. Additionally, the Projectile Appendage can be used to make a ranged Disarm attempt against a target within 6 squares."
       ]
@@ -1149,7 +1097,6 @@
       "name": "Quick-Release Coupling",
       "category": "appendage",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Some Droids require frequent changes of Tools and Equipment to carry out their designated tasks. A Tool-sized Quick-Release Coupling allows a Droid (or a mechanic) to swap a Tool in two Standard Actions: one to detach the Tool and one to attach another. Both the Appendage and the Tool must have Quick-Release Couplings.",
         "The Appendage-sized Quick Release Coupling allows a Droid (or a mechanic) to swap an Appendage in two Full-Round Actions: one round to detach the Appendage and one round to attach another. Both the Appendage and the Droid Chassis must have Quick-Release Couplings. A Tool-sized Quick-release Coupling cannot be used with an Appendage-sized Coupling. Additionally, to swap out its own Appendage or Tool, a Droid must have must have another Appendage capable of carrying out the task, usually a Hand or Claw Appendage of sufficient size, strength, and agility. A Droid mechanic must also be capable of handling the weight of the Tool or Appendage (see Droid Accessories). Swapping Appendages with a Quick-Release Coupling does not require a Mechanics check."
       ]
@@ -1161,7 +1108,6 @@
       "cost": "200",
       "weight": "20 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "This accessory is installed on search-and-rescue Droids sent to recover pilots who bailout during combat. The small oxygen tank attached to the Droid's torso provides enough oxygen for a creature of Medium size for 30 minutes. The tank can be used to recharge a Vacuum Pod's supply, or the oxygen can be administered through a Breath Mask attached to the tank. Connecting the supply to a Vacuum Pod is a Swift Action. Securing the Breath Mask is a Standard Action."
       ]
     },
@@ -1182,7 +1128,6 @@
       "cost": "10",
       "weight": "0.5 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Some beings cannot afford to own a Droid. The Rental Restraining Bolt works like a standard Restraining Bolt, except it also has a Credit Reader. The user must deposit a specific number of credits to the Credit Reader on the Rental Restraining Bolt to control the Droid for a specified time. At the end of that time, the Droid deactivates and does not reactivate until sufficient credits are again deposited."
       ]
     },
@@ -1206,7 +1151,6 @@
       "cost": "1000",
       "weight": "2 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "An Automap system actively scans the area within a 12-square radius of a Droid in which it is installed. The scan reveals terrain, atmospheric conditions, electromagnetic signatures, and lifeforms. However, an Automap scan cannot penetrate solid objects such as walls and closed doors. The scan also includes navigational information, such as the Droid's direction and speed when readings were taken as well as global coordinates if the Droid can establish a link to an orbiting satellite or Starship."
       ]
     },
@@ -1218,9 +1162,9 @@
       "weight": "1,000 Kilograms",
       "availability": "Military",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "Designed exclusively for Astromech Droids, the Droid Socket serves as a station combining Copilot, Systems Monitoring, Astrogation, and damage-control operations for minimally crewed craft.",
-        "Droid Sockets are featured on many snub fighters, the occasional shuttle, and a few airspeeders. They generally must be designed and installed as original equipment, although savvy techs can build their own or transplant one onto a ship that does not normally carry a Droid Socket."
+        "Droid Sockets are featured on many snub fighters, the occasional shuttle, and a few airspeeders. They generally must be designed and installed as original equipment, although savvy techs can build their own or transplant one onto a ship that does not normally carry a Droid Socket.",
+        "Standard Droid Sockets allow an Astromech Droid to perform the following tasks:"
       ]
     },
     "magnetic-feet": {
@@ -1243,7 +1187,6 @@
       "cost": "1000",
       "weight": "20 Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Repulsorcam is an audio and video recorder mounted on a tiny repulsorlift. The device can detach from a Droid's chassis, float to where its Droid desires, up to 12 squares away, and record events. The Repulsorcam can record up to 2 hours of audio and video data to its own memory. The unit has a Speed of 4, a Reflex Defense of 16, and a Fortitude Defense of 10. A single Energy Cell powers the Repulsorcam for 4 hours, recharging when it reattaches to the specialized socket on the Droid or when it lands on a separate recharging unit available for an additional 150 credits."
       ]
     },
@@ -1255,7 +1198,6 @@
       "weight": "(20 x Cost Factor) Kilograms",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Holographic Image Disguiser hides a Droid's true appearance. A central processor installed in the Droid's Chassis coordinates several small, full-color, high-resolution holoprojectors installed at various points on the Droid's body. The disguiser's processor synchronizes the holographic image with the Droid's movements and it's Vocabulator, making the disguise particularly lifelike.",
         "The basic model is essentially a standard Holoshroud, granting the Droid a +10 Equipment bonus to Deception checks using Deceptive Appearance. An advanced model, for double the price, includes sensor nodes that track a number of other factors, such as ambient temperature and weather conditions, making the image react to those variables. The advanced model allows the Droid to disguise its appearance as a Full-Round Action at no penalty."
       ]
@@ -1278,7 +1220,6 @@
       "weight": "(1 x Cost Factor) Kilograms",
       "availability": "Licensed",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "A Droid with Internal Defenses has built-in defenses that operate independently of the Droid. Anyone opening the Droid's maintenance or access panels without the Droid's permission receives an electric shock as a 1d20 + 5 attack against the character's Fortitude Defense. If the attack succeeds, the character receives damage equal to 1d8 + half the Droid's Heroic Level. The Droid is unharmed. The system remains active until disabled (Mechanics DC 25, 1 hour of work) or is depleted after 10 attacks."
       ]
     },
@@ -1289,7 +1230,6 @@
       "cost": "100 x Cost Factor",
       "weight": "(2 x Cost Factor) Kilograms",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "When a Droid needs to reach an inaccessible area, an Internal Grapple Gun can be indispensable. The gun fires a magnetic grapple hook with an ultra-thin cord. The internal compartment holds 15 meters (10 squares) of cord, and an external magazine can hold up to 105 meters (70 squares) of cord. The cord can be detached from the Droid as a Free Action. Firing the Internal Grapple Gun is a Standard Action."
       ]
     },
@@ -1301,7 +1241,6 @@
       "weight": "1 Kilogram",
       "availability": "Restricted",
       "description": [
-        "Reference Book: Star Wars Saga Edition Scavenger's Guide to Droids",
         "The Droid has a concealed back-up copy of its personality and the data, skills, and memories it regards as critical to its mission or operation. The copy can be concealed within the Droid's main Processor or be installed as a hidden secondary data store elsewhere within the Droid. The backup restores itself 1d6 days after a Memory Wipe with a successful DC 20 Use Computer check (roll 1d20 + 10, or 1d20 + the Droid's current Use Computer Skill modifier, whichever is greater). If unsuccessful, the Hidden Core tries to restore itself again every 1d6 days. Discovering a Hidden Core requires a Use Computer check against the Droid's Will Defense. The character making the Use Computer check must state that he or she is looking for a Hidden Core or for anything suspicious. For double the standard cost of a Hidden Core (for a cost of 400), the Hidden Core's installer can automatically provide a Will Defense of 30 for this check."
       ]
     },

@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EquipmentItem, Feature } from '../types';
-import { FEATURES, BOOK_NAMES, WEAPON_GROUPS } from '../data';
+import { FEATURES, BOOK_NAMES, WEAPON_GROUPS, damageLabel } from '../data';
 import { signed } from '../rules/engine';
 import { descriptorsOf, specLabel } from './ui';
 
@@ -199,7 +199,9 @@ export function FeatureTip({
 /** What a piece of gear is, at a glance: its line from the equipment tables. */
 export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactNode }) {
   const stats: [string, string | undefined][] = [
-    ['Damage', item.damage && `${item.damage}${item.damageType ? ` ${item.damageType}` : ''}${item.stun ? ' (stun setting)' : ''}`],
+    // Says "varies" or "No damage" rather than dropping the row, so a weapon the compendium
+    // gives no dice for does not look like an oversight. The prose below explains which.
+    ['Damage', damageLabel(item) && `${damageLabel(item)}${item.stun ? ' (stun setting)' : ''}`],
     ['Group', item.group ? WEAPON_GROUPS[item.group] ?? item.group : undefined],
     ['Rate of fire', item.rateOfFire],
     ['Area', item.area],
