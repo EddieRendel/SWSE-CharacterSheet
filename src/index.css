@@ -188,6 +188,17 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .panel-toggle .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
 .panel-toggle:hover .caret { color: var(--accent); }
 
+/* Each level inside the feats panel folds on its own. */
+.level-divider {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: none; border: none; border-radius: 5px;
+  padding: 3px 4px; margin-bottom: 6px; cursor: pointer; text-align: left;
+}
+.level-divider:hover:not(:disabled) { background: var(--bg-3); }
+.level-divider .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
+.level-divider:hover .caret { color: var(--accent); }
+.level-divider .rule { flex: 1; height: 1; background: var(--border); }
+
 /* Panel headers pair a title with action buttons. On a phone the two together were wider
    than the screen — the sheet's Actions / Feats / Equipment switcher was the worst — so
    let the actions drop onto their own line. */

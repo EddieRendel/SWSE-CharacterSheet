@@ -139,8 +139,8 @@ export function EditCharacter({
   // choice is made rather than having to be collapsed twice.
   const needKeys = outstanding.map(o => o.id).sort().join(',');
   useEffect(() => {
-    setForcedOpen(needKeys ? needKeys.split(',').flatMap(id => SECTION_PANELS[id as SectionId]) : []);
-    return () => setForcedOpen([]);
+    setForcedOpen('edit-sections', needKeys ? needKeys.split(',').flatMap(id => SECTION_PANELS[id as SectionId]) : []);
+    return () => setForcedOpen('edit-sections', []);
   }, [needKeys]);
 
   // Building a character starts with its ability scores, so Abilities leads while there are

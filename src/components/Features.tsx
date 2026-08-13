@@ -1,9 +1,43 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { Character } from '../types';
 import { FEATURES, featureName, groupRefs } from '../data';
 import type { Derived, Slot } from '../rules/engine';
 import { Panel, Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
 import { FeaturePicker } from './FeaturePicker';
+import { setForcedOpen, useCollapsePanel } from '../collapse';
+
+const levelKey = (level: number) => `edit:features:level:${level}`;
+
+/**
+ * One level's worth of slots, foldable on its own. A level still owing a choice is held open
+ * by the effect below, on the same terms as the panels: collapse it anyway and it stays shut
+ * once the choice is made.
+ */
+function LevelGroup({
+  level, unfilled, children,
+}: { level: number; unfilled: number; children: ReactNode }) {
+  const [open, toggle] = useCollapsePanel(levelKey(level));
+  return (
+    <div>
+      <button
+        type="button"
+        className="level-divider"
+        aria-expanded={open}
+        title={open ? 'Collapse this level' : 'Expand this level'}
+        onClick={toggle}
+      >
+        <span className="caret" aria-hidden="true">{open ? '▾' : '▸'}</span>
+        <span className="badge accent">Level {level}</span>
+        {unfilled > 0 && (
+          <span className="badge red">{unfilled} to choose</span>
+        )}
+        <span className="rule" />
+      </button>
+      {open && children}
+    </div>
+  );
+}
 
 const KIND_LABEL: Record<string, string> = {
   'starting-feat': 'Starting feat',
@@ -53,6 +87,14 @@ export function Features({
     return [...map.entries()].sort((a, b) => a[0] - b[0]);
   }, [derived.slots, hideAuto]);
 
+  // Hold open every level that still owes a choice, so a folded one unfolds itself the
+  // moment a new level lands rather than hiding the thing you came here to do.
+  const owing = derived.unfilledSlots.map(s => levelKey(s.level)).join(',');
+  useEffect(() => {
+    setForcedOpen('feature-levels', owing ? owing.split(',') : []);
+    return () => setForcedOpen('feature-levels', []);
+  }, [owing]);
+
   if (!char.levels.length) {
     return <div className="empty">Add a class level first — feats and talents are granted by your levels.</div>;
   }
@@ -79,11 +121,11 @@ export function Features({
       >
         <div className="col" style={{ gap: 14 }}>
           {byLevel.map(([level, slots]) => (
-            <div key={level}>
-              <div className="row" style={{ marginBottom: 6 }}>
-                <span className="badge accent">Level {level}</span>
-                <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              </div>
+            <LevelGroup
+              key={level}
+              level={level}
+              unfilled={slots.filter(s => !s.auto && !selections.get(s.key)).length}
+            >
               <div className="list">
                 {slots.map(slot => {
                   const sel = selections.get(slot.key);
@@ -129,7 +171,7 @@ export function Features({
                   );
                 })}
               </div>
-            </div>
+            </LevelGroup>
           ))}
         </div>
       </Panel>

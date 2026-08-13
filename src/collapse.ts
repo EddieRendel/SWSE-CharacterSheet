@@ -31,18 +31,30 @@ function read(): State {
 export const isCollapsed = (id: string) => read()[id] === true;
 
 /**
- * Panels held open because the section owes the player something. Deliberately not saved and
+ * Panels held open because something in them still needs doing. Deliberately not saved and
  * never written into the preference: when the need is met the panel returns to whatever the
  * player last chose, so collapsing one during a level-up does not have to be done twice.
+ *
+ * Held per scope, because more than one component decides this — the edit page for its
+ * sections, the feats panel for its individual levels — and neither should clear the other's.
  */
+const forcedByScope = new Map<string, Set<string>>();
 let forced = new Set<string>();
+
+const recompute = () => {
+  forced = new Set<string>();
+  for (const ids of forcedByScope.values()) for (const id of ids) forced.add(id);
+};
 
 export const isOpen = (id: string) => forced.has(id) || !isCollapsed(id);
 
-export function setForcedOpen(ids: Iterable<string>) {
+export function setForcedOpen(scope: string, ids: Iterable<string>) {
   const next = new Set(ids);
-  if (next.size === forced.size && [...next].every(id => forced.has(id))) return;
-  forced = next;
+  const prev = forcedByScope.get(scope) ?? new Set<string>();
+  if (next.size === prev.size && [...next].every(id => prev.has(id))) return;
+  if (next.size) forcedByScope.set(scope, next);
+  else forcedByScope.delete(scope);
+  recompute();
   for (const l of listeners) l();
 }
 
@@ -72,7 +84,8 @@ export function useCollapsePanel(id: string) {
     const wasOpen = isOpen(id);
     // Closing one that a need is holding open has to drop the hold as well, or the click
     // would do nothing. The need can reassert it the next time the outstanding set changes.
-    forced.delete(id);
+    for (const ids of forcedByScope.values()) ids.delete(id);
+    recompute();
     setCollapsed(id, wasOpen);
     for (const l of listeners) l();
   }, [id]);
