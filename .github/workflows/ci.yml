@@ -1,0 +1,44 @@
+name: CI
+
+# Runs on every pull request, and on main so a merge is verified too.
+# The mechanical checks live here on purpose: the Codex review is then free to
+# look at the game rules rather than repeat what a type-checker already caught.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A second push to the same branch supersedes the first.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # tsc -b then vite build, so a type error fails here rather than at deploy.
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      # The 558 assertions behind the rules engine.
+      - name: Rules engine
+        run: npm run test:rules
+
+      # test:e2e is deliberately not run here: it drives a real browser against a
+      # dev server and is run by hand.
