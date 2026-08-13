@@ -103,6 +103,12 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   you, which is why a lightsaber needs naming separately. **Ataru** uses it on lightsaber
   damage, and a two-handed grip doubles *that* rather than Strength. Both say "may", so the
   higher modifier wins and a note tells you when Strength was the better one.
+- **Stun settings** — 42 weapons can be switched between normal and stun damage, a swift
+  action either way, and six of them hit harder on stun (a Stun Baton's 1d6 becomes 2d6). One
+  toggle switches everything in hand that has a setting, and the row explains the
+  consequences: half the damage comes off hit points, droids and vehicles are immune, and a
+  blaster's stun reaches only 6 squares. A further 13 weapons deal stun and nothing else, so
+  they carry it in their damage line and need no toggle.
 - **Unarmed strike** is always listed, stepping up with Martial Arts I/II/III.
 - **Damaging Force powers** get their own section, resolved as a Use the Force check against a
   defense — *Force Lightning: +12 vs Reflex Defense, 8d6 force*.
@@ -139,13 +145,13 @@ built them on. Use the JSON export/import to move one somewhere else or to share
 - **Faster first load.** All the game data compiles into a single 2.4 MB JS bundle (632 KB
   gzipped), up from 2.0 MB since equipment and species carry their full descriptions rather
   than a clipped line. Lazy-loading the large JSON would cut the initial download.
-- **27 weapons have no damage value** because the Foundry compendium carries none. Five say
-  *varies*, being fed by ammunition or, for the Amphistaff, by which of its three forms it is
-  in. The other 22 read *No damage*, which is right for nets, snares, grenades and gauntlets
-  but worth checking against the books — the stun weapons especially. Corrections and missing
+- **18 weapons still have no damage value** because the Foundry compendium carries none. Five
+  say *varies*, being fed by ammunition or, for the Amphistaff, by which of its three forms it
+  is in. The other 13 read *No damage*, which is right for nets, smoke and gas grenades, the
+  tractor beam and the gauntlets that only modify an unarmed attack. Corrections and missing
   gear go in `supplement.json`, which covers equipment as well as features and talent trees:
   the four mortar shells live there, since the packs cross-reference them without containing
-  them, as do the damage lines for the Neuronic Whip and Stokhli Spray Stick.
+  them, as do every stun value below.
 - **Cross-device characters.** Local storage means no sync and no backup beyond manual JSON
   export. A sync target or a shared party view would need a server.
 - **Run the test suites in CI.** The Pages workflow only type-checks; `test:rules` and

@@ -146,6 +146,9 @@ export function Attacks({
     burstFire: hasFeature(have, 'burst-fire'),
     sneak: sneakDice > 0,
     fullAttack: hasFeature(have, 'double-attack') || hasFeature(have, 'triple-attack'),
+    // Only worth offering when something in hand can actually be switched. Weapons that deal
+    // stun and nothing else need no toggle — their damage is already stun.
+    stun: attacks.some(a => a.weapon.stun),
   };
 
   // Force Points are a per-level pool, spent to add a die to a roll or to fuel abilities.
@@ -212,6 +215,13 @@ export function Attacks({
             + (dwmId
               ? 'Dual Weapon Mastery reduces this, but only with weapons you are proficient with — an unfamiliar weapon still takes the full −10.'
               : 'Dual Weapon Mastery I, II and III reduce it to −5, −2 and nothing.'))} />
+        {available.stun && (
+          <Toggle on={opts.stunSetting} onChange={v => set('stunSetting', v)} label="Stun setting"
+            tip={toggleTip('',
+              'Switch every weapon that has a stun setting over to it, or back — a swift action either way. '
+              + 'Most roll the same dice on stun; a few roll more. Half the damage comes off hit points, and '
+              + 'only creatures are affected.')} />
+        )}
         {available.fullAttack && (
           <Toggle on={opts.fullAttack} onChange={v => set('fullAttack', v)} label="Full attack"
             tip={toggleTip(hasFeature(have, 'triple-attack') ? 'triple-attack' : 'double-attack',

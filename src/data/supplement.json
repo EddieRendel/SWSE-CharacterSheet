@@ -1,13 +1,13 @@
 {
   "_readme": [
     "Hand-written additions merged on top of the extracted rules data at load time.",
-    "Use this for content the upstream data is missing \u2014 most notably the class-specific",
+    "Use this for content the upstream data is missing — most notably the class-specific",
     "talent trees it references but never defines (Dark Side Devotee, Force Adept, Force Item,",
     "Sith, Expert Pilot, Gunner, Knight's Resolve, Piracy, Military Tactics).",
     "",
     "Add the talent itself under `features`, then list its id under the tree in `talentTrees`.",
     "A tree stops being marked incomplete as soon as it has at least one talent.",
-    "Nothing here is validated against the books \u2014 it is whatever you type.",
+    "Nothing here is validated against the books — it is whatever you type.",
     "",
     "Example:",
     "  \"features\": {",
@@ -56,7 +56,13 @@
   ],
   "features": {
     "greater-weapon-focus": {
-      "allowedSpecs": ["advanced-melee-weapons", "heavy-weapons", "pistols", "rifles", "simple-weapons"]
+      "allowedSpecs": [
+        "advanced-melee-weapons",
+        "heavy-weapons",
+        "pistols",
+        "rifles",
+        "simple-weapons"
+      ]
     },
     "greater-weapon-specialization-lightsabers": {
       "name": "Greater Weapon Specialization (lightsabers)",
@@ -68,9 +74,16 @@
       "prerequisites": "Greater Weapon Focus (lightsabers), Weapon Focus (lightsabers) feat, Weapon Specialization (lightsabers).",
       "requirements": {
         "features": [
-          { "id": "greater-weapon-focus-lightsabers" },
-          { "id": "weapon-focus", "spec": "lightsabers" },
-          { "id": "weapon-specialization-lightsabers" }
+          {
+            "id": "greater-weapon-focus-lightsabers"
+          },
+          {
+            "id": "weapon-focus",
+            "spec": "lightsabers"
+          },
+          {
+            "id": "weapon-specialization-lightsabers"
+          }
         ]
       }
     },
@@ -78,8 +91,13 @@
       "requirements": {
         "baseAttackBonus": 10,
         "features": [
-          { "id": "weapon-focus", "spec": "lightsabers" },
-          { "id": "weapon-specialization-lightsabers" }
+          {
+            "id": "weapon-focus",
+            "spec": "lightsabers"
+          },
+          {
+            "id": "weapon-specialization-lightsabers"
+          }
         ]
       }
     },
@@ -87,8 +105,13 @@
       "requirements": {
         "baseAttackBonus": 12,
         "features": [
-          { "id": "weapon-focus", "spec": "lightsabers" },
-          { "id": "weapon-specialization-lightsabers" }
+          {
+            "id": "weapon-focus",
+            "spec": "lightsabers"
+          },
+          {
+            "id": "weapon-specialization-lightsabers"
+          }
         ]
       }
     },
@@ -96,9 +119,16 @@
       "requirements": {
         "baseAttackBonus": 12,
         "features": [
-          { "id": "juyo" },
-          { "id": "weapon-focus", "spec": "lightsabers" },
-          { "id": "weapon-specialization-lightsabers" }
+          {
+            "id": "juyo"
+          },
+          {
+            "id": "weapon-focus",
+            "spec": "lightsabers"
+          },
+          {
+            "id": "weapon-specialization-lightsabers"
+          }
         ]
       }
     }
@@ -128,6 +158,23 @@
     "\"Can be set to stun\", which describes a blaster you can switch; these deal stun and",
     "nothing else, so it is written into the damage line instead. damageType is nulled where",
     "the line already names the types, so the label does not append a second one."
+  ],
+  "_comment_stun": [
+    "Stun settings, harvested from swse.fandom.com — one page per weapon, since the batch API",
+    "silently truncates the later pages, and folding non-breaking spaces first because the",
+    "field is written 'Stun Setting:' with one. Of 245 weapons, 149 name a setting and 91 say",
+    "NO outright.",
+    "",
+    "Ten weapons deal stun and nothing else and had no damage at all; their dice are written",
+    "into the damage line, as the Stokhli and Neuronic Whip already were, so no stun flag,",
+    "which would wrongly imply something switchable.",
+    "",
+    "Forty-two can be switched between normal and stun as a Swift Action, so they carry",
+    "stun: true. Six of those hit harder on stun and carry stunDamage as well; the rest use",
+    "the same dice.",
+    "",
+    "The ammunition-fed launchers are deliberately not flagged. Their stun line reads Varies,",
+    "meaning it depends which shell is loaded, not that the launcher itself has a setting."
   ],
   "equipment": {
     "mortar-launcher": {
@@ -174,9 +221,9 @@
       "name": "Mortar, Stun",
       "category": "weapon",
       "group": "heavy-weapons",
-      "damage": "4d6",
-      "damageType": "energy",
-      "stun": true,
+      "damage": "4d6 stun",
+      "damageType": null,
+      "stun": null,
       "area": "2x2 squares",
       "delay": "2 rounds",
       "cost": 450,
@@ -196,6 +243,179 @@
       "weight": 1.8,
       "book": "war",
       "notes": "The heaviest shell for the Mortar Launcher. Lands two rounds after firing and covers a 4x4 square area. Availability: Military."
+    },
+    "stun-baton": {
+      "stun": true,
+      "stunDamage": "2d6"
+    },
+    "force-pike": {
+      "stun": true
+    },
+    "electrostaff": {
+      "stun": true
+    },
+    "sporting-blaster-pistol": {
+      "stun": true
+    },
+    "blaster-pistol": {
+      "stun": true
+    },
+    "heavy-blaster-pistol": {
+      "stun": true
+    },
+    "sporting-blaster-rifle": {
+      "stun": true
+    },
+    "blaster-carbine": {
+      "stun": true
+    },
+    "blaster-rifle": {
+      "stun": true
+    },
+    "heavy-blaster-rifle": {
+      "stun": true
+    },
+    "stun-grenade": {
+      "damage": "4d6 stun",
+      "damageType": null,
+      "stun": null
+    },
+    "snap-baton": {
+      "stun": true
+    },
+    "targeting-blaster-rifle": {
+      "stun": true
+    },
+    "repeating-blaster-carbine": {
+      "stun": true
+    },
+    "heavy-variable-blaster": {
+      "stun": true
+    },
+    "siang-lance": {
+      "stun": true
+    },
+    "firelance-blaster-rifle": {
+      "stun": true,
+      "stunDamage": "4d6"
+    },
+    "assault-blaster-rifle": {
+      "stun": true
+    },
+    "stun-pistol": {
+      "damage": "3d6 stun",
+      "damageType": null
+    },
+    "snare-rifle": {
+      "damage": "1d6 stun",
+      "damageType": null
+    },
+    "contact-stunner": {
+      "stun": true,
+      "stunDamage": "2d8"
+    },
+    "sporting-blaster-carbine": {
+      "stun": true
+    },
+    "bluebolt-blaster-pistol": {
+      "stun": true
+    },
+    "thud-bug": {
+      "stun": true
+    },
+    "hunting-blaster-carbine": {
+      "stun": true
+    },
+    "snare-pistol": {
+      "damage": "1d4 stun",
+      "damageType": null
+    },
+    "sonic-stunner": {
+      "damage": "3d6 stun",
+      "damageType": null
+    },
+    "sg-4-blaster-rifle": {
+      "stun": true,
+      "stunDamage": "2d8"
+    },
+    "arc-9965-blaster": {
+      "stun": true
+    },
+    "han-solos-heavy-blaster-pistol": {
+      "stun": true
+    },
+    "static-pike": {
+      "stun": true
+    },
+    "double-barreled-blaster-carbine": {
+      "stun": true
+    },
+    "dt-12-heavy-blaster": {
+      "stun": true
+    },
+    "dh-23-blaster-pistol": {
+      "stun": true
+    },
+    "san-ni-staff": {
+      "stun": true
+    },
+    "s-5-heavy-blaster-pistol": {
+      "stun": true
+    },
+    "deck-sweeper": {
+      "damage": "3d6 stun",
+      "damageType": null
+    },
+    "shockboxing-gloves": {
+      "stun": true
+    },
+    "electropole": {
+      "stun": true
+    },
+    "interchangeable-rifle-system": {
+      "stun": true
+    },
+    "electronet": {
+      "damage": "3d8 stun",
+      "damageType": null
+    },
+    "stun-bayonet": {
+      "stun": true,
+      "stunDamage": "2d8"
+    },
+    "carbonite-rifle": {
+      "damage": "3d10 stun",
+      "damageType": null
+    },
+    "concealed-dart-launcher": {
+      "damage": "3d8 stun",
+      "damageType": null
+    },
+    "espo-500-riot-gun": {
+      "stun": true
+    },
+    "shockstaff": {
+      "stun": true
+    },
+    "sidearm-blaster-pistol": {
+      "stun": true
+    },
+    "shock-stick": {
+      "damage": "3d6 stun",
+      "damageType": null
+    },
+    "model-434-deathhammer": {
+      "stun": true
+    },
+    "ascension-gun": {
+      "stun": true
+    },
+    "riot-shield": {
+      "stun": true,
+      "stunDamage": "2d6"
+    },
+    "variable-blaster": {
+      "stun": true
     }
   },
   "talentTrees": {},

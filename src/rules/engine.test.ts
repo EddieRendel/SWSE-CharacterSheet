@@ -1527,6 +1527,44 @@ console.log('\n▸ Attacks');
   check('and on damage', saberOf(brawn, dbr).damageBonus, 4 + 4);
   check('with both explained', saberOf(brawn, dbr).notes.filter(n => /Strength bonus is higher/.test(n)).length, 2);
 
+  // Stun settings. Most switchable weapons roll the same dice on stun; a few roll more, and
+  // the ones that only ever deal stun carry it in their damage line instead of a flag.
+  const stunOpts = { ...opts, stunSetting: true };
+  const rifleStun = buildAttack(c, d, EQUIPMENT['blaster-rifle'], stunOpts);
+  check('a blaster rifle can be set to stun', EQUIPMENT['blaster-rifle'].stun, true);
+  check('and rolls the same dice on stun', rifleStun.damageDice, EQUIPMENT['blaster-rifle'].damage);
+  check('the row says it is stunning', rifleStun.diceParts[0].label, 'Blaster Rifle (stun)');
+  check('with the rules that follow', rifleStun.notes.some(n => /half the damage comes off/.test(n)), true);
+  check('while off it offers the switch instead',
+    buildAttack(c, d, EQUIPMENT['blaster-rifle'], opts).notes.some(n => /switched to stun as a swift action/.test(n)), true);
+
+  // The Stun Baton hits harder on stun: 1d6 becomes 2d6.
+  const baton = EQUIPMENT['stun-baton'];
+  check('the Stun Baton records a different stun die', [baton.damage, baton.stunDamage], ['1d6', '2d6']);
+  check('normally it rolls 1d6', buildAttack(c, d, baton, opts).damageDice, '1d6');
+  check('set to stun it rolls 2d6', buildAttack(c, d, baton, stunOpts).damageDice, '2d6');
+  check('and says which it swapped',
+    buildAttack(c, d, baton, stunOpts).notes.some(n => /rolls 2d6 rather than 1d6/.test(n)), true);
+
+  // A weapon with no stun setting ignores the toggle entirely.
+  check('a club is unaffected by the stun toggle',
+    buildAttack(c, d, EQUIPMENT['club'], stunOpts).damageDice,
+    buildAttack(c, d, EQUIPMENT['club'], opts).damageDice);
+  check('and says nothing about stun',
+    buildAttack(c, d, EQUIPMENT['club'], stunOpts).notes.some(n => /stun/i.test(n)), false);
+
+  // Stun-only weapons carry it in the damage line and need no toggle.
+  check('the Stun Pistol deals stun outright', EQUIPMENT['stun-pistol'].damage, '3d6 stun');
+  check('and is not flagged switchable', EQUIPMENT['stun-pistol'].stun, undefined);
+  check('the Carbonite Rifle too', EQUIPMENT['carbonite-rifle'].damage, '3d10 stun');
+  check('so the toggle changes nothing for it',
+    buildAttack(c, d, EQUIPMENT['stun-pistol'], stunOpts).damageDice,
+    buildAttack(c, d, EQUIPMENT['stun-pistol'], opts).damageDice);
+
+  // Ammunition-fed launchers are not switchable: their damage depends on what is loaded.
+  check('the Mortar Launcher is not a stun-setting weapon', EQUIPMENT['mortar-launcher'].stun, undefined);
+  check('nor the Grenade Launcher', EQUIPMENT['grenade-launcher'].stun, undefined);
+
   // Two weapons drawn, plus unarmed strike, which is always available.
   check('a profile per drawn weapon plus unarmed', buildAttacks(c, d, opts).length, 3);
 

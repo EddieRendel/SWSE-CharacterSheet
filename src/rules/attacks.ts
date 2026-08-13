@@ -17,6 +17,8 @@ export interface AttackOptions {
   flatFooted: boolean;
   /** Using the full attack action, which enables Double/Triple Attack. */
   fullAttack: boolean;
+  /** Weapons with a stun setting switched to it — a swift action either way. */
+  stunSetting: boolean;
   /**
    * A weapon in each hand, or both ends of a double weapon. Only possible as part of a
    * full attack, and it costs every attack roll this turn — see twoWeaponPenalty.
@@ -94,8 +96,8 @@ export const SITUATIONAL: Situational[] = [
 
 export const defaultAttackOptions = (): AttackOptions => ({
   powerAttack: 0, twoHanded: false, pointBlank: false, aim: false,
-  flatFooted: false, fullAttack: false, twoWeapon: false, rapidShot: false,
-  burstFire: false, situational: {},
+  flatFooted: false, fullAttack: false, twoWeapon: false, stunSetting: false,
+  rapidShot: false, burstFire: false, situational: {},
 });
 
 /** Dual Weapon Mastery I also reaches characters as a species trait. */
@@ -307,6 +309,11 @@ export function buildAttack(
   // Situational modifiers are applied further down, once damage parts exist.
 
   // ---- damage ----
+  // Switching a weapon to its stun setting, or back, is a swift action. Most keep the same
+  // dice; a few hit harder on stun, which is what stunDamage records.
+  const stunMode = !!opts.stunSetting && weapon.stun === true;
+  const weaponDice = (stunMode ? weapon.stunDamage ?? weapon.damage : weapon.damage);
+
   const extraDice: { label: string; dice: string }[] = [];
   const damageParts: Part[] = [
     { label: 'half character level', value: Math.floor(derived.level / 2) },
@@ -368,11 +375,11 @@ export function buildAttack(
   }
 
   const diceParts: { label: string; dice: string }[] = [
-    { label: weapon.name, dice: weapon.damage ?? '—' },
+    { label: stunMode ? `${weapon.name} (stun)` : weapon.name, dice: weaponDice ?? '—' },
   ];
-  let damageDice = addWeaponDice(weapon.damage, best?.dice ?? 0);
+  let damageDice = addWeaponDice(weaponDice, best?.dice ?? 0);
   if (best) {
-    const die = weapon.damage?.match(/d(\d+)/)?.[1];
+    const die = weaponDice?.match(/d(\d+)/)?.[1];
     diceParts.push({ label: best.label, dice: `+${best.dice}d${die ?? '?'}` });
   }
   // ---- situational bonuses the player has switched on ----
@@ -414,7 +421,12 @@ export function buildAttack(
   }
 
   if (!proficient) notes.push(`You are not proficient with ${WEAPON_GROUPS[group] ?? group}.`);
-  if (weapon.stun) notes.push('Can be set to stun.');
+  if (stunMode) {
+    notes.push('Set to stun: half the damage comes off the target’s hit points, and it moves −5 steps and falls unconscious if that reaches 0. Only creatures are affected — droids, vehicles and objects are immune. A blaster’s stun setting reaches 6 squares unless its own entry says otherwise.');
+    if (weapon.stunDamage) notes.push(`Its stun setting rolls ${weapon.stunDamage} rather than ${weapon.damage}.`);
+  } else if (weapon.stun) {
+    notes.push(`Can be switched to stun as a swift action${weapon.stunDamage ? `, rolling ${weapon.stunDamage}` : ''}.`);
+  }
   if (weapon.area) notes.push(`Area: ${weapon.area}.`);
 
   return {

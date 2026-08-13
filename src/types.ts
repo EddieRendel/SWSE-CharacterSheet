@@ -222,7 +222,10 @@ export interface EquipmentItem {
   group?: string;
   damage?: string;
   damageType?: string;
+  /** Can be switched between normal and stun damage as a swift action. */
   stun?: boolean;
+  /** The dice on the stun setting, when they differ from the normal ones. */
+  stunDamage?: string;
   size?: string;
   rateOfFire?: string;
   area?: string;
