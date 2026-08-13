@@ -316,23 +316,36 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
         matters against your book, and use <strong>Custom item</strong> for gear from other sources.
       </div>
       <div className="list" style={{ maxHeight: '46vh', overflowY: 'auto' }}>
-        {list.map(item => (
-          <div key={item.id} className="item">
-            {/* The row itself carries the full stat card, so you can compare two things
-                without adding either one first. */}
-            <Tip className="grow block" content={<ItemTipBody item={item} />}>
-              <div className="name breakdown">{item.name}</div>
-              <div className="meta">
-                {item.category === 'weapon' && <>{item.damage} {item.damageType} · {WEAPON_GROUPS[item.group ?? ''] ?? item.group}</>}
-                {item.category === 'armor' && <>+{item.reflex} Ref / +{item.fortitude} Fort / max Dex +{item.maxDex} · {item.armorType}</>}
-                {item.category === 'gear' && (item.notes ?? 'General equipment')}
-              </div>
-            </Tip>
-            <span className="faint nowrap">{item.weight} kg</span>
-            <span className="faint nowrap">{item.cost.toLocaleString()} cr</span>
-            <button className="sm primary" onClick={() => onAdd(item.id)}>Add</button>
-          </div>
-        ))}
+        {list.map(item => {
+          // Only what tells one item from another at a glance. Gear says nothing: its notes
+          // run to a sentence apiece and swamped the list. Armor gives the three numbers
+          // bare. Both keep their labelled detail in the hover card. Parts are joined rather
+          // than concatenated because plenty of weapons carry no damage line — a grenade, a
+          // net — and used to render a stranded separator.
+          const meta = item.category === 'weapon'
+            ? [
+              [item.damage, item.damageType].filter(Boolean).join(' '),
+              WEAPON_GROUPS[item.group ?? ''] ?? item.group,
+            ].filter(Boolean).join(' · ')
+            : item.category === 'armor'
+              ? `+${item.reflex ?? 0}/+${item.fortitude ?? 0}/+${item.maxDex ?? 0}`
+                + (item.armorType ? ` · ${item.armorType}` : '')
+              : '';
+
+          return (
+            <div key={item.id} className="item">
+              {/* The row itself carries the full stat card, so you can compare two things
+                  without adding either one first. */}
+              <Tip className="grow block" content={<ItemTipBody item={item} />}>
+                <div className="name breakdown">{item.name}</div>
+                {meta && <div className="meta">{meta}</div>}
+              </Tip>
+              <span className="faint nowrap">{item.weight} kg</span>
+              <span className="faint nowrap">{item.cost.toLocaleString()} cr</span>
+              <button className="sm primary" onClick={() => onAdd(item.id)}>Add</button>
+            </div>
+          );
+        })}
         {!list.length && <div className="empty">No matches.</div>}
       </div>
     </Modal>
