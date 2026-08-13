@@ -123,29 +123,9 @@ export function Levels({
         )}
       </Panel>
 
-      {derived.classLevels.length > 0 && (
-        <Panel collapseId="edit:class-summary" title="Class summary">
-          <div className="list">
-            {derived.classLevels.map(({ cls, levels }) => (
-              <div key={cls.id} className="item">
-                <span className="badge accent nowrap">{levels}</span>
-                <div className="grow">
-                  <div className="name">{cls.name}</div>
-                  <div className="meta">
-                    d{cls.hitDie} · {cls.fullBaseAttackBonus ? 'full' : '3/4'} BAB ·
-                    defenses +{cls.defenseBonuses.join('/+')}
-                    {levels >= cls.maxLevel && ' · at maximum level'}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="hint" style={{ marginTop: 10 }}>
-            Base attack bonus is calculated per class and summed: <strong>+{derived.baseAttackBonus}</strong>.
-            Class defense bonuses do not stack — you use the single best value for each defense.
-          </p>
-        </Panel>
-      )}
+      {/* No class summary panel: the progression table above already gives the levels per
+          class and the hit die, the sheet's Base Attack Bonus tile shows the per-class
+          working, and the class picker gives each class's BAB and defense bonuses. */}
 
       {adding && (
         <ClassPicker

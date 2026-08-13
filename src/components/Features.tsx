@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Character } from '../types';
-import { FEATURES, featureName, groupRefs } from '../data';
+import { FEATURES, featureName } from '../data';
 import type { Derived, Slot } from '../rules/engine';
 import { Panel, Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
 import { FeaturePicker } from './FeaturePicker';
@@ -176,7 +176,9 @@ export function Features({
         </div>
       </Panel>
 
-      <SummaryPanel derived={derived} onView={setViewing} />
+      {/* No summary panel: every feat, talent and power it listed is already above, laid
+          out by the level that granted it, and gathered again on the sheet's Feats &
+          powers tab — where clicking one opens the same rules dialog. */}
 
       {picking && (
         <FeaturePicker
@@ -197,39 +199,3 @@ export function Features({
   );
 }
 
-function SummaryPanel({
-  derived, onView,
-}: { derived: Derived; onView: (v: { id: string; spec?: string }) => void }) {
-  const groups: [string, typeof derived.feats][] = [
-    ['Feats', derived.feats],
-    ['Talents', derived.talents],
-    ['Force powers', derived.forcePowers],
-    ['Force techniques', derived.forceTechniques],
-    ['Force secrets', derived.forceSecrets],
-    ['Starship maneuvers', derived.starshipManeuvers],
-  ];
-  return (
-    <Panel collapseId="edit:features-summary" title="Summary">
-      <div className="grid g2">
-        {groups.filter(([, list]) => list.length > 0).map(([title, list]) => (
-          <div key={title}>
-            <h3 style={{ marginBottom: 6 }}>{title} <span className="faint">({list.length})</span></h3>
-            <div className="chips">
-              {groupRefs(list).map(g => (
-                <button
-                  key={g.key}
-                  className="chip clickable"
-                  style={{ width: 'auto' }}
-                  onClick={() => onView({ id: g.ref.id, spec: g.ref.spec })}
-                >
-                  {g.label}
-                  {g.count > 1 && <span className="faint"> ×{g.count}</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </Panel>
-  );
-}
