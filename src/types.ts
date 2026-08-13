@@ -215,6 +215,10 @@ export interface EquipmentItem {
   name: string;
   category: 'weapon' | 'armor' | 'gear';
   book?: string;
+  /** Page in that sourcebook, wherever the Omegadex indexed it — 347 of 535 items. */
+  page?: number;
+  /** How the book attribution was arrived at, when it was not a direct index hit. */
+  attribution?: string;
   weight: number;
   cost: number;
   notes?: string;
@@ -308,7 +312,6 @@ export interface Character {
   levels: LevelEntry[];
   selections: Selection[];
   trainedSkills: string[];
-  /** Extra trained skill from a species bonus (e.g. Human). */
   languages: string[];
   inventory: InventoryEntry[];
   customItems: EquipmentItem[];

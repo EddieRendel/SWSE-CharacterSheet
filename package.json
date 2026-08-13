@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "oxlint --max-warnings=0",
     "preview": "vite preview",
     "test:rules": "tsx src/rules/engine.test.ts",
     "test:e2e": "node e2e.mjs",
@@ -23,14 +23,14 @@
   },
   "dependencies": {
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.2"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "classic-level": "^3.0.0",
     "oxlint": "^1.75.0",
     "playwright": "^1.62.1",
     "tsx": "^4.23.12",

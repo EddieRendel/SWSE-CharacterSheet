@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EquipmentItem, Feature } from '../types';
-import { FEATURES, BOOK_NAMES } from '../data';
+import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
-import { descriptorsOf, specLabel, itemStatRows } from './ui';
+import { descriptorsOf, itemStatRows } from './labels';
 
 const GAP = 8;
 
@@ -159,7 +159,7 @@ export function FeatureTipBody({ feature, spec, note }: { feature: Feature; spec
   return (
     <div className="tip-body">
       <div className="tip-head">
-        <strong>{feature.name}{spec ? ` (${specLabel(spec, feature)})` : ''}</strong>
+        <strong>{featureName(feature.id, spec)}</strong>
         <span className="badge">{feature.type.replace('-', ' ')}</span>
         {descriptors.map(d => <span key={d.label} className={`badge ${d.cls}`}>{d.label}</span>)}
       </div>

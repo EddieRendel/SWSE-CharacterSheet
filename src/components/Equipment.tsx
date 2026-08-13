@@ -3,6 +3,7 @@ import type { Character, EquipmentItem } from '../types';
 import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
 import { getItem, signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
+import { uid } from '../storage';
 import { Panel, Modal, Field, ItemDetail } from './ui';
 import { Tip, ItemTipBody, TipRows } from './Tip';
 
@@ -32,7 +33,6 @@ function LoadTip({ derived }: { derived: Derived }) {
     />
   );
 }
-import { uid } from '../storage';
 
 const CATEGORIES = ['weapon', 'armor', 'gear'] as const;
 /** "Armor" and "Gear" are already plural; only weapons take an s. */
@@ -119,7 +119,7 @@ export function Equipment({
             </span>
             <Tip content={<LoadTip derived={derived} />}>
               <span className={`hint breakdown${derived.carrying.level !== 'normal' ? ' err' : ''}`}>
-                <strong className="mono">{derived.totalWeight.toFixed(1)}</strong> of{' '}
+                <strong className="mono">{derived.carrying.weight.toFixed(1)}</strong> of{' '}
                 <span className="mono">{derived.carrying.heavy.toFixed(0)}</span> kg
                 {derived.carrying.level !== 'normal' && ` · ${LOAD_LABEL[derived.carrying.level]}`}
               </span>
@@ -147,7 +147,7 @@ export function Equipment({
           </div>
           <div className="stat">
             <div className="label">Total weight</div>
-            <div className="value" style={{ fontSize: 20 }}>{derived.totalWeight.toFixed(1)}<span style={{ fontSize: 12 }}> kg</span></div>
+            <div className="value" style={{ fontSize: 20 }}>{derived.carrying.weight.toFixed(1)}<span style={{ fontSize: 12 }}> kg</span></div>
             <div className={`sub${derived.carrying.level !== 'normal' ? ' err' : ''}`}>
               {LOAD_LABEL[derived.carrying.level]} · heavy at {derived.carrying.heavy.toFixed(0)} kg
             </div>

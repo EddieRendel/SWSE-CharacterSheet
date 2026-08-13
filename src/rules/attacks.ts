@@ -1,4 +1,4 @@
-import type { Character, EquipmentItem } from '../types';
+import type { Character, EquipmentItem, Feature } from '../types';
 import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
 import { countFeature, hasFeature, getItem } from './engine';
 import type { Derived } from './engine';
@@ -130,6 +130,18 @@ export const dualWeaponMasteryId = (have: { id: string }[]) =>
   [...DWM.iii, ...DWM.ii, ...DWM.i].find(id => hasFeature(have, id)) ?? '';
 
 /**
+ * A weapon a size category smaller than you is a Light Weapon — the other end of the ladder
+ * that makes a larger one take both hands. Weapon Finesse names "a Light Melee Weapon or a
+ * Lightsaber" separately precisely because a lightsaber is your own size, so it is not light.
+ */
+export function isLightWeapon(weapon: EquipmentItem, wielderSize: string): boolean {
+  const ladder = RULES.sizes;
+  const w = ladder.indexOf(weapon.size ?? '');
+  const c = ladder.indexOf(wielderSize);
+  return w >= 0 && c >= 0 && w < c;
+}
+
+/**
  * Whether a weapon takes both hands, which is what doubles the Strength bonus to damage
  * and Power Attack's damage.
  *
@@ -142,18 +154,6 @@ export const dualWeaponMasteryId = (have: { id: string }[]) =>
  * Wookiee Grip lifts the requirement — you need only one hand for weapons that normally
  * take two.
  */
-/**
- * A weapon a size category smaller than you is a Light Weapon — the other end of the ladder
- * that makes a larger one take both hands. Weapon Finesse names "a Light Melee Weapon or a
- * Lightsaber" separately precisely because a lightsaber is your own size, so it is not light.
- */
-export function isLightWeapon(weapon: EquipmentItem, wielderSize: string): boolean {
-  const ladder = RULES.sizes;
-  const w = ladder.indexOf(weapon.size ?? '');
-  const c = ladder.indexOf(wielderSize);
-  return w >= 0 && c >= 0 && w < c;
-}
-
 export function needsTwoHands(
   weapon: EquipmentItem,
   wielderSize: string,
@@ -481,6 +481,18 @@ export interface PowerProfile {
 const DAMAGE_RE = /(\d+d\d+)\s*(?:points of\s*)?([A-Za-z]+)?\s*damage/i;
 const DEFENCE_RE = /(Reflex|Fortitude|Will)\s+Defense/i;
 
+/**
+ * Everything a feature says, as one line of plain text: the sources carry a little inline
+ * HTML, and the rules text is split across description, benefit and special. Both readers
+ * below scan the whole entry rather than the description alone — Battle Strike puts its
+ * dice in the benefit, not the summary.
+ */
+const featureText = (f: Feature): string =>
+  [...(f.description ?? []), ...(f.benefit ?? []), ...(f.special ?? [])]
+    .join(' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ');
+
 export function buildPowers(derived: Derived): PowerProfile[] {
   const utfSkill = derived.skills.find(s => s.id === 'use-the-force');
   const utf = utfSkill?.total ?? 0;
@@ -492,8 +504,7 @@ export function buildPowers(derived: Derived): PowerProfile[] {
     seen.add(ref.id);
     const f = FEATURES[ref.id];
     if (!f) continue;
-    const text = [...(f.description ?? []), ...(f.benefit ?? []), ...(f.special ?? [])]
-      .join(' ').replace(/<[^>]+>/g, ' ');
+    const text = featureText(f);
     const dmg = text.match(DAMAGE_RE);
     if (!dmg) continue;                       // only powers that actually deal damage
     const def = text.match(DEFENCE_RE);
@@ -550,8 +561,7 @@ export function buildForcePointAbilities(derived: Derived): ForcePointAbility[] 
     seen.add(ref.id);
     const f = FEATURES[ref.id];
     if (!f) continue;
-    const text = [...(f.description ?? []), ...(f.benefit ?? []), ...(f.special ?? [])]
-      .join(' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    const text = featureText(f);
     if (!SPENDS_FP.test(text)) continue;
     // Pull just the sentence that mentions the cost, not the whole entry.
     const sentence = text.split(/(?<=\.)\s+/).find(s => SPENDS_FP.test(s)) ?? text;

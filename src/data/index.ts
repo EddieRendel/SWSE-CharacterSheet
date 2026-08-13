@@ -11,8 +11,6 @@ import treesJson from './talentTrees.json';
 import rulesJson from './rules.json';
 import languagesJson from './languages.json';
 import equipmentJson from './equipment.json';
-import gapsJson from './dataGaps.json';
-import repairsJson from './dataRepairs.json';
 import supplementJson from './supplement.json';
 import forceTreesJson from './forceTrees.json';
 import iconsJson from './icons.json';
@@ -74,12 +72,15 @@ export const SPECIES = speciesJson as unknown as Record<string, Species>;
 export const SKILLS = skillsJson as unknown as Record<string, Skill>;
 export const TALENT_TREES = merged.trees;
 
-/** The talent trees any Force-sensitive character may draw from, per the spreadsheets. */
-export const FORCE_TREE_IDS = forceTreesJson as string[];
+/**
+ * The universal Force talent trees — every tree the spreadsheets file under
+ * "Force Sensitive". Any character with the Force Sensitivity feat may take a talent
+ * from these in place of one from their class, whenever they earn a talent.
+ * Tradition-specific trees (Jensaarai Defender, Dathomiri Witch, …) are *not* included;
+ * they belong to Force traditions the app does not model.
+ */
+export const FORCE_TALENT_TREES = forceTreesJson as string[];
 
-/** Talent trees a class references that still have no talents in them. */
-export const emptyTrees = (): TalentTree[] =>
-  Object.values(TALENT_TREES).filter(t => !t.features?.length);
 /**
  * Equipment, with `supplement.equipment` merged over it the same way features are.
  *
@@ -117,8 +118,16 @@ export const damageLabel = (item: EquipmentItem): string | undefined => {
   return /\b\d+d\d+\b/.test(item.notes ?? '') ? 'see notes' : 'No damage';
 };
 
-export const DATA_GAPS = gapsJson as string[];
-export const DATA_REPAIRS = repairsJson as string[];
+/**
+ * Corrections applied to the source data, for the About panel.
+ *
+ * These used to live in a generated `dataRepairs.json`, written by a bootstrap script that
+ * has since been deleted — so the file froze while the data moved on, and the panel went on
+ * quoting it. They are hand-written notes now, which is what they always were, and they sit
+ * in supplement.json beside the corrections they describe.
+ */
+export const DATA_REPAIRS =
+  (supplementJson as { provenance?: string[] }).provenance ?? [];
 
 export const RULES = rulesJson as unknown as {
   abilities: Record<AbilityId, { id: AbilityId; name: string; description: string[] }>;
@@ -165,16 +174,27 @@ export const WEAPON_GROUPS: Record<string, string> = {
   'exotic-weapons': 'Exotic Weapons',
 };
 
-export const sortedFeatures = (type: Feature['type']) =>
-  Object.values(FEATURES).filter(f => f.type === type).sort((a, b) => a.name.localeCompare(b.name));
+/**
+ * What to call a chosen specialization: a skill, a weapon group, a weapon, a talent, or
+ * an option that exists only in the rules text.
+ *
+ * The single definition on purpose. This used to be written out three times — here, in
+ * `ui.tsx` and in `prereqs.ts` — and two of them ordered the fallbacks differently, so an
+ * id carried by both a feature and an item could read one way in the picker and another on
+ * the sheet. A test pins the four ids that are in both maps to the same name.
+ */
+export const specName = (spec: string, feature?: Feature): string =>
+  SKILLS[spec]?.name
+  ?? WEAPON_GROUPS[spec]
+  ?? EQUIPMENT[spec]?.name
+  ?? FEATURES[spec]?.name
+  ?? feature?.specOptions?.find(o => o.id === spec)?.name
+  ?? spec;
 
 export const featureName = (id: string, spec?: string) => {
   const f = FEATURES[id];
   const base = f?.name ?? id;
-  if (!spec) return base;
-  const specName = SKILLS[spec]?.name ?? WEAPON_GROUPS[spec] ?? EQUIPMENT[spec]?.name
-    ?? FEATURES[spec]?.name ?? f?.specOptions?.find(o => o.id === spec)?.name ?? spec;
-  return `${base} (${specName})`;
+  return spec ? `${base} (${specName(spec, f)})` : base;
 };
 
 /**

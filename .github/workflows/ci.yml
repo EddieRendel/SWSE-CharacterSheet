@@ -36,7 +36,7 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # The 558 assertions behind the rules engine.
+      # The assertions behind the rules engine.
       - name: Rules engine
         run: npm run test:rules
 

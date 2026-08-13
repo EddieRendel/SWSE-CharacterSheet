@@ -5,12 +5,30 @@ client-only, no backend and no network calls. Characters live in the browser's l
 
 ```
 src/rules/       the game rules — engine.ts (derived stats), prereqs.ts, attacks.ts, specs.ts
-src/rules/engine.test.ts   558 hand-written assertions, run with `npm run test:rules`
+src/rules/engine.test.ts   hand-written assertions, run with `npm run test:rules`
 src/data/*.json  generated from the Foundry compendium and the Omegadex index — not hand-edited
 src/data/supplement.json   hand-written corrections merged over the generated data
+src/data/rules.json, skills.json   hand-maintained — see below
 src/components/  the UI
 tools-*.mjs      the import pipeline
 ```
+
+**The pipeline, in order.** Each stage reads what the one before it wrote:
+
+```
+import:foundry → import:excel → import:foundry-text → wire:trees → wire:choices
+              → attribute:books → import:languages → dedupe → audit:provenance → fetch:icons
+```
+
+`import:foundry` and friends need a clone of the Foundry SagaEdition packs; `import:excel` and
+`attribute:books` need the spreadsheets, which are gitignored. `audit:provenance` verifies and
+writes nothing.
+
+**`rules.json` and `skills.json` have no generator.** They were produced once by a bootstrap
+script that has since been deleted, because it rewrote six other data files wholesale from a
+frozen scrape and would have undone every import run since. Those two are now hand-maintained
+like `supplement.json`: edit them directly, and note that `rules.json` is the single definition
+of the size ladder, size modifiers, the condition track and carrying capacity.
 
 ```bash
 npm run dev         # local dev server

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Character, EquipmentItem, Feature } from '../types';
-import { BOOK_NAMES, WEAPON_GROUPS, SKILLS, CLASSES, FEATURES, EQUIPMENT, damageLabel, featureIcon, portraitUrl, classIcon } from '../data';
+import { BOOK_NAMES, CLASSES, specName, featureIcon, portraitUrl, classIcon } from '../data';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
+import { descriptorsOf, itemStatRows } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -89,10 +90,13 @@ export function Modal({
 
   // Membership is tracked separately from the key handler: onClose is usually a fresh
   // arrow function each render, and re-running this would shuffle an older modal to the top.
+  // The identity is read once into a local so the cleanup closes over the same object it
+  // pushed, rather than over the ref.
   useEffect(() => {
-    modalStack.push(self.current);
+    const me = self.current;
+    modalStack.push(me);
     return () => {
-      const i = modalStack.indexOf(self.current);
+      const i = modalStack.indexOf(me);
       if (i >= 0) modalStack.splice(i, 1);
     };
   }, []);
@@ -248,30 +252,6 @@ export function FeatureIcon({
   return <img className="feature-icon" src={src} alt="" width={size} height={size} loading="lazy" />;
 }
 
-/** A chosen specialization, by name: a skill, a weapon group, a talent, or a plain option. */
-export const specLabel = (spec: string, feature?: Feature) =>
-  SKILLS[spec]?.name
-  ?? WEAPON_GROUPS[spec]
-  ?? FEATURES[spec]?.name
-  ?? EQUIPMENT[spec]?.name
-  ?? feature?.specOptions?.find(o => o.id === spec)?.name
-  ?? spec;
-
-/**
- * Descriptors carried by Force powers. They matter at the table: dark side powers
- * add to your Dark Side Score, lightsaber forms interact with form talents, and
- * telekinetic / mind-affecting powers are targeted by specific defences.
- */
-export const DESCRIPTORS: { key: keyof Feature; label: string; cls: string }[] = [
-  { key: 'darkSide', label: 'dark side', cls: 'red' },
-  { key: 'lightSide', label: 'light side', cls: 'blue' },
-  { key: 'lightsaberForm', label: 'lightsaber form', cls: 'accent' },
-  { key: 'telekinetic', label: 'telekinetic', cls: 'purple' },
-  { key: 'mindAffecting', label: 'mind-affecting', cls: 'green' },
-];
-
-export const descriptorsOf = (feature: Feature) => DESCRIPTORS.filter(d => feature[d.key]);
-
 export function Descriptors({ feature, compact }: { feature: Feature; compact?: boolean }) {
   const tags = descriptorsOf(feature);
   if (!tags.length) return null;
@@ -284,33 +264,6 @@ export function Descriptors({ feature, compact }: { feature: Feature; compact?: 
       ))}
     </>
   );
-}
-
-/** Full rules display for a feat / talent / power. */
-/**
- * The item's line from the equipment tables, as label/value pairs. Shared so the hover
- * card and the full dialog can never disagree about a number.
- */
-export function itemStatRows(item: EquipmentItem): [string, string][] {
-  const stats: [string, string | undefined][] = [
-    // Says "varies" or "No damage" rather than dropping the row, so a weapon the compendium
-    // gives no dice for does not look like an oversight. The prose below explains which.
-    ['Damage', damageLabel(item) && `${damageLabel(item)}${item.stun ? ' (stun setting)' : ''}`],
-    // Only present when the stun dice differ from the normal ones.
-    ['On stun', item.stunDamage],
-    ['Group', item.group ? WEAPON_GROUPS[item.group] ?? item.group : undefined],
-    ['Rate of fire', item.rateOfFire],
-    ['Area', item.area],
-    ['Delay', item.delay],
-    ['Reflex', item.reflex ? `+${item.reflex}` : undefined],
-    ['Fortitude', item.fortitude ? `+${item.fortitude}` : undefined],
-    ['Max Dex', item.maxDex !== undefined ? `+${item.maxDex}` : undefined],
-    ['Armor', item.armorType],
-    ['Size', item.size],
-    ['Cost', item.cost ? `${item.cost.toLocaleString()} cr` : undefined],
-    ['Weight', item.weight ? `${item.weight} kg` : undefined],
-  ];
-  return stats.filter((s): s is [string, string] => Boolean(s[1]));
 }
 
 /**
@@ -371,7 +324,7 @@ export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: stri
       <div className="row" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
         <FeatureIcon id={feature.id} spec={spec} size={40} />
         <h3 style={{ fontSize: 16 }}>
-          {feature.name}{spec ? ` (${specLabel(spec, feature)})` : ''}
+          {feature.name}{spec ? ` (${specName(spec, feature)})` : ''}
         </h3>
         <span className={`badge ${feature.type === 'talent' ? 'purple' : 'blue'}`}>{feature.type.replace('-', ' ')}</span>
         <Descriptors feature={feature} />
@@ -419,9 +372,20 @@ export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: stri
           Not enforced automatically: {feature.unparsedPrerequisites.join('; ')}
         </p>
       )}
-      {feature.benefit && (<><div className="label" style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 10 }}>Benefit</div><RulesText lines={feature.benefit} /></>)}
-      {feature.normal && (<><div className="label" style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 10 }}>Normal</div><RulesText lines={feature.normal} /></>)}
-      {feature.special && (<><div className="label" style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 10 }}>Special</div><RulesText lines={feature.special} /></>)}
+      <RulesSection label="Benefit" lines={feature.benefit} />
+      <RulesSection label="Normal" lines={feature.normal} />
+      <RulesSection label="Special" lines={feature.special} />
     </div>
+  );
+}
+
+/** One headed block of rules text — Benefit, Normal, Special. Nothing when the data has none. */
+function RulesSection({ label, lines }: { label: string; lines?: string[] }) {
+  if (!lines?.length) return null;
+  return (
+    <>
+      <div className="rules-section-label">{label}</div>
+      <RulesText lines={lines} />
+    </>
   );
 }

@@ -28,7 +28,7 @@ Other commands, none of them required:
 npm run build       # production build into dist/
 npm run preview     # serve the built dist/ locally
 npm run lint        # oxlint
-npm run test:rules  # 558 assertions against the rules engine
+npm run test:rules  # the assertions behind the rules engine
 npm run test:e2e    # drives a real browser (needs `npm run dev` already running)
 ```
 
@@ -179,7 +179,7 @@ git push -u origin some-change
 
 GitHub then offers a **Compare & pull request** button. Opening the PR runs two things:
 
-- **CI** — `npm run build` (which type-checks), `npm run lint` and the 558 rules assertions.
+- **CI** — `npm run build` (which type-checks), `npm run lint` and the rules assertions.
 - **Codex review** — an automatic review comment. Ask for another pass with `@codex review`, or
   aim it: `@codex review the prerequisite changes`.
 
