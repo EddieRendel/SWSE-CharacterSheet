@@ -3,9 +3,10 @@ import type { Character, Feature, FeatureRef } from '../types';
 import type { Derived, Slot } from '../rules/engine';
 import { canSelect } from '../rules/prereqs';
 import { specOptionsFor, SPEC_LABELS } from '../rules/specs';
-import { featureAvailable } from '../rules/engine';
+import { computeCharacter, featureAvailable } from '../rules/engine';
 import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
 import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
+import { ReqList } from './Requirements';
 import { descriptorsOf } from './labels';
 
 /** Which feature type a slot draws from when it has no explicit pool. */
@@ -21,7 +22,7 @@ const TYPE_FOR_KIND: Record<string, Feature['type']> = {
 };
 
 export function FeaturePicker({
-  slot, char, derived, onPick, onClose,
+  slot, char: fullChar, derived: fullDerived, onPick, onClose,
 }: {
   slot: Slot;
   char: Character;
@@ -36,6 +37,19 @@ export function FeaturePicker({
   // Folded trees are deliberately not remembered: the picker is a fresh mount each time it
   // opens, so every tree starts expanded and you always see what is on offer.
   const [closedTrees, setClosedTrees] = useState<Set<string>>(() => new Set());
+
+  /**
+   * Changing a filled slot is judged against the character *without* the pick being replaced,
+   * because that pick is on its way out. Left in place it counts towards its own
+   * replacement's prerequisites: Critical Strike is offered as a swap for the very Weapon
+   * Focus it requires, and confirming it leaves it standing on a prerequisite that no longer
+   * exists. Everything below reads `char` and `derived` as "with this slot empty".
+   */
+  const [char, derived] = useMemo(() => {
+    if (!fullChar.selections.some(s => s.key === slot.key)) return [fullChar, fullDerived] as const;
+    const without = { ...fullChar, selections: fullChar.selections.filter(s => s.key !== slot.key) };
+    return [without, computeCharacter(without)] as const;
+  }, [fullChar, fullDerived, slot.key]);
 
   // Options come from the slot's explicit pool, or from every feature of the matching type.
   const options = useMemo(() => {
@@ -307,14 +321,7 @@ export function FeaturePicker({
                       {selectableSpecs.length} of {specs.length} qualify.
                     </p>
                   )}
-                  <div className="list">
-                    {finalResult.checks.map((c, i) => (
-                      <div key={i} className="row" style={{ gap: 8 }}>
-                        <span className={c.met ? 'ok' : 'err'}>{c.met ? '✓' : '✕'}</span>
-                        <span className={c.met ? 'dim' : 'err'}>{c.text}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ReqList checks={finalResult.checks} />
                 </div>
               )}
 

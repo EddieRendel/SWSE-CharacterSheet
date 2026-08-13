@@ -4,12 +4,13 @@
  */
 import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses } from './engine';
 import type { Derived } from './engine';
-import { checkClassRequirements, canSelect, checkRequirements } from './prereqs';
+import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
 import {
   buildAttack, buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
   defaultAttackOptions, unarmedDamage, SITUATIONAL,
 } from './attacks';
+import { talentSources } from '../components/labels';
 import { newCharacter } from '../storage';
 import type { Character, AbilityId, Feature } from '../types';
 import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
@@ -598,6 +599,17 @@ console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats need Focus in anything')
   check('and asks for no weapon group', cs.needsSpec, false);
   check('the requirement reads as plain Weapon Focus',
     cs.checks.map(c => c.text), ['Weapon Focus', 'Base attack bonus +9']);
+  check('each check says what kind of thing it wants',
+    cs.checks.map(c => c.kind), ['feat', 'attack']);
+  check('and the feat one points at the feature behind it',
+    cs.checks[0].ref, { id: 'weapon-focus', spec: undefined });
+
+  // Changing an existing pick is judged with that slot emptied, which is what stops the
+  // picker offering Critical Strike as a replacement for the Weapon Focus it stands on.
+  const emptied = structuredClone(soldier);
+  emptied.selections = emptied.selections.filter(s => s.key !== 'feat:1');
+  check('replacing the Weapon Focus itself is not a legal swap',
+    canSelect('critical-strike', emptied, computeCharacter(emptied)).met, false);
 
   // Halt has the same prerequisite plus Trip.
   check('Halt is available too', canSelect('halt', soldier, d).met, true);
@@ -650,6 +662,110 @@ console.log('\n▸ every matchingSpec requirement has a specialization to match'
     .filter(f => wantsMatch(f.requirements) && !f.specType && !f.allowedSpecs?.length)
     .map(f => f.id);
   check('no feature needs a matching spec it cannot choose', stranded, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ every prerequisite is tagged with the kind of thing it wants');
+// ---------------------------------------------------------------------------
+{
+  // "Armored Defense" tells you nothing about where to get it until you know it is a talent
+  // rather than a feat — the two are obtained in completely different ways. Every check
+  // carries its kind, and the ones naming a single feature carry its id so the UI can show
+  // the rules text (and, for a talent, its tree).
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(7).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+  });
+  const d = computeCharacter(soldier);
+
+  check('a talent prerequisite is tagged as a talent',
+    checkRequirementsFor('armor-mastery', soldier, d).checks
+      .map(c => [c.text, c.kind, c.ref?.id]),
+    [['Armored Defense', 'talent', 'armored-defense']]);
+
+  check('an ability score is not tagged as a feat',
+    checkRequirementsFor('power-attack', soldier, d).checks.map(c => c.kind), ['ability']);
+  check('a trained skill is tagged as a skill',
+    canSelect('skill-focus', soldier, d, 'perception').checks.map(c => c.kind), ['skill']);
+  check('a matching weapon proficiency resolves to the feat and group',
+    canSelect('weapon-focus', soldier, d, 'rifles').checks.map(c => [c.kind, c.ref]),
+    [['feat', { id: 'weapon-proficiency', spec: 'rifles' }]]);
+
+  // A prestige class asks for a number of talents from named trees; that is a talent
+  // requirement even though it names no single one, so it gets no ref to hover.
+  const elite = checkClassRequirements('elite-trooper', soldier, d).checks;
+  check('the Elite Trooper talent count is tagged as a talent',
+    elite.filter(c => c.text.startsWith('1 talent')).map(c => [c.kind, c.ref]), [['talent', undefined]]);
+  check('and its base attack bonus is tagged as one',
+    elite.filter(c => c.text.startsWith('Base attack')).map(c => c.kind), ['attack']);
+
+  // An either/or keeps the kind when both sides are the same sort of thing — "Double Attack
+  // or Dual Weapon Mastery I" is still a feat requirement.
+  check('an either/or between two feats stays a feat',
+    checkRequirementsFor('assault', soldier, d).checks.map(c => c.kind), ['feat', 'attack']);
+  check('and between two skills stays a skill',
+    checkRequirementsFor('risk-taker', soldier, d).checks.map(c => c.kind), ['skill']);
+  // Only a genuinely mixed alternative falls back to the neutral tag. No entry in the data
+  // has one today, so it is asserted against a requirements block written here.
+  check('a mixed either/or falls back to "any of"',
+    checkRequirements(
+      { anyOf: [[{ features: [{ id: 'point-blank-shot' }] }, { abilities: { str: 13 } }]] },
+      soldier, d,
+    ).checks.map(c => c.kind), ['choice']);
+
+  // The tree behind a talent, which is the hover card's answer to "and where do I get it?".
+  check('a talent knows the tree it comes from and who draws on it',
+    talentSources('armored-defense').map(s => [s.tree, s.classes.includes('Soldier')]),
+    [['Armor Specialist', true]]);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A pick whose prerequisites lapse is reported, not silently dropped');
+// ---------------------------------------------------------------------------
+{
+  // Changing an earlier feat can pull the ground out from under a later one. The rules are
+  // the player's to bend, so nothing is removed — but it is said out loud, the way an
+  // Intelligence drop says the skills already trained are now too many.
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 12, wis: 12, cha: 10 });
+    x.levels = Array(12).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
+      { key: 'feat:9', choiceId: 'feat', featureId: 'critical-strike' },
+    ];
+  });
+  check('a character holding both is settled', lapsedSelections(soldier, computeCharacter(soldier)), []);
+
+  // Swap the Weapon Focus at 1st level for something with no bearing on Critical Strike.
+  const swapped = structuredClone(soldier);
+  swapped.selections[0] = { key: 'feat:1', choiceId: 'feat', featureId: 'toughness' };
+  const ds = computeCharacter(swapped);
+  const lapsed = lapsedSelections(swapped, ds);
+  check('the later feat is reported against the slot holding it',
+    lapsed.map(l => [l.key, l.name, l.missing.map(m => m.text)]),
+    [['feat:9', 'Critical Strike', ['Weapon Focus']]]);
+  check('and the tag says what to go and get', lapsed[0].missing.map(m => m.kind), ['feat']);
+  check('the swapped-in feat is itself fine', lapsed.some(l => l.key === 'feat:1'), false);
+  check('nothing is removed on the character\'s behalf', swapped.selections.length, 2);
+
+  // Requirements describing the state at the moment of choosing are not standing conditions:
+  // Skill Training wants an untrained skill, which taking it makes false at once. Re-checking
+  // must not report every Skill Training a character holds.
+  const trainer = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 12, con: 12, int: 14, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+    x.trainedSkills = ['perception'];
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'skill-training', spec: 'perception' }];
+  });
+  const dt = computeCharacter(trainer);
+  check('Skill Training reads as satisfied once taken', lapsedSelections(trainer, dt), []);
+  check('though the untrained check itself now fails',
+    checkRequirements(FEATURES['skill-training'].requirements, trainer, dt, 'perception')
+      .checks.filter(c => !c.met).map(c => [c.text, c.atSelection === true]),
+    [['Not already trained in Perception', true]]);
 }
 
 // ---------------------------------------------------------------------------

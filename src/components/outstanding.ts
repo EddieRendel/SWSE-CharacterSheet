@@ -1,6 +1,7 @@
 import type { Character } from '../types';
 import type { Derived } from '../rules/engine';
 import { abilityIncreaseLevels } from '../rules/engine';
+import { lapsedSelections } from '../rules/prereqs';
 
 /**
  * What a level still owes the player, shared between the Edit page and the tab badge.
@@ -10,13 +11,15 @@ import { abilityIncreaseLevels } from '../rules/engine';
  */
 
 /**
- * Choices that exceed what the character is entitled to. Removing the level that raised
+ * Choices that are now wrong rather than merely missing. Removing the level that raised
  * Intelligence is the usual cause: the allowances shrink, but the skills and languages
- * already picked stay put.
+ * already picked stay put. Changing an earlier feat or talent does the same to any later
+ * pick that named it as a prerequisite.
  */
 export const hasConflicts = (char: Character, derived: Derived) =>
   char.trainedSkills.length > derived.trainedSkillsAllowed
-  || derived.languages.chosen.length > derived.languages.allowed;
+  || derived.languages.chosen.length > derived.languages.allowed
+  || lapsedSelections(char, derived).length > 0;
 
 /**
  * Everything a level still owes the character: unfilled slots, unassigned ability

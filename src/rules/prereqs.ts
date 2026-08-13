@@ -1,4 +1,4 @@
-import type { Character, FeatureRef, Requirements, AbilityId } from '../types';
+import type { Character, FeatureRef, FeatureType, Requirements, AbilityId } from '../types';
 import {
   CLASSES, FEATURES, SKILLS, SPECIES, WEAPON_GROUPS, TALENT_TREES, RULES, specName, FORCE_TALENT_TREES,
 } from '../data';
@@ -6,9 +6,31 @@ import { countFeature, hasFeature } from './engine';
 import type { Derived } from './engine';
 import { specOptionsFor, groupOfSpec } from './specs';
 
+/**
+ * What sort of thing a requirement asks for. A name on its own does not say where to go and
+ * get it — "Armor Specialist" could be a feat, a talent or a class feature — so every check
+ * carries its kind and the UI tags the line with it.
+ */
+export type ReqKind =
+  | FeatureType
+  | 'ability' | 'skill' | 'species' | 'level' | 'attack' | 'size' | 'dark-side'
+  | 'choice' | 'other';
+
 export interface ReqCheck {
   text: string;
   met: boolean;
+  kind: ReqKind;
+  /**
+   * The feature this check names, when it names exactly one. The UI hovers it for the rules
+   * text, which for a talent is also where the tree it comes from is spelled out.
+   */
+  ref?: FeatureRef;
+  /**
+   * True when the check describes the state at the moment of choosing rather than a standing
+   * condition — Skill Training wants a skill you are *not* trained in, which taking it
+   * immediately makes false. Re-checking a pick you already hold must skip these.
+   */
+  atSelection?: boolean;
 }
 
 export interface ReqResult {
@@ -25,6 +47,9 @@ const refLabel = (r: FeatureRef) => {
   const name = FEATURES[r.id]?.name ?? r.id;
   return r.spec ? `${name} (${specName(r.spec, FEATURES[r.id])})` : name;
 };
+
+/** A feature the data does not define gets the neutral tag rather than a guessed one. */
+const featureKind = (id: string): ReqKind => FEATURES[id]?.type ?? 'other';
 
 /**
  * Validate a requirements block.
@@ -46,21 +71,28 @@ export function checkRequirements(
   // check reads as the whole choice rather than as several failures.
   for (const options of reqs.anyOf ?? []) {
     const results = options.map(o => checkRequirements(o, char, derived, spec));
+    // "Double Attack or Dual Weapon Mastery I" is still a feat requirement; only an
+    // alternative between genuinely different kinds falls back to the neutral tag.
+    const kinds = new Set(results.flatMap(r => r.checks.map(c => c.kind)));
     checks.push({
       text: results.map(r => r.checks.map(c => c.text).join(' and ')).join(' or '),
       met: results.some(r => r.met),
+      kind: kinds.size === 1 ? [...kinds][0] : 'choice',
     });
   }
 
   for (const r of reqs.features ?? []) {
+    const kind = featureKind(r.id);
     if (r.matchingSpec) {
       // Must be held with the same specialization being chosen right now.
       const label = spec
         ? refLabel({ id: r.id, spec })
         : `${FEATURES[r.id]?.name ?? r.id} with the same specialization`;
-      checks.push({ text: label, met: !!spec && hasFeature(have, r.id, spec) });
+      checks.push({ text: label, met: !!spec && hasFeature(have, r.id, spec), kind, ref: { id: r.id, spec } });
     } else {
-      checks.push({ text: refLabel(r), met: hasFeature(have, r.id, r.spec) });
+      checks.push({
+        text: refLabel(r), met: hasFeature(have, r.id, r.spec), kind, ref: { id: r.id, spec: r.spec },
+      });
     }
   }
 
@@ -69,6 +101,7 @@ export function checkRequirements(
     checks.push({
       text: `Species: ${names.join(' or ')}`,
       met: !!char.speciesId && reqs.species.includes(char.speciesId),
+      kind: 'species',
     });
   }
 
@@ -76,12 +109,13 @@ export function checkRequirements(
     const a = ab as AbilityId;
     // Droids have no Constitution score, so anything gated on one is out of reach.
     if (a === 'con' && derived.isDroid) {
-      checks.push({ text: 'Constitution — droids have no Constitution score', met: false });
+      checks.push({ text: 'Constitution — droids have no Constitution score', met: false, kind: 'ability' });
       continue;
     }
     checks.push({
       text: `${ABILITY_NAMES[a]} ${min}`,
       met: derived.abilities[a] >= (min as number),
+      kind: 'ability',
     });
   }
 
@@ -89,6 +123,7 @@ export function checkRequirements(
     checks.push({
       text: `Trained in ${SKILLS[s]?.name ?? s}`,
       met: !!derived.skills.find(k => k.id === s)?.trained,
+      kind: 'skill',
     });
   }
 
@@ -96,21 +131,25 @@ export function checkRequirements(
     checks.push({
       text: `Base attack bonus +${reqs.baseAttackBonus}`,
       met: derived.baseAttackBonus >= reqs.baseAttackBonus,
+      kind: 'attack',
     });
   }
 
   if (reqs.level !== undefined) {
-    checks.push({ text: `Character level ${reqs.level}`, met: derived.level >= reqs.level });
+    checks.push({ text: `Character level ${reqs.level}`, met: derived.level >= reqs.level, kind: 'level' });
   }
 
   if (reqs.size !== undefined) {
-    checks.push({ text: `Size ${reqs.size} or larger`, met: sizeAtLeast(derived.size, reqs.size) });
+    checks.push({
+      text: `Size ${reqs.size} or larger`, met: sizeAtLeast(derived.size, reqs.size), kind: 'size',
+    });
   }
 
   if (reqs.darkSide) {
     checks.push({
       text: 'Dark Side Score of 1 or higher',
       met: char.darkSideScore >= 1,
+      kind: 'dark-side',
     });
   }
 
@@ -130,6 +169,7 @@ export function checkRequirements(
         : `${count} ${count === 1 ? 'talent' : 'talents'} from ${treeNames.join(', ')}`
           + (held ? ` (you have ${held})` : ''),
       met: held >= count,
+      kind: 'talent',
     });
   }
 
@@ -137,6 +177,7 @@ export function checkRequirements(
     checks.push({
       text: `${reqs.forceTechniques} Force techniques`,
       met: derived.forceTechniques.length >= reqs.forceTechniques,
+      kind: 'force-technique',
     });
   }
 
@@ -147,6 +188,8 @@ export function checkRequirements(
         ? `Weapon Proficiency (${WEAPON_GROUPS[spec] ?? spec})`
         : 'Proficiency with the chosen weapon group',
       met: !!spec && hasFeature(have, 'weapon-proficiency', spec),
+      kind: featureKind('weapon-proficiency'),
+      ref: { id: 'weapon-proficiency', spec },
     });
   }
   if (reqs.matchingWeaponProficiency) {
@@ -161,30 +204,38 @@ export function checkRequirements(
         (!!group && hasFeature(have, 'weapon-proficiency', group))
         || hasFeature(have, 'exotic-weapon-proficiency', spec)
       ),
+      kind: featureKind('weapon-proficiency'),
+      ref: { id: 'weapon-proficiency', spec: group },
     });
   }
   if (reqs.matchingForcePower) {
     checks.push({
       text: 'You must know the chosen Force power',
       met: !!spec && have.some(r => r.id === spec),
+      kind: 'force-power',
+      ref: spec ? { id: spec } : undefined,
     });
   }
   if (reqs.matchingTrainedSkill) {
     checks.push({
       text: spec ? `Trained in ${SKILLS[spec]?.name ?? spec}` : 'Trained in the chosen skill',
       met: !!spec && !!derived.skills.find(k => k.id === spec)?.trained,
+      kind: 'skill',
     });
   }
   if (reqs.matchingUntrainedSkill) {
     checks.push({
       text: spec ? `Not already trained in ${SKILLS[spec]?.name ?? spec}` : 'The chosen skill must be untrained',
       met: !!spec && !derived.skills.find(k => k.id === spec)?.trained,
+      kind: 'skill',
+      atSelection: true,
     });
   }
   if (reqs.matchingClassSkill) {
     checks.push({
       text: spec ? `${SKILLS[spec]?.name ?? spec} must be a class skill` : 'The chosen skill must be a class skill',
       met: !!spec && derived.classSkills.has(spec),
+      kind: 'skill',
     });
   }
 
@@ -245,7 +296,7 @@ export function canSelect(
       || f.type === 'force-technique' || f.type === 'force-secret')) {
     return {
       met: false, duplicate: false, needsSpec: false, viableSpecs: [],
-      checks: [{ text: 'Droids have no connection to the Force', met: false }],
+      checks: [{ text: 'Droids have no connection to the Force', met: false, kind: 'other' }],
     };
   }
 
@@ -268,7 +319,12 @@ export function canSelect(
       ...result,
       checks: optionMet ? result.checks : [
         ...result.checks,
-        { text: `Prerequisites for ${FEATURES[spec!]?.name ?? spec}`, met: false },
+        {
+          text: `Prerequisites for ${FEATURES[spec!]?.name ?? spec}`,
+          met: false,
+          kind: featureKind(spec!),
+          ref: { id: spec! },
+        },
       ],
       duplicate,
       met: result.met && !duplicate && optionMet,
@@ -306,4 +362,44 @@ export function canSelect(
 /** Prestige class entry requirements. */
 export function checkClassRequirements(classId: string, char: Character, derived: Derived): ReqResult {
   return checkRequirements(CLASSES[classId]?.requirements, char, derived);
+}
+
+export interface LapsedSelection {
+  /** The slot holding it, so the UI can offer to change that one. */
+  key: string;
+  ref: FeatureRef;
+  name: string;
+  /** Only the checks that now fail — what the character would have to get back. */
+  missing: ReqCheck[];
+}
+
+/**
+ * Picks that no longer meet their own prerequisites.
+ *
+ * Nothing stops a change from pulling the ground out from under a later choice: replace the
+ * Weapon Focus at 1st level and the Critical Strike at 9th is left standing on nothing.
+ * The rules are the player's to bend — this reports, it does not undo — but it must be said
+ * out loud, the way an Intelligence drop says the skills already trained are now too many.
+ *
+ * Only selections are examined. Anything the class or species grants outright is not the
+ * player's to fix, and prerequisites are read against the finished character rather than
+ * against the level that granted the slot, which is how the pickers judge them too.
+ */
+export function lapsedSelections(char: Character, derived: Derived): LapsedSelection[] {
+  const out: LapsedSelection[] = [];
+  for (const s of char.selections) {
+    const f = FEATURES[s.featureId];
+    if (!f?.requirements) continue;
+    const missing = checkRequirements(f.requirements, char, derived, s.spec)
+      .checks.filter(c => !c.met && !c.atSelection);
+    if (missing.length) {
+      out.push({
+        key: s.key,
+        ref: { id: s.featureId, spec: s.spec },
+        name: refLabel({ id: s.featureId, spec: s.spec }),
+        missing,
+      });
+    }
+  }
+  return out;
 }

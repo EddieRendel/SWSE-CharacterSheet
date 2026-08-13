@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import type { EquipmentItem, Feature } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
-import { descriptorsOf, itemStatRows } from './labels';
+import { descriptorsOf, itemStatRows, talentSources } from './labels';
 
 const GAP = 8;
 
@@ -140,6 +140,39 @@ function Prose({ lines, limit }: { lines?: string[]; limit?: number }) {
   );
 }
 
+/**
+ * Which trees a talent comes from, and who can reach them. Only shown for talents: it is the
+ * one thing you cannot work out from the talent's own name, and a prerequisite that names a
+ * talent is unanswerable without it.
+ */
+function TalentTrees({ id }: { id: string }) {
+  const sources = talentSources(id);
+  if (!sources.length) return null;
+  const shown = sources.slice(0, 4);
+  return (
+    <>
+      <div className="tip-label">Talent tree{sources.length > 1 ? 's' : ''}</div>
+      <table className="tip-rows">
+        <tbody>
+          {shown.map(s => (
+            <tr key={s.tree}>
+              <td>{s.tree}</td>
+              <td className="faint">
+                {s.classes.length ? s.classes.join(', ')
+                  : s.force ? 'any Force-sensitive character'
+                    : '—'}
+              </td>
+            </tr>
+          ))}
+          {shown.length < sources.length && (
+            <tr><td className="faint">…</td><td className="faint">{sources.length - shown.length} more</td></tr>
+          )}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
 function Section({ title, lines }: { title: string; lines?: string[] }) {
   if (!lines?.length) return null;
   return (
@@ -167,6 +200,7 @@ export function FeatureTipBody({ feature, spec, note }: { feature: Feature; spec
         {BOOK_NAMES[feature.book] ?? feature.book}{feature.page ? ` p.${feature.page}` : ''}
       </div>
       {note && <div className="tip-note">{note}</div>}
+      {feature.type === 'talent' && <TalentTrees id={feature.id} />}
       <Prose lines={feature.description} limit={4} />
       <Section title="Benefit" lines={feature.benefit} />
       <Section title="Special" lines={feature.special} />

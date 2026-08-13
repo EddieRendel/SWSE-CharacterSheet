@@ -5,6 +5,7 @@ import { defaultHitDieValue, isBookAllowed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { checkClassRequirements } from '../rules/prereqs';
 import { Panel, Modal } from './ui';
+import { ReqList } from './Requirements';
 import { ClassDetail } from './FeaturePicker';
 
 export function Levels({
@@ -201,14 +202,7 @@ function ClassPicker({
               {sel.req.checks.length > 0 && (
                 <div className="panel" style={{ marginTop: 14, marginBottom: 0 }}>
                   <h3 style={{ marginBottom: 8 }}>Entry requirements</h3>
-                  <div className="list">
-                    {sel.req.checks.map((c, i) => (
-                      <div key={i} className="row" style={{ gap: 8 }}>
-                        <span className={c.met ? 'ok' : 'err'}>{c.met ? '✓' : '✕'}</span>
-                        <span className={c.met ? 'dim' : 'err'}>{c.text}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ReqList checks={sel.req.checks} />
                 </div>
               )}
 

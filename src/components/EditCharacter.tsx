@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Character } from '../types';
 import { abilityIncreaseLevels } from '../rules/engine';
 import type { Derived } from '../rules/engine';
+import { lapsedSelections } from '../rules/prereqs';
 import { Levels } from './Levels';
 import { Features } from './Features';
 import { Abilities } from './Abilities';
@@ -53,6 +54,7 @@ export function EditCharacter({
   const outstanding = useMemo<Outstanding[]>(() => {
     const out: Outstanding[] = [];
     if (!char.levels.length) return out;
+    const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
     // Slots the character has earned but not filled, named by what they are.
     const open = derived.unfilledSlots;
@@ -63,13 +65,25 @@ export function EditCharacter({
           : slot.kind.replace('-', ' ');
       byKind[kind] = (byKind[kind] ?? 0) + 1;
     }
+    // A pick whose prerequisites have lapsed is the same shape of problem as being over the
+    // skill allowance: already wrong rather than still to do, so it reads as a conflict and
+    // carries the section to the top of the page.
+    const lapsed = lapsedSelections(char, derived);
+    const featureBits: string[] = [];
     if (open.length) {
+      featureBits.push(Object.entries(byKind)
+        .map(([kind, n]) => plural(n, kind))
+        .join(', ') + ' to choose');
+    }
+    if (lapsed.length) {
+      featureBits.push(`${plural(lapsed.length, 'choice')} no longer qualified`);
+    }
+    if (featureBits.length) {
       out.push({
         id: 'features',
-        count: open.length,
-        label: Object.entries(byKind)
-          .map(([kind, n]) => `${n} ${kind}${n > 1 ? 's' : ''}`)
-          .join(', ') + ' to choose',
+        count: open.length + lapsed.length,
+        label: featureBits.join(', '),
+        over: lapsed.length > 0,
       });
     }
 
@@ -88,7 +102,6 @@ export function EditCharacter({
     // only showing as a red badge on the tab and a line inside the Skills panel.
     const untrained = derived.trainedSkillsAllowed - char.trainedSkills.length;
     const unspoken = derived.languages.allowed - derived.languages.chosen.length;
-    const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
     const bits: string[] = [];
     let over = false;
     if (untrained > 0) bits.push(`${plural(untrained, 'skill')} to train`);
