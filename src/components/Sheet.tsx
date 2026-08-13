@@ -6,7 +6,7 @@ import { RULES, SPECIES, FEATURES, groupRefs } from '../data';
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { forcePointDice } from '../rules/attacks';
-import { Panel, Stat, Descriptors, PortraitButton, Field } from './ui';
+import { Panel, Stat, Descriptors, PortraitButton, Field, Modal, FeatureDetail } from './ui';
 import { Tip, FeatureTip, TipRows } from './Tip';
 import type { TipRow } from './Tip';
 import { Attacks } from './Attacks';
@@ -38,6 +38,7 @@ export function Sheet({
   const classLine = derived.classLevels.map(c => `${c.cls.name} ${c.levels}`).join(' / ') || 'No levels';
 
   const [tab, setTab] = useState<SheetTab>('actions');
+  const [viewing, setViewing] = useState<{ id: string; spec?: string } | null>(null);
 
   // Feats, talents and everything Force-related share one tab.
   const featureGroups = ([
@@ -318,10 +319,17 @@ export function Sheet({
                           spec={g.ref.spec}
                           note={g.count > 1 ? `Taken ${g.count} times.` : undefined}
                         >
-                          <span className="chip breakdown">
+                          {/* Hovering peeks at the rules; clicking opens the full text, the
+                              same dialog the Edit page uses. */}
+                          <button
+                            type="button"
+                            className="chip"
+                            disabled={!FEATURES[g.ref.id]}
+                            onClick={() => setViewing({ id: g.ref.id, spec: g.ref.spec })}
+                          >
                             {g.label}{g.count > 1 && <span className="faint"> x{g.count}</span>}
                             {FEATURES[g.ref.id] && <Descriptors feature={FEATURES[g.ref.id]} compact />}
-                          </span>
+                          </button>
                         </FeatureTip>
                       ))}
                     </div>
@@ -344,6 +352,12 @@ export function Sheet({
           )}
         </div>
       </div>
+
+      {viewing && FEATURES[viewing.id] && (
+        <Modal title="Rules" onClose={() => setViewing(null)}>
+          <FeatureDetail feature={FEATURES[viewing.id]} spec={viewing.spec} />
+        </Modal>
+      )}
     </>
   );
 }

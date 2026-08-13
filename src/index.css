@@ -396,6 +396,11 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 .chip button { padding: 0 2px; background: none; border: none; color: var(--text-faint); font-size: 14px; line-height: 1; }
 .chip button:hover { color: var(--red); background: none; }
 
+/* A chip that is itself a button opens the rules; give it the affordance to say so. */
+button.chip { cursor: pointer; color: var(--text); }
+button.chip:hover:not(:disabled) { border-color: var(--accent-dim); color: var(--accent); }
+button.chip:disabled { cursor: default; }
+
 .bar { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
 .bar > div { height: 100%; background: var(--green); transition: width 0.2s; }
 
