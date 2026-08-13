@@ -290,7 +290,10 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
     const q = query.trim().toLowerCase();
     return Object.values(EQUIPMENT)
       .filter(i => (!cat || i.category === cat) && (!q || i.name.toLowerCase().includes(q)))
-      .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+      // Straight alphabetical. Grouping by category first meant looking up which of the
+      // three blocks a thing was in before you could find it; the filter above is there
+      // when you do want only one kind.
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [query, cat]);
 
   return (
@@ -309,21 +312,22 @@ function ItemBrowser({ onAdd, onClose }: { onAdd: (id: string) => void; onClose:
         </select>
       </div>
       <div className="notice" style={{ marginBottom: 12 }}>
-        This equipment list was written by hand from the Core Rulebook — the upstream rules data had no
-        equipment at all. Check anything that matters against your book, and use <strong>Custom item</strong> for
-        gear from other sources.
+        Imported from the Foundry compendium rather than transcribed by hand. Check anything that
+        matters against your book, and use <strong>Custom item</strong> for gear from other sources.
       </div>
       <div className="list" style={{ maxHeight: '46vh', overflowY: 'auto' }}>
         {list.map(item => (
           <div key={item.id} className="item">
-            <div className="grow">
-              <div className="name">{item.name}</div>
+            {/* The row itself carries the full stat card, so you can compare two things
+                without adding either one first. */}
+            <Tip className="grow block" content={<ItemTipBody item={item} />}>
+              <div className="name breakdown">{item.name}</div>
               <div className="meta">
                 {item.category === 'weapon' && <>{item.damage} {item.damageType} · {WEAPON_GROUPS[item.group ?? ''] ?? item.group}</>}
                 {item.category === 'armor' && <>+{item.reflex} Ref / +{item.fortitude} Fort / max Dex +{item.maxDex} · {item.armorType}</>}
                 {item.category === 'gear' && (item.notes ?? 'General equipment')}
               </div>
-            </div>
+            </Tip>
             <span className="faint nowrap">{item.weight} kg</span>
             <span className="faint nowrap">{item.cost.toLocaleString()} cr</span>
             <button className="sm primary" onClick={() => onAdd(item.id)}>Add</button>
