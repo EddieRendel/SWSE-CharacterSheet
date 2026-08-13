@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Character, Feature, FeatureRef } from '../types';
 import type { Derived, Slot } from '../rules/engine';
 import { canSelect } from '../rules/prereqs';
-import { specOptionsFor, SPEC_LABELS } from '../rules/specs';
+import { specOptionsFor, SPEC_LABELS, PICKS_A_FEATURE } from '../rules/specs';
 import { computeCharacter, featureAvailable } from '../rules/engine';
 import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
 import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
@@ -134,6 +134,11 @@ export function FeaturePicker({
   const specs = selected ? specOptionsFor(selected, derived) : [];
   const needsSpec = specs.length > 0 && !presetSpec;
   const effectiveSpec = presetSpec ?? spec;
+
+  // Talents and Force powers offered as a choice are features in their own right, so the
+  // one being considered has rules worth reading before committing to it.
+  const optionPicksAFeature = PICKS_A_FEATURE.has(selected?.specType ?? '');
+  const optionFeature = optionPicksAFeature && effectiveSpec ? FEATURES[effectiveSpec] : undefined;
 
   // Evaluated with no specialization, this reports which ones would actually qualify.
   const openResult = selected && needsSpec ? canSelect(selected.id, char, derived) : null;
@@ -302,6 +307,24 @@ export function FeaturePicker({
                       </p>
                     )}
                   </div>
+
+                  {/* A weapon group or a skill is its own explanation. A talent or a Force
+                      power is a real decision with rules of its own, and they are a level
+                      down from the feature offering them — so they are shown here, and
+                      switching the choice above swaps them. */}
+                  {optionPicksAFeature && selectableSpecs.length > 0 && (
+                    optionFeature
+                      ? (
+                        <div className="option-rules">
+                          <FeatureDetail feature={optionFeature} />
+                        </div>
+                      )
+                      : (
+                        <p className="hint" style={{ marginTop: 10 }}>
+                          Choose one to read what it does.
+                        </p>
+                      )
+                  )}
                 </div>
               )}
 

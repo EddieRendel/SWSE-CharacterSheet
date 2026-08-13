@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Character, EquipmentItem, Feature } from '../types';
 import { BOOK_NAMES, CLASSES, specName, featureIcon, portraitUrl, classIcon } from '../data';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
+import { useDismissLayer } from '../dismiss';
 import { descriptorsOf, itemStatRows } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -77,37 +78,11 @@ export function RulesText({ lines }: { lines?: string[] }) {
   );
 }
 
-/**
- * Open modals, oldest first. Escape closes only the top one, so a detail dialog opened
- * from inside a picker does not dismiss the picker along with itself.
- */
-const modalStack: object[] = [];
-
 export function Modal({
   title, onClose, children, footer, wide,
 }: { title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
-  const self = useRef({});
-
-  // Membership is tracked separately from the key handler: onClose is usually a fresh
-  // arrow function each render, and re-running this would shuffle an older modal to the top.
-  // The identity is read once into a local so the cleanup closes over the same object it
-  // pushed, rather than over the ref.
-  useEffect(() => {
-    const me = self.current;
-    modalStack.push(me);
-    return () => {
-      const i = modalStack.indexOf(me);
-      if (i >= 0) modalStack.splice(i, 1);
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === self.current) onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // Escape closes the topmost layer only, and hover cards share that stack — see dismiss.ts.
+  useDismissLayer(true, onClose);
 
   return (
     <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>

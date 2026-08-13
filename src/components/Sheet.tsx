@@ -334,26 +334,34 @@ export function Sheet({
                       {title} <span className="faint">({items.length})</span>
                     </h3>
                     <div className="chips">
-                      {groupRefs(items).map(g => (
-                        <FeatureTip
-                          key={g.key}
-                          id={g.ref.id}
-                          spec={g.ref.spec}
-                          note={g.count > 1 ? `Taken ${g.count} times.` : undefined}
-                        >
-                          {/* Hovering peeks at the rules; clicking opens the full text, the
-                              same dialog the Edit page uses. */}
-                          <button
-                            type="button"
-                            className="chip"
-                            disabled={!FEATURES[g.ref.id]}
-                            onClick={() => setViewing({ id: g.ref.id, spec: g.ref.spec })}
+                      {groupRefs(items).map(g => {
+                        // A talent held through another one — Stolen Form's — is a real
+                        // holding, but it cost no slot of its own, so it says where it
+                        // came from rather than reading as a second pick.
+                        const via = g.ref.via ? FEATURES[g.ref.via]?.name ?? g.ref.via : undefined;
+                        return (
+                          <FeatureTip
+                            key={g.key}
+                            id={g.ref.id}
+                            spec={g.ref.spec}
+                            note={via ? `Gained through ${via}.`
+                              : g.count > 1 ? `Taken ${g.count} times.` : undefined}
                           >
-                            {g.label}{g.count > 1 && <span className="faint"> x{g.count}</span>}
-                            {FEATURES[g.ref.id] && <Descriptors feature={FEATURES[g.ref.id]} compact />}
-                          </button>
-                        </FeatureTip>
-                      ))}
+                            {/* Hovering peeks at the rules; clicking opens the full text, the
+                                same dialog the Edit page uses. */}
+                            <button
+                              type="button"
+                              className="chip"
+                              disabled={!FEATURES[g.ref.id]}
+                              onClick={() => setViewing({ id: g.ref.id, spec: g.ref.spec })}
+                            >
+                              {g.label}{g.count > 1 && <span className="faint"> x{g.count}</span>}
+                              {via && <span className="faint"> · via {via}</span>}
+                              {FEATURES[g.ref.id] && <Descriptors feature={FEATURES[g.ref.id]} compact />}
+                            </button>
+                          </FeatureTip>
+                        );
+                      })}
                     </div>
                   </div>
                 ))

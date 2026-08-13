@@ -1,6 +1,6 @@
 import type { EquipmentItem, Feature } from '../types';
 import type { ReqKind } from '../rules/prereqs';
-import { WEAPON_GROUPS, damageLabel, TALENT_TREES, CLASSES } from '../data';
+import { WEAPON_GROUPS, damageLabel, TALENT_TREES, CLASSES, FORCE_TALENT_TREES } from '../data';
 
 /**
  * The parts of the UI that are values rather than components.
@@ -56,13 +56,20 @@ export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = 
  * Where a talent can be picked up: the tree it sits in, and the classes that draw on that
  * tree. A prerequisite naming a talent is otherwise a dead end — the tree is the only route
  * to it, and which class offers the tree decides whether it is open to you at all.
+ *
+ * `universal` means one of the six trees Force Sensitivity opens to anybody, which is a
+ * narrower thing than the tree's own `force` flag: the Force-tradition trees carry that flag
+ * too, and those are hidden, so a talent listed in Dathomiri Witch is not a talent this app
+ * can offer you. Such a route is reported as unsupported rather than as a way in.
  */
-export function talentSources(featureId: string): { tree: string; force: boolean; classes: string[] }[] {
+export function talentSources(featureId: string) {
   return Object.values(TALENT_TREES)
     .filter(t => t.features?.some(f => f.id === featureId))
     .map(t => ({
       tree: t.name,
-      force: !!t.force,
+      universal: FORCE_TALENT_TREES.includes(t.id),
+      unsupported: !!t.hidden,
+      reason: t.hiddenReason,
       classes: Object.values(CLASSES)
         .filter(c => c.trees?.talent?.includes(t.id))
         .map(c => c.name),

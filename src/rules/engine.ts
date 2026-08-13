@@ -281,7 +281,16 @@ export function resolveSlotRefs(char: Character, slots: Slot[]): { slot: Slot; r
 
 /** Every feature the character actually has, resolved from auto grants + selections. */
 export function resolveFeatures(char: Character, slots: Slot[]): FeatureRef[] {
-  return resolveSlotRefs(char, slots).map(r => r.ref);
+  const refs = resolveSlotRefs(char, slots).map(r => r.ref);
+  // A feature marked `specGrants` hands over the one it chose: Stolen Form says "you gain
+  // the benefits of this Talent and are considered to have this Talent for the purpose of
+  // satisfying prerequisites". Held only as stolen-form(ataru), nothing keyed on the form's
+  // own id can fire — Ataru's Dexterity-for-Strength damage does nothing at all — so the
+  // chosen feature joins the list in its own right, marked with where it came from.
+  const granted = refs
+    .filter(r => r.spec && FEATURES[r.id]?.specGrants && FEATURES[r.spec])
+    .map(r => ({ id: r.spec!, via: r.id }));
+  return granted.length ? [...refs, ...granted] : refs;
 }
 
 export const refKey = (r: FeatureRef) => (r.spec ? `${r.id}::${r.spec}` : r.id);
@@ -546,11 +555,21 @@ export function computeCharacter(char: Character): Derived {
     }
   }
 
-  const reflex = 10 + reflexBase + classRef + dexToReflex + sizeRef + conditionPenalty;
+  // Niman: "When wielding a lightsaber, you gain a +1 bonus to your Reflex Defense and Will
+  // Defense." Standing, unlike every other Lightsaber Form — the rest turn on a swift action,
+  // a reaction or a Force Point — so it is the one that belongs in the defenses rather than
+  // in a note. Wielding is read the way the attack list reads it: a lightsaber equipped.
+  const wieldingLightsaber = char.inventory
+    .filter(e => e.equipped)
+    .map(e => getItem(char, e.itemId))
+    .some(i => i?.category === 'weapon' && i.group === 'lightsabers');
+  const niman = wieldingLightsaber && hasFeature(features, 'niman') ? 1 : 0;
+
+  const reflex = 10 + reflexBase + classRef + dexToReflex + sizeRef + conditionPenalty + niman;
   // Droids apply Strength to Fortitude Defense, since they have no Constitution.
   const fortAbility = droid ? 'str' as const : 'con' as const;
   const fortitude = 10 + level + classFort + mods[fortAbility] + (equippedArmor?.fortitude ?? 0) + conditionPenalty;
-  const will = 10 + level + classWill + mods.wis + conditionPenalty;
+  const will = 10 + level + classWill + mods.wis + conditionPenalty + niman;
   const flatFooted = reflex - Math.max(0, dexToReflex);
 
   const defenseBreakdown: Record<'reflex' | 'fortitude' | 'will', DefensePart[]> = {
@@ -563,6 +582,7 @@ export function computeCharacter(char: Character): Derived {
         value: dexToReflex,
       },
       { label: 'size', value: sizeRef },
+      { label: 'Niman (lightsaber)', value: niman },
       { label: 'condition track', value: conditionPenalty },
     ],
     fortitude: [
@@ -578,6 +598,7 @@ export function computeCharacter(char: Character): Derived {
       { label: 'heroic level', value: level },
       { label: 'class bonus', value: classWill },
       { label: 'Wis', value: mods.wis },
+      { label: 'Niman (lightsaber)', value: niman },
       { label: 'condition track', value: conditionPenalty },
     ],
   };

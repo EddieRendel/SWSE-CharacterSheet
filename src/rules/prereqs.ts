@@ -4,7 +4,7 @@ import {
 } from '../data';
 import { countFeature, hasFeature } from './engine';
 import type { Derived } from './engine';
-import { specOptionsFor, groupOfSpec } from './specs';
+import { specOptionsFor, groupOfSpec, PICKS_A_FEATURE } from './specs';
 
 /**
  * What sort of thing a requirement asks for. A name on its own does not say where to go and
@@ -271,9 +271,6 @@ export interface SelectResult extends ReqResult {
 
 const DROID_FORBIDDEN = new Set(['force-sensitivity', 'force-training', 'force-boon']);
 
-/** Spec kinds whose options are features in their own right, with their own prerequisites. */
-const PICKS_A_FEATURE = new Set(['talent', 'force-power', 'force-technique', 'force-secret']);
-
 /**
  * Full eligibility for selecting a feature into a slot.
  *
@@ -389,9 +386,17 @@ export function lapsedSelections(char: Character, derived: Derived): LapsedSelec
   const out: LapsedSelection[] = [];
   for (const s of char.selections) {
     const f = FEATURES[s.featureId];
-    if (!f?.requirements) continue;
-    const missing = checkRequirements(f.requirements, char, derived, s.spec)
-      .checks.filter(c => !c.met && !c.atSelection);
+    if (!f) continue;
+    const failed = (r: Requirements | undefined, spec?: string) =>
+      checkRequirements(r, char, derived, spec).checks.filter(c => !c.met && !c.atSelection);
+
+    const missing = failed(f.requirements, s.spec);
+    // A feature that hands you another one carries that one's prerequisites too — Stolen
+    // Form is free to take, but the form it stole is not, and losing the Juyo underneath
+    // Vaapad breaks the pick just as surely. The same rule `canSelect` applies on the way in.
+    if (s.spec && PICKS_A_FEATURE.has(f.specType ?? '')) {
+      missing.push(...failed(FEATURES[s.spec]?.requirements));
+    }
     if (missing.length) {
       out.push({
         key: s.key,

@@ -93,8 +93,14 @@ export function Features({
   }, [derived.slots, hideAuto]);
 
   // Hold open every level that still owes a choice, so a folded one unfolds itself the
-  // moment a new level lands rather than hiding the thing you came here to do.
-  const owing = derived.unfilledSlots.map(s => levelKey(s.level)).join(',');
+  // moment a new level lands rather than hiding the thing you came here to do. A level
+  // holding a pick that has lost its prerequisites counts as owing one too — the notice at
+  // the top says to change or clear it, which is no help if it is folded out of sight.
+  const slotLevel = new Map(derived.slots.map(s => [s.key, s.level]));
+  const owing = [
+    ...derived.unfilledSlots.map(s => s.level),
+    ...lapsed.map(l => slotLevel.get(l.key)).filter((l): l is number => l !== undefined),
+  ].map(levelKey).join(',');
   useEffect(() => {
     setForcedOpen('feature-levels', owing ? owing.split(',') : []);
     return () => setForcedOpen('feature-levels', []);

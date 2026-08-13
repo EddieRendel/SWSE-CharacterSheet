@@ -437,8 +437,8 @@ console.log('\n▸ Force power descriptors');
   const KNOWN_FIELDS = new Set([
     'id', 'name', 'book', 'type', 'description', 'prerequisites', 'benefit', 'special', 'normal',
     'requirements', 'grants', 'multiple', 'maxCount', 'specType', 'allowedSpecs', 'incomplete',
-    // how a feature's post-selection choice is offered
-    'specTrees', 'specHeld', 'specTrained', 'specOptions',
+    // how a feature's post-selection choice is offered, and whether it is gained outright
+    'specTrees', 'specHeld', 'specTrained', 'specOptions', 'specGrants',
     'page', 'summaryOnly', 'unparsedPrerequisites', 'hidden', 'hiddenReason',
     // presentational fields the data carries that are not descriptors
     'matchWeaponIcon', 'customSpecIcon', 'additional', 'dogfight',
@@ -718,6 +718,19 @@ console.log('\n▸ every prerequisite is tagged with the kind of thing it wants'
   check('a talent knows the tree it comes from and who draws on it',
     talentSources('armored-defense').map(s => [s.tree, s.classes.includes('Soldier')]),
     [['Armor Specialist', true]]);
+
+  // `force` is set on the Force-tradition trees as well as the six Force Sensitivity opens,
+  // and the tradition ones are hidden — so a talent listed in Dathomiri Witch must not be
+  // reported as open to any Force-sensitive character. Only FORCE_TALENT_TREES means that.
+  check('a hidden tradition tree is not a route anyone can take',
+    talentSources('charm-beast').map(s => [s.tree, s.universal, s.unsupported]),
+    [['Beastwarden', false, false],
+      ['Dathomiri Witch', false, true],
+      ['Felucian Shaman', false, true]]);
+  check('while a Force tree Force Sensitivity opens is universal',
+    talentSources(TALENT_TREES['alter'].features[0].id)
+      .filter(s => s.tree === 'Alter').map(s => [s.universal, s.unsupported]),
+    [[true, false]]);
 }
 
 // ---------------------------------------------------------------------------
@@ -762,6 +775,34 @@ console.log('\n▸ A pick whose prerequisites lapse is reported, not silently dr
   });
   const dt = computeCharacter(trainer);
   check('Skill Training reads as satisfied once taken', lapsedSelections(trainer, dt), []);
+
+  // Stolen Form has no prerequisites of its own — it takes a Lightsaber Form talent, and
+  // "you must meet all the prerequisites as normal for the chosen Talent". Losing the Juyo
+  // that Vaapad stands on has to surface against the Stolen Form holding it, or a feature
+  // that delegates is a hole in the check.
+  const jedi = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 16, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(14).fill(null).map(() => ({ classId: 'jedi', hitPoints: 6 }));
+  });
+  const talentKeys = computeCharacter(jedi).slots.filter(s => s.kind === 'talent').map(s => s.key);
+  const thief = structuredClone(jedi);
+  thief.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
+    // The Jedi chain has its own lightsaber-only ids — see the block above.
+    { key: talentKeys[0], choiceId: 'talent', featureId: 'weapon-specialization-lightsabers' },
+    { key: talentKeys[1], choiceId: 'talent', featureId: 'juyo' },
+    { key: talentKeys[2], choiceId: 'talent', featureId: 'stolen-form', spec: 'vaapad' },
+  ];
+  check('holding the whole chain, the stolen form is settled',
+    lapsedSelections(thief, computeCharacter(thief)), []);
+
+  const stolen = structuredClone(thief);
+  stolen.selections = stolen.selections.filter(s => s.featureId !== 'juyo');
+  check('and dropping Juyo surfaces against the Stolen Form that borrowed Vaapad',
+    lapsedSelections(stolen, computeCharacter(stolen))
+      .map(l => [l.name, l.missing.map(m => m.text)]),
+    [['Stolen Form (Vaapad)', ['Juyo']]]);
   check('though the untrained check itself now fails',
     checkRequirements(FEATURES['skill-training'].requirements, trainer, dt, 'perception')
       .checks.filter(c => !c.met).map(c => [c.text, c.atSelection === true]),
@@ -1727,6 +1768,26 @@ console.log('\n▸ Attacks');
     .damageParts.some(p => p.label.includes('Dexterity ×2') && p.label.includes('Ataru')), true);
   check('Ataru does nothing for a club', buildAttack(ata, data_, EQUIPMENT['club'], opts).damageBonus, 4 + 0);
 
+  // The same form stolen rather than learned. "Choose one Talent from the Lightsaber Forms
+  // Talent Tree; you gain the benefits of this Talent and are considered to have this Talent
+  // for the purpose of satisfying prerequisites." Held only as stolen-form(ataru) nothing
+  // keyed on the form's own id fired, and the Dexterity swap silently did nothing.
+  const stole = nimble([...finesseSel,
+    { key: ataruSlot, choiceId: 'talent', featureId: 'stolen-form', spec: 'ataru' }]);
+  const dstolen = computeCharacter(stole);
+  check('a stolen Ataru counts as held', hasFeature(dstolen.features, 'ataru'), true);
+  check('and is marked with where it came from',
+    dstolen.features.filter(r => r.id === 'ataru').map(r => r.via), ['stolen-form']);
+  check('so it puts Dexterity on lightsaber damage too', saberOf(stole, dstolen).damageBonus, 4 + 4);
+  check('costing no second talent slot',
+    stole.selections.filter(s => s.choiceId === 'talent').length, 1);
+
+  // Every other feature that chooses a feature — Force Power Mastery, Share Talent and the
+  // rest — only qualifies one you already hold, and expanding those would hand out a second
+  // copy. Stolen Form is deliberately the only entry carrying the flag.
+  check('only Stolen Form grants what it chose',
+    Object.values(FEATURES).filter(f => f.specGrants).map(f => f.id), ['stolen-form']);
+
   // Both are "may", so a stronger character keeps Strength and is told why.
   const brawn = make(x => {
     x.speciesId = 'human';
@@ -1953,6 +2014,47 @@ console.log('\n▸ Attacks');
   const boosted = buildPowers(computeCharacter(caster));
   check('weapon toggles do not change a power',
     boosted.find(p => p.id === 'force-lightning')!.damage, '8d6');
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Niman, the one Lightsaber Form that moves a number on the sheet');
+// ---------------------------------------------------------------------------
+{
+  // "When wielding a lightsaber, you gain a +1 bonus to your Reflex Defense and Will
+  // Defense." Every other form in the tree turns on a swift action, a reaction or a Force
+  // Point and stays a note; this one simply applies, and only while a lightsaber is in hand.
+  const jedi = (sel: Character['selections'] = [], gear = 'lightsaber') => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 14, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'jedi', hitPoints: i === 0 ? undefined : 6 }));
+    x.inventory = [{ uid: 'i0', itemId: gear, quantity: 1, equipped: true }];
+    x.selections = sel;
+  });
+  const nimanSlot = computeCharacter(jedi()).slots.filter(s => s.kind === 'talent')[0].key;
+  const sel: Character['selections'] = [{ key: nimanSlot, choiceId: 'talent', featureId: 'niman' }];
+
+  const bare = computeCharacter(jedi());
+  const held = computeCharacter(jedi(sel));
+  check('Niman adds 1 to Reflex Defense', held.defenses.reflex - bare.defenses.reflex, 1);
+  check('and 1 to Will Defense', held.defenses.will - bare.defenses.will, 1);
+  check('the breakdown names it',
+    held.defenseBreakdown.reflex.find(p => p.label.startsWith('Niman'))?.value, 1);
+  check('and still adds up',
+    held.defenseBreakdown.reflex.reduce((n, p) => n + p.value, 0), held.defenses.reflex);
+  check('as does Will',
+    held.defenseBreakdown.will.reduce((n, p) => n + p.value, 0), held.defenses.will);
+  // Not a Dexterity bonus, so being caught flat-footed does not cost it.
+  check('flat-footed keeps it', held.defenses.flatFooted - bare.defenses.flatFooted, 1);
+  // Fortitude is not named in the talent, so the damage threshold does not move either.
+  check('Fortitude is untouched', held.defenses.fortitude, bare.defenses.fortitude);
+  check('and so is the damage threshold', held.damageThreshold, bare.damageThreshold);
+
+  check('another weapon is not a lightsaber',
+    computeCharacter(jedi(sel, 'club')).defenses.reflex, bare.defenses.reflex);
+  const stowed = jedi(sel);
+  stowed.inventory[0].equipped = false;
+  check('and carrying one is not wielding it',
+    computeCharacter(stowed).defenses.will, bare.defenses.will);
 }
 
 // ---------------------------------------------------------------------------
