@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { Character } from '../types';
-import { SPECIES, FEATURES, CLASSES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, featureName } from '../data';
+import type { AbilityId, Character, Species } from '../types';
+import { SPECIES, FEATURES, CLASSES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, RULES, featureName } from '../data';
 import { signed, isBookAllowed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel, Field, Modal, FeatureDetail, RulesText, PortraitButton } from './ui';
@@ -138,11 +138,41 @@ function SpeciesPicker({
   char, current, onPick, onClose,
 }: { char: Character; current: string | null; onPick: (id: string) => void; onClose: () => void }) {
   const [selected, setSelected] = useState<string | null>(current);
-  const list = Object.values(SPECIES)
-    // Droid models and species outside the character's books stay out, but never
-    // hide the one already chosen.
-    .filter(sp => sp.id === current || (!sp.hidden && isBookAllowed(char, sp.book)))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const [query, setQuery] = useState('');
+
+  const available = useMemo(
+    () => Object.values(SPECIES)
+      // Droid models and species outside the character's books stay out, but never
+      // hide the one already chosen.
+      .filter(sp => sp.id === current || (!sp.hidden && isBookAllowed(char, sp.book)))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    [char.allowedBooks, current],
+  );
+
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return available;
+    const byName = (sp: Species) => sp.name.toLowerCase().includes(q);
+    const matched = available.filter(sp =>
+      byName(sp)
+      || sp.size.toLowerCase().includes(q)
+      || (BOOK_NAMES[sp.book ?? ''] ?? sp.book ?? '').toLowerCase().includes(q)
+      // Both "dex" and "dexterity" find the species that modify it.
+      || Object.keys(sp.abilities ?? {}).some(a =>
+        a.includes(q) || RULES.abilities[a as AbilityId].name.toLowerCase().includes(q))
+      || (sp.languages ?? []).some(l => l.toLowerCase().includes(q))
+      // Traits are the usual reason to want a species, so search their rules too.
+      || (sp.features ?? []).some(f => {
+        const feat = FEATURES[f.id];
+        return featureName(f.id, f.spec).toLowerCase().includes(q)
+          || !!feat?.description.join(' ').toLowerCase().includes(q);
+      })
+      || (sp.description ?? []).join(' ').toLowerCase().includes(q));
+    // Searching the rules text means "wookiee" also finds everyone whose prose
+    // mentions them, so the species actually named that comes first.
+    return [...matched.filter(byName), ...matched.filter(sp => !byName(sp))];
+  }, [available, query]);
+
   const s = selected ? SPECIES[selected] : null;
 
   return (
@@ -157,8 +187,19 @@ function SpeciesPicker({
         </>
       }
     >
+      <div className="row" style={{ marginBottom: 12 }}>
+        <input
+          autoFocus
+          placeholder="Search by name, trait, ability or book…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <span className="hint nowrap">{list.length} of {available.length}</span>
+      </div>
+
       <div className="split">
         <div className="options">
+          {list.length === 0 && <div className="empty">No matches.</div>}
           {list.map(sp => (
             <button key={sp.id} className={`opt ${selected === sp.id ? 'selected' : ''}`} onClick={() => setSelected(sp.id)}>
               <span className="grow">{sp.name}</span>

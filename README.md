@@ -44,7 +44,10 @@ built them on. Use the JSON export/import to move one somewhere else or to share
 **Building a character**
 - **134 species** with ability modifiers, traits, bonus feat/skill and languages applied
   automatically, plus two templates you configure yourself: **Near-Human** (24 traits, 11
-  cosmetic variations) and **Droid**.
+  cosmetic variations) and **Droid**. The picker searches names, traits, languages, sizes,
+  sourcebooks and ability modifiers — *darkvision* finds the seventeen species that have it,
+  *dex* the fifty-four that modify it — and the species actually named after your search comes
+  first, ahead of the ones whose rules text merely mentions it.
 - **21 base and prestige classes** with multiclassing. Base attack bonus is summed per class;
   class defense bonuses take the single best value instead of stacking. Prestige entry
   requirements are checked and shown.
