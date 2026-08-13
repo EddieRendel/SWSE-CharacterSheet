@@ -571,6 +571,85 @@ console.log('\n▸ matchingSpec prerequisites require the same specialization');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats choose the weapon');
+// ---------------------------------------------------------------------------
+{
+  // Critical Strike and Halt were unselectable by anyone: their requirement asks for
+  // Weapon Focus held with the group being chosen, but neither offered a group to choose,
+  // so the check ran with no specialization and could never pass.
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(12).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    // Feat slots are keyed by the character level that grants them: 1, 3, 6, 9, 12.
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
+      { key: 'feat:3', choiceId: 'feat', featureId: 'weapon-focus', spec: 'pistols' },
+      { key: 'feat:6', choiceId: 'feat', featureId: 'trip' },
+    ];
+  });
+  const d = computeCharacter(soldier);
+  check('base attack bonus clears both feats', d.baseAttackBonus >= 9, true);
+  check('Weapon Focus is held in two groups',
+    d.feats.filter(f => f.id === 'weapon-focus').map(f => f.spec).sort(), ['pistols', 'rifles']);
+
+  const cs = canSelect('critical-strike', soldier, d);
+  check('Critical Strike now asks which weapon', cs.needsSpec, true);
+  check('and is available', cs.met, true);
+  check('offering exactly the groups Weapon Focus is held in',
+    [...cs.viableSpecs].sort(), ['pistols', 'rifles']);
+  check('taking it for rifles is allowed', canSelect('critical-strike', soldier, d, 'rifles').met, true);
+  check('a group without Weapon Focus is not',
+    canSelect('critical-strike', soldier, d, 'heavy-weapons').met, false);
+
+  // Halt has the same prerequisite plus Trip.
+  const halt = canSelect('halt', soldier, d);
+  check('Halt is available too', halt.met, true);
+  check('with the same two groups', [...halt.viableSpecs].sort(), ['pistols', 'rifles']);
+
+  // Repeatable once per group, not twice for the same one.
+  const withRifles = structuredClone(soldier);
+  withRifles.selections.push({ key: 'feat:9', choiceId: 'feat', featureId: 'critical-strike', spec: 'rifles' });
+  const d2 = computeCharacter(withRifles);
+  check('taking it again for pistols is allowed',
+    canSelect('critical-strike', withRifles, d2, 'pistols').met, true);
+  check('but not a second time for rifles',
+    canSelect('critical-strike', withRifles, d2, 'rifles').duplicate, true);
+  check('so only pistols remains viable',
+    canSelect('critical-strike', withRifles, d2).viableSpecs, ['pistols']);
+
+  // Someone with no Weapon Focus at all still cannot take it.
+  const plain = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(12).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+  });
+  const dp = computeCharacter(plain);
+  check('no Weapon Focus, no Critical Strike', canSelect('critical-strike', plain, dp).met, false);
+  check('and nothing is offered', canSelect('critical-strike', plain, dp).viableSpecs, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ every matchingSpec requirement has a specialization to match');
+// ---------------------------------------------------------------------------
+{
+  // The bug above, as an invariant: a matchingSpec requirement is checked against the
+  // specialization being chosen, so a feature carrying one while offering no choice can
+  // never be selected by anybody. A re-import writes this pair again from the same
+  // "(Chosen Weapon)" wording, which is why it is asserted rather than just fixed.
+  const wantsMatch = (r: unknown): boolean => {
+    const req = r as { features?: { matchingSpec?: boolean }[]; anyOf?: unknown[][] } | undefined;
+    if (!req) return false;
+    return (req.features ?? []).some(f => f.matchingSpec)
+      || (req.anyOf ?? []).some(group => group.some(o => wantsMatch(o)));
+  };
+  const stranded = Object.values(FEATURES)
+    .filter(f => wantsMatch(f.requirements) && !f.specType && !f.allowedSpecs?.length)
+    .map(f => f.id);
+  check('no feature needs a matching spec it cannot choose', stranded, []);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper one');
 // ---------------------------------------------------------------------------
 {
