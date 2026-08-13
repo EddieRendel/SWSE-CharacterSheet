@@ -55,32 +55,48 @@
     "proficiency does the gating. Do not restrict it to match the Weapon Master five."
   ],
   "_comment_chosen_weapon": [
-    "Critical Strike and Halt both require 'Weapon Focus (Chosen Weapon)', which the import",
-    "recorded as a matchingSpec requirement — Weapon Focus held with the very group being",
-    "chosen. Neither was given a specType, so there was never a group to match against and the",
-    "check read `!!spec && ...` with spec forever undefined: both feats were unselectable no",
-    "matter what the character had. They are the only two features in the data with a",
-    "matchingSpec requirement and no choice to satisfy it, and a test now asserts that stays",
-    "true, since a re-import would reintroduce the pair.",
+    "Critical Strike and Halt both say 'Weapon Focus (Chosen Weapon)', which the import read as",
+    "a matchingSpec requirement — Weapon Focus held with the very group being chosen. Neither",
+    "was given a specType, so there was never a group to match against and the check read",
+    "`!!spec && ...` with spec forever undefined: both feats were unselectable no matter what",
+    "the character had. They were the only two features in the data with a matchingSpec",
+    "requirement and no choice to satisfy it, and a test asserts that stays true, since a",
+    "re-import writes the pair again from the same wording.",
     "",
-    "Both now choose a weapon group, exactly as Weapon Focus itself does. canSelect filters the",
-    "groups to those whose requirements pass, so the picker offers only the ones the character",
-    "has Weapon Focus in; with one it is automatic, with several you choose. `multiple` is",
-    "deliberately not set: canTakeAgain counts per specialization, so the feat can be taken",
-    "again for another group you have Focus in but not twice for the same one.",
+    "Neither feat is actually tied to one group. Both effects use the same wording — Critical",
+    "Strike works 'while wielding a weapon for which you possess the Weapon Focus feat', and",
+    "Halt 'if you hit with an Attack of Opportunity, while wielding a weapon for which you",
+    "possess the Weapon Focus Feat'. That is every such weapon, not one chosen when the feat is",
+    "taken. So the requirement is simply Weapon Focus with no specialization named: hasFeature",
+    "matches any spec when none is given. One feat, no choice to make, and it covers each group",
+    "you have Focus in, including ones you focus in later.",
     "",
-    "Note the effect text reads 'while wielding a weapon for which you possess the Weapon Focus",
-    "feat', which can be read as applying to every such weapon at once rather than to a chosen",
-    "one. The prerequisite's own wording is followed here instead."
+    "The rest of each requirements block is repeated here because the supplement merge is a",
+    "shallow spread — naming `requirements` replaces the whole block, not just the one entry."
   ],
   "features": {
     "critical-strike": {
-      "specType": "weapon-group",
-      "matchWeaponIcon": true
+      "requirements": {
+        "features": [
+          {
+            "id": "weapon-focus"
+          }
+        ],
+        "baseAttackBonus": 9
+      }
     },
     "halt": {
-      "specType": "weapon-group",
-      "matchWeaponIcon": true
+      "requirements": {
+        "features": [
+          {
+            "id": "trip"
+          },
+          {
+            "id": "weapon-focus"
+          }
+        ],
+        "baseAttackBonus": 8
+      }
     },
     "greater-weapon-focus": {
       "allowedSpecs": [

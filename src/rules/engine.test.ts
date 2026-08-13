@@ -571,12 +571,14 @@ console.log('\n▸ matchingSpec prerequisites require the same specialization');
 }
 
 // ---------------------------------------------------------------------------
-console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats choose the weapon');
+console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats need Focus in anything');
 // ---------------------------------------------------------------------------
 {
-  // Critical Strike and Halt were unselectable by anyone: their requirement asks for
-  // Weapon Focus held with the group being chosen, but neither offered a group to choose,
-  // so the check ran with no specialization and could never pass.
+  // Critical Strike and Halt were unselectable by anyone: the import read their
+  // prerequisite as Weapon Focus held with the group being chosen, but neither feat offers
+  // a group to choose, so the check ran with no specialization and could never pass.
+  // Neither is tied to one group — Critical Strike applies while wielding any weapon you
+  // have Weapon Focus for — so having it in anything is the whole requirement.
   const soldier = make(x => {
     x.speciesId = 'human';
     setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
@@ -584,39 +586,38 @@ console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats choose the weapon');
     // Feat slots are keyed by the character level that grants them: 1, 3, 6, 9, 12.
     x.selections = [
       { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
-      { key: 'feat:3', choiceId: 'feat', featureId: 'weapon-focus', spec: 'pistols' },
       { key: 'feat:6', choiceId: 'feat', featureId: 'trip' },
     ];
   });
   const d = computeCharacter(soldier);
   check('base attack bonus clears both feats', d.baseAttackBonus >= 9, true);
-  check('Weapon Focus is held in two groups',
-    d.feats.filter(f => f.id === 'weapon-focus').map(f => f.spec).sort(), ['pistols', 'rifles']);
 
   const cs = canSelect('critical-strike', soldier, d);
-  check('Critical Strike now asks which weapon', cs.needsSpec, true);
-  check('and is available', cs.met, true);
-  check('offering exactly the groups Weapon Focus is held in',
-    [...cs.viableSpecs].sort(), ['pistols', 'rifles']);
-  check('taking it for rifles is allowed', canSelect('critical-strike', soldier, d, 'rifles').met, true);
-  check('a group without Weapon Focus is not',
-    canSelect('critical-strike', soldier, d, 'heavy-weapons').met, false);
+  check('Critical Strike is available', cs.met, true);
+  check('and asks for no weapon group', cs.needsSpec, false);
+  check('the requirement reads as plain Weapon Focus',
+    cs.checks.map(c => c.text), ['Weapon Focus', 'Base attack bonus +9']);
 
   // Halt has the same prerequisite plus Trip.
-  const halt = canSelect('halt', soldier, d);
-  check('Halt is available too', halt.met, true);
-  check('with the same two groups', [...halt.viableSpecs].sort(), ['pistols', 'rifles']);
+  check('Halt is available too', canSelect('halt', soldier, d).met, true);
 
-  // Repeatable once per group, not twice for the same one.
-  const withRifles = structuredClone(soldier);
-  withRifles.selections.push({ key: 'feat:9', choiceId: 'feat', featureId: 'critical-strike', spec: 'rifles' });
-  const d2 = computeCharacter(withRifles);
-  check('taking it again for pistols is allowed',
-    canSelect('critical-strike', withRifles, d2, 'pistols').met, true);
-  check('but not a second time for rifles',
-    canSelect('critical-strike', withRifles, d2, 'rifles').duplicate, true);
-  check('so only pistols remains viable',
-    canSelect('critical-strike', withRifles, d2).viableSpecs, ['pistols']);
+  // Focus in a second group changes nothing: it is one feat covering both.
+  const twoGroups = structuredClone(soldier);
+  twoGroups.selections.push({ key: 'feat:3', choiceId: 'feat', featureId: 'weapon-focus', spec: 'pistols' });
+  const d2 = computeCharacter(twoGroups);
+  check('a second Weapon Focus is held',
+    d2.feats.filter(f => f.id === 'weapon-focus').map(f => f.spec).sort(), ['pistols', 'rifles']);
+  check('Critical Strike still takes no specialization',
+    canSelect('critical-strike', twoGroups, d2).needsSpec, false);
+
+  // Taken once, it cannot be taken again — it already covers every focused weapon.
+  const taken = structuredClone(twoGroups);
+  taken.selections.push({ key: 'feat:9', choiceId: 'feat', featureId: 'critical-strike' });
+  const d3 = computeCharacter(taken);
+  check('it is held without a specialization',
+    d3.feats.filter(f => f.id === 'critical-strike').map(f => f.spec), [undefined]);
+  check('and cannot be taken a second time',
+    canSelect('critical-strike', taken, d3).duplicate, true);
 
   // Someone with no Weapon Focus at all still cannot take it.
   const plain = make(x => {
@@ -626,7 +627,8 @@ console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats choose the weapon');
   });
   const dp = computeCharacter(plain);
   check('no Weapon Focus, no Critical Strike', canSelect('critical-strike', plain, dp).met, false);
-  check('and nothing is offered', canSelect('critical-strike', plain, dp).viableSpecs, []);
+  check('and the failure names it', canSelect('critical-strike', plain, dp)
+    .checks.filter(c => !c.met).map(c => c.text), ['Weapon Focus']);
 }
 
 // ---------------------------------------------------------------------------
