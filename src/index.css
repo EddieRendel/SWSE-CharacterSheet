@@ -570,14 +570,25 @@ button.linklike:hover { color: var(--accent); background: none; }
 }
 .todo-chip:hover { background: rgba(255,207,77,0.2); }
 
+/* Having more than you are entitled to reads as a fault, not as a choice still to make. */
+.todo-chip.over {
+  background: rgba(239,91,91,0.12); border-color: #5c2b2b; color: #ff9d9d;
+}
+.todo-chip.over:hover { background: rgba(239,91,91,0.2); }
+
 .edit-section { margin-bottom: 4px; }
 /* Whatever a new level still owes you is lifted to the top and outlined. */
 .edit-section.needs-attention > .panel {
   border-color: var(--accent-dim);
   box-shadow: 0 0 0 1px rgba(255,207,77,0.14);
 }
+.edit-section.conflict > .panel {
+  border-color: #5c2b2b;
+  box-shadow: 0 0 0 1px rgba(239,91,91,0.16);
+}
 .needs-header {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   margin-bottom: 6px; color: var(--accent); font-size: 13px;
 }
+.needs-header.conflict { color: #ff9d9d; }
 @media print { .level-bar, .needs-header { display: none; } }

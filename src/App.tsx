@@ -6,7 +6,7 @@ import {
   DATA_GAPS, DATA_REPAIRS, SPECIES, CLASSES, FEATURES, SKILLS, EQUIPMENT, ALL_BOOKS,
 } from './data';
 import { Overview } from './components/Overview';
-import { EditCharacter, outstandingCount } from './components/EditCharacter';
+import { EditCharacter, outstandingCount, hasConflicts } from './components/EditCharacter';
 import { Sheet } from './components/Sheet';
 import { FeatureBrowser } from './components/FeaturePicker';
 import { Panel, Portrait } from './components/ui';
@@ -185,7 +185,7 @@ export default function App() {
               {t.id === 'edit' && derived && outstandingCount(active!, derived) > 0 && (
                 <span className="badge accent">{outstandingCount(active!, derived)}</span>
               )}
-              {t.id === 'edit' && derived && derived.trainedSkillsUsed > derived.trainedSkillsAllowed && (
+              {t.id === 'edit' && derived && hasConflicts(active!, derived) && (
                 <span className="badge red">!</span>
               )}
             </button>

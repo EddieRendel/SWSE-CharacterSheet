@@ -26,7 +26,18 @@ interface Outstanding {
   count: number;
   /** Reads as "2 talents to choose". */
   label: string;
+  /** Set when the character has more than they are entitled to, rather than too few. */
+  over?: boolean;
 }
+
+/**
+ * Choices that exceed what the character is entitled to. Removing the level that raised
+ * Intelligence is the usual cause: the allowances shrink, but the skills and languages
+ * already picked stay put.
+ */
+export const hasConflicts = (char: Character, derived: Derived) =>
+  char.trainedSkills.length > derived.trainedSkillsAllowed
+  || derived.languages.chosen.length > derived.languages.allowed;
 
 /**
  * Everything a level still owes the character: unfilled slots, unassigned ability
@@ -37,10 +48,11 @@ export function outstandingCount(char: Character, derived: Derived): number {
   const increases = Array.from({ length: derived.level }, (_, i) => i + 1)
     .filter(isAbilityIncreaseLevel)
     .reduce((n, level) => n + (2 - (char.abilityIncreases[level] ?? []).length), 0);
+  // Absolute, so having too many counts as something to deal with just as having too few does.
   return derived.unfilledSlots.length
     + Math.max(0, increases)
-    + Math.max(0, derived.trainedSkillsAllowed - char.trainedSkills.length)
-    + Math.max(0, derived.languages.allowed - derived.languages.chosen.length);
+    + Math.abs(derived.trainedSkillsAllowed - char.trainedSkills.length)
+    + Math.abs(derived.languages.allowed - derived.languages.chosen.length);
 }
 
 export function EditCharacter({
@@ -82,14 +94,26 @@ export function EditCharacter({
 
     // Training comes from your first class plus your Intelligence modifier, and an
     // Intelligence bonus also buys languages — so raising it hands you both to pick.
+    // Both can also run the other way: removing the level that raised Intelligence shrinks
+    // each allowance while the picks already made stay, leaving the character over the
+    // limit. That is surfaced here too, so it is fixed from the top of the page rather than
+    // only showing as a red badge on the tab and a line inside the Skills panel.
     const untrained = derived.trainedSkillsAllowed - char.trainedSkills.length;
     const unspoken = derived.languages.allowed - derived.languages.chosen.length;
-    if (untrained > 0 || unspoken > 0) {
-      const bits = [
-        ...(untrained > 0 ? [`${untrained} skill${untrained > 1 ? 's' : ''} to train`] : []),
-        ...(unspoken > 0 ? [`${unspoken} language${unspoken > 1 ? 's' : ''} to choose`] : []),
-      ];
-      out.push({ id: 'skills', count: Math.max(untrained, 0) + Math.max(unspoken, 0), label: bits.join(', ') });
+    const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
+    const bits: string[] = [];
+    let over = false;
+    if (untrained > 0) bits.push(`${plural(untrained, 'skill')} to train`);
+    if (untrained < 0) { bits.push(`${plural(-untrained, 'trained skill')} too many`); over = true; }
+    if (unspoken > 0) bits.push(`${plural(unspoken, 'language')} to choose`);
+    if (unspoken < 0) { bits.push(`${plural(-unspoken, 'language')} too many`); over = true; }
+    if (bits.length) {
+      out.push({
+        id: 'skills',
+        count: Math.abs(untrained) + Math.abs(unspoken),
+        label: bits.join(', '),
+        over,
+      });
     }
     return out;
   }, [char, derived]);
@@ -100,8 +124,15 @@ export function EditCharacter({
   // no levels yet, and again whenever an increase is waiting to be assigned. Otherwise the
   // page prefers levels and feats, which is what you come back to between sessions.
   const abilitiesFirst = !char.levels.length || needs.has('abilities');
-  const rank = (id: SectionId) =>
-    (abilitiesFirst && id === 'abilities' ? 0 : needs.has(id) ? 1 : 2);
+  const rank = (id: SectionId) => {
+    const need = needs.get(id);
+    // A conflict is something already wrong rather than something still to do, so it comes
+    // before everything — including the ability scores of a character with no levels yet,
+    // which is the state you land in after removing them all.
+    if (need?.over) return 0;
+    if (abilitiesFirst && id === 'abilities') return 1;
+    return need ? 2 : 3;
+  };
   // A stable sort, so within each rank the sections keep their usual order.
   const order = [...ORDER].sort((a, b) => rank(a) - rank(b));
 
@@ -137,7 +168,11 @@ export function EditCharacter({
             <div className="todo">
               <span className="hint nowrap">Still to do:</span>
               {outstanding.map(o => (
-                <button key={o.id} className="sm todo-chip" onClick={() => jumpTo(o.id)}>
+                <button
+                  key={o.id}
+                  className={`sm todo-chip${o.over ? ' over' : ''}`}
+                  onClick={() => jumpTo(o.id)}
+                >
                   {o.label}
                 </button>
               ))}
@@ -152,12 +187,12 @@ export function EditCharacter({
           <div
             key={id}
             ref={el => { sectionRefs.current[id] = el; }}
-            className={`edit-section${need ? ' needs-attention' : ''}`}
+            className={`edit-section${need ? (need.over ? ' conflict' : ' needs-attention') : ''}`}
           >
             {need && (
-              <div className="needs-header">
+              <div className={`needs-header${need.over ? ' conflict' : ''}`}>
                 <strong>{LABELS[id]}</strong>
-                <span className="badge accent">{need.label}</span>
+                <span className={`badge ${need.over ? 'red' : 'accent'}`}>{need.label}</span>
               </div>
             )}
             {body[id]}
