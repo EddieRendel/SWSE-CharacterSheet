@@ -61,9 +61,15 @@ export function Equipment({
 
   const add = (itemId: string) =>
     update(c => {
-      // Stacks only with an untouched row: adding a second blaster is how you get one the
-      // crystal in the first is not fitted to, so it must not join that stack.
-      const existing = c.inventory.find(e => e.itemId === itemId && !e.mods);
+      // Only gear stacks. A weapon or a suit of armor is one entry per copy, because each
+      // copy has its own drawn or worn state — a matched pair of blaster pistols has to be
+      // wieldable together, or holsterable one at a time.
+      //
+      // And then only onto an untouched row: adding a second blaster is how you get one
+      // that the crystal in the first is not fitted to, so it must not join that stack.
+      const existing = getItem(c, itemId)?.category === 'gear'
+        ? c.inventory.find(e => e.itemId === itemId && !e.mods)
+        : undefined;
       if (existing) existing.quantity += 1;
       else c.inventory.push({ uid: uid(), itemId, quantity: 1, equipped: false });
     });
@@ -283,13 +289,18 @@ export function Equipment({
                               {cat === 'gear' && (item.notes ?? '—')}
                             </td>
                           )}
+                          {/* Only gear has a count. A weapon or a suit of armor is one row
+                              per copy, so a quantity box there would be offering to stack
+                              things that each need their own worn tick. */}
                           <td className="num">
-                            <input
-                              className="mono center"
-                              style={{ width: 50, padding: '2px 4px' }}
-                              value={entry.quantity}
-                              onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
-                            />
+                            {cat === 'gear' && (
+                              <input
+                                className="mono center"
+                                style={{ width: 50, padding: '2px 4px' }}
+                                value={entry.quantity}
+                                onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
+                              />
+                            )}
                           </td>
                           <td className="num faint">{(item.weight * entry.quantity).toFixed(1)}</td>
                           {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}

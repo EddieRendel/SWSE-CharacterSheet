@@ -2307,9 +2307,28 @@ console.log('\n▸ Equipment customized copy by copy');
     unarmedDamage([{ id: 'martial-arts-i' }], '2d6'), '2d6');
 
   // ---- one weapon, two copies ----
+  // A copy is a copy: two identical rifles are two profiles, because a matched pair is
+  // exactly what a character carrying two of something means to wield. They used to
+  // collapse into one line, which made two-weapon fighting with a pair impossible.
   const twoAlike = trooper([carrying('blaster-rifle', undefined, 'a'), carrying('blaster-rifle', undefined, 'b')]);
-  check('two identical rifles make one attack profile',
-    buildAttacks(twoAlike, computeCharacter(twoAlike), opts).length, 2);
+  check('two identical rifles are two attack profiles',
+    buildAttacks(twoAlike, computeCharacter(twoAlike), opts).length, 3);
+  check('and each is answerable to the copy it came from',
+    buildAttacks(twoAlike, computeCharacter(twoAlike), opts)
+      .filter(a => a.weapon.id === 'blaster-rifle').map(a => a.weapon.entryUid).sort(),
+    ['a', 'b']);
+  // Drawing is per copy, so the second one stays holstered until it is ticked.
+  const oneOfTwo = trooper([
+    carrying('blaster-rifle', undefined, 'a'),
+    { ...carrying('blaster-rifle', undefined, 'b'), equipped: false },
+  ]);
+  check('a holstered copy is not on the list',
+    buildAttacks(oneOfTwo, computeCharacter(oneOfTwo), opts)
+      .filter(a => a.weapon.id === 'blaster-rifle').length, 1);
+  // Both copies weigh what they weigh whether or not either is drawn.
+  check('two copies weigh twice one', computeCharacter(twoAlike).carrying.weight,
+    2 * EQUIPMENT['blaster-rifle'].weight);
+
   const twoDifferent = trooper([
     carrying('blaster-rifle', undefined, 'a'),
     carrying('blaster-rifle', { upgrades: [{ id: 'u4', name: 'Ilum crystal', attack: 1 }] }, 'b'),
@@ -2332,6 +2351,35 @@ console.log('\n▸ Equipment customized copy by copy');
     computeCharacter(old).defenses, computeCharacter(plain).defenses);
   check('and gains no empty customization on the way through migration',
     migrate(structuredClone(old)).inventory[0].mods, undefined);
+
+  // ---- stacks written before weapons and armor became one entry per copy ----
+  // The old shape put a quantity on the row and one tick over the whole stack. Unpacking
+  // it must not change what the character could do yesterday, so only the first copy comes
+  // back drawn — but the others are there, ready to be.
+  const stacked = (itemId: string, quantity: number, equipped = true) => migrate({
+    ...structuredClone(plain),
+    inventory: [{ uid: 's', itemId, quantity, equipped }],
+  }).inventory;
+
+  const threeRifles = stacked('blaster-rifle', 3);
+  check('a stack of weapons becomes one entry per copy', threeRifles.length, 3);
+  check('each holding one', threeRifles.map(e => e.quantity), [1, 1, 1]);
+  check('only the first of them drawn', threeRifles.map(e => e.equipped), [true, false, false]);
+  check('with uids derived from the original, so a reload does not churn them',
+    threeRifles.map(e => e.uid), ['s', 's-1', 's-2']);
+  check('a stowed stack unpacks stowed',
+    stacked('blaster-rifle', 2, false).map(e => e.equipped), [false, false]);
+  check('armor unpacks the same way', stacked('combat-jumpsuit', 2).length, 2);
+  check('and only one suit is worn',
+    stacked('combat-jumpsuit', 2).filter(e => e.equipped).length, 1);
+  // Gear is genuinely countable — three medpacs are three medpacs, on one row.
+  check('gear keeps its count', stacked('medpac', 3).map(e => e.quantity), [3]);
+  // An item the catalogue has never heard of carries no category to judge by, so it is
+  // left exactly as found rather than guessed at.
+  check('an unknown item is left alone', stacked('not-a-real-item', 4).map(e => e.quantity), [4]);
+  check('unpacking a stack does not change what it weighs',
+    computeCharacter(migrate({ ...structuredClone(plain), inventory: [{ uid: 's', itemId: 'blaster-rifle', quantity: 3, equipped: true }] })).carrying.weight,
+    3 * EQUIPMENT['blaster-rifle'].weight);
 
   const savedAndLoaded = migrate(JSON.parse(JSON.stringify(scoped)));
   check('a customization survives being saved and read back',

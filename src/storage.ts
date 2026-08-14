@@ -1,5 +1,6 @@
 import type { Character, AbilityScores, InventoryEntry, ItemCustomization, ItemUpgrade } from './types';
 import { ITEM_IDENTITY_KEYS, UPGRADE_NUMBERS } from './types';
+import { EQUIPMENT } from './data';
 
 /**
  * The key is not versioned per shape change on purpose: reading a new one would orphan
@@ -116,6 +117,33 @@ function migrateEntry(raw: InventoryEntry): InventoryEntry {
   return entry;
 }
 
+/**
+ * Weapons and armor are one entry per copy: each carries its own drawn or worn state, which
+ * is what lets a matched pair of blasters be wielded together. Saves written before that
+ * split hold a stack with a single tick over it, so unpack it into a row per copy.
+ *
+ * Only the first copy stays drawn. A stack showed one attack profile however many it held,
+ * so leaving them all drawn would hand a character a second attack they did not have when
+ * they were put away. The rest are there to be drawn when the player wants them.
+ *
+ * Split uids are derived from the original rather than freshly generated, so a character
+ * that is loaded and never saved does not come back with different ones each time.
+ */
+function splitStack(entry: InventoryEntry, category: string | undefined): InventoryEntry[] {
+  const n = Math.max(1, Math.floor(entry.quantity) || 1);
+  // Unknown items are left exactly as they are: without a category there is no telling
+  // whether the stack means three of a thing or one thing weighing triple.
+  if (n === 1 || (category !== 'weapon' && category !== 'armor')) {
+    return [{ ...entry, quantity: n }];
+  }
+  return Array.from({ length: n }, (_, i) => ({
+    ...entry,
+    uid: i === 0 ? entry.uid : `${entry.uid}-${i}`,
+    quantity: 1,
+    equipped: i === 0 && entry.equipped,
+  }));
+}
+
 /** Fill in fields added after a character was saved, so old saves keep working. */
 export function migrate(c: Partial<Character>): Character {
   const base = newCharacter();
@@ -133,7 +161,13 @@ export function migrate(c: Partial<Character>): Character {
     selections: c.selections ?? [],
     trainedSkills: c.trainedSkills ?? [],
     languages: c.languages ?? [],
-    inventory: (c.inventory ?? []).map(migrateEntry),
+    // Custom definitions come from the save itself, so a home-made rifle unpacks the same
+    // way a compendium one does.
+    inventory: (() => {
+      const custom = new Map((c.customItems ?? []).map(i => [i.id, i]));
+      return (c.inventory ?? []).map(migrateEntry).flatMap(e =>
+        splitStack(e, (custom.get(e.itemId) ?? EQUIPMENT[e.itemId])?.category));
+    })(),
     customItems: c.customItems ?? [],
     powersSpent: c.powersSpent ?? {},
     id: c.id ?? base.id,

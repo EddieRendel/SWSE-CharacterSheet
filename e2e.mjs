@@ -228,6 +228,46 @@ await step('add and wear armor', async () => {
   await page.waitForSelector('.modal', { state: 'detached' });
   await page.locator('tbody input[type="checkbox"]').last().check();
 });
+await step('a matched pair is two weapons, drawn one at a time', async () => {
+  const box = page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
+  await box.locator('header button:has-text("Equipment")').click();
+  const rifles = () => page.locator('.kit-row:has-text("Blaster Rifle")');
+  const before = await rifles().count();
+
+  // Adding a second copy makes a second row rather than raising a count — a weapon has no
+  // quantity, because each copy needs its own drawn state.
+  await box.locator('button:has-text("Add")').click();
+  await page.waitForSelector('.modal');
+  await page.fill('.modal input', 'blaster rifle');
+  await page.locator('.modal .item:has-text("Blaster Rifle") button:has-text("Add")').first().click();
+  await page.click('.modal footer button');
+  await page.waitForSelector('.modal', { state: 'detached' });
+  if (await rifles().count() !== before + 1) throw new Error('a second rifle did not make a second row');
+  if (await rifles().first().locator('input.mono').count()) {
+    throw new Error('a weapon row should carry no quantity');
+  }
+
+  // One drawn, one holstered: one attack line. The rifle arrives stowed, so draw it.
+  const drawn = async () => {
+    await box.locator('header button:has-text("Actions")').click();
+    const n = await page.locator('.attack-row:has-text("Blaster Rifle")').count();
+    await box.locator('header button:has-text("Equipment")').click();
+    return n;
+  };
+  await rifles().first().locator('input[type="checkbox"]').check();
+  const single = await drawn();
+  if (single !== 1) throw new Error(`expected 1 attack line with one drawn, got ${single}`);
+
+  // Draw the second and both are wieldable — the point of carrying a pair.
+  await rifles().last().locator('input[type="checkbox"]').check();
+  const pair = await drawn();
+  if (pair !== 2) throw new Error(`expected 2 attack lines with both drawn, got ${pair}`);
+
+  // And they can be put away one at a time.
+  await rifles().last().locator('input[type="checkbox"]').uncheck();
+  if (await drawn() !== 1) throw new Error('holstering one copy did not drop one line');
+  await rifles().last().locator('button:has-text("✕")').click();
+});
 await step('there is no separate equipment tab', async () => {
   const n = await page.locator('.tabs button:has-text("Equipment")').count();
   if (n) throw new Error('equipment should live on the sheet');
@@ -293,16 +333,23 @@ await step('abandoning a new custom item leaves no empty row', async () => {
 console.log('\n▸ Sheet');
 console.log('\n▸ Carrying capacity');
 await step('a heavy load slows you down and is explained on hover', async () => {
-  // Load the character up until they are over the heavy threshold.
+  // Load the character up until they are over the heavy threshold. It has to be gear that
+  // does it: weapons and armor are one row per copy and carry no quantity to raise.
   const box = page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
   await box.locator('header button:has-text("Equipment")').click();
+  await box.locator('button:has-text("Add")').click();
+  await page.waitForSelector('.modal');
+  await page.fill('.modal input', 'jet pack');
+  await page.locator('.modal .item:has-text("Jet Pack") button:has-text("Add")').first().click();
+  await page.click('.modal footer button');
+  await page.waitForSelector('.modal', { state: 'detached' });
   const load = box.locator('.hint.breakdown').first();
   const before = await load.textContent();
   const unloadedSpeed = parseInt((await page.locator('.factline .fact:has-text("Speed") .v').textContent()).trim(), 10);
   const unloadedStealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
 
   const quantity = box.locator('tbody input.mono').last();
-  await quantity.fill('12');
+  await quantity.fill('6');
   await quantity.blur();
   await page.waitForTimeout(200);
 
