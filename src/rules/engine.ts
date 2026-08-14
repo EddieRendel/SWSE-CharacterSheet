@@ -1,8 +1,8 @@
 import type {
   AbilityId, AbilityScores, Character, CharacterClass, Feature, FeatureRef, EquipmentItem, Species,
-  DroidSystem, InventoryEntry, ItemUpgrade, ResolvedItem,
+  DroidSystem, InventoryEntry, ItemUpgrade, ResolvedItem, UpgradeNumber,
 } from '../types';
-import { ABILITY_IDS } from '../types';
+import { ABILITY_IDS, ITEM_IDENTITY_KEYS } from '../types';
 import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TALENT_TREES, DROIDS, droidSize, droidDegree } from '../data';
 
 export const abilityMod = (score: number) => Math.floor((score - 10) / 2);
@@ -402,11 +402,7 @@ export function getItem(char: Character, itemId: string): EquipmentItem | undefi
 /** Kilograms and credits are worth two decimal places; nothing else is. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** The numbers an upgrade may carry; the rest of it is a name, dice and a note. */
-export type UpgradeNumber =
-  'attack' | 'damage' | 'reflexDefense' | 'fortitudeDefense' | 'willDefense' | 'weight' | 'cost';
-
-/** One of those numbers, summed over everything fitted to the item. */
+/** One of the numbers an upgrade may carry, summed over everything fitted to the item. */
 export const upgradeTotal = (upgrades: ItemUpgrade[] | undefined, key: UpgradeNumber): number =>
   (upgrades ?? []).reduce((n, u) => n + (u[key] ?? 0), 0);
 
@@ -429,8 +425,11 @@ export function resolveItem(char: Character, entry: InventoryEntry): ResolvedIte
   const item: ResolvedItem = { ...base, entryUid: entry.uid, modified: true };
   // Key by key rather than by spread: a stored `undefined` — which an imported character
   // may well carry — would otherwise erase the catalogue value instead of inheriting it.
+  // What an item *is* is never overridden, whatever a hand-edited file may claim.
+  const identity = new Set<string>(ITEM_IDENTITY_KEYS);
   Object.assign(item, Object.fromEntries(
-    Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined),
+    Object.entries(overrides ?? {})
+      .filter(([key, value]) => value !== undefined && !identity.has(key)),
   ));
   if (upgrades) {
     item.upgrades = upgrades;

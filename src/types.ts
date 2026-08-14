@@ -269,6 +269,13 @@ export interface EquipmentItem {
  * grants. The numbers are the player's to enter and are applied as written — the app has
  * no way to know which of them are equipment bonuses that would not stack at the table.
  */
+export const UPGRADE_NUMBERS = [
+  'attack', 'damage', 'reflexDefense', 'fortitudeDefense', 'willDefense', 'weight', 'cost',
+] as const;
+
+/** The numbers an upgrade may carry; the rest of it is a name, dice and a note. */
+export type UpgradeNumber = typeof UPGRADE_NUMBERS[number];
+
 export interface ItemUpgrade {
   id: string;
   name: string;
@@ -289,11 +296,14 @@ export interface ItemUpgrade {
 }
 
 /**
- * Stats of the item itself that a player may rewrite on their copy. The book attribution
- * is not among them: an item that has been altered still came from where it came from.
+ * What an item is rather than what it is like: which catalogue entry it is, what kind of
+ * thing, and where it was printed. Rewriting these on a copy is not customization but a
+ * different item, so they are the keys an override may not carry.
  */
-export type ItemOverrides =
-  Partial<Omit<EquipmentItem, 'id' | 'category' | 'custom' | 'book' | 'page' | 'attribution'>>;
+export const ITEM_IDENTITY_KEYS = ['id', 'category', 'custom', 'book', 'page', 'attribution'] as const;
+
+/** Stats of the item itself that a player may rewrite on their copy. */
+export type ItemOverrides = Partial<Omit<EquipmentItem, typeof ITEM_IDENTITY_KEYS[number]>>;
 
 /**
  * How one character's copy of an item differs from the catalogue entry. Kept on the

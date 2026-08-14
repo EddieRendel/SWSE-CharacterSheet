@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import type {
   Character, EquipmentItem, InventoryEntry, ItemCustomization, ItemOverrides, ItemUpgrade,
+  UpgradeNumber,
 } from '../types';
+import { ITEM_IDENTITY_KEYS } from '../types';
 import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
 import { getItem, carriedItems, signed, upgradeTotal } from '../rules/engine';
-import type { Derived, UpgradeNumber } from '../rules/engine';
+import type { Derived } from '../rules/engine';
 import { uid } from '../storage';
 import { Panel, Modal, Field, ItemDetail } from './ui';
 import { Tip, ItemTipBody, TipRows } from './Tip';
@@ -605,8 +607,7 @@ function UpgradeFields({
   );
 }
 
-/** Keys that describe where an item came from, which altering one does not change. */
-const NOT_OVERRIDABLE = new Set(['id', 'category', 'custom', 'book', 'page', 'attribution']);
+const NOT_OVERRIDABLE = new Set<string>(ITEM_IDENTITY_KEYS);
 /** A cleared field and one that was never set both mean "whatever the book says". */
 const blankValue = (v: unknown) => v === undefined || v === null || v === '' || v === false;
 const sameValue = (a: unknown, b: unknown) => a === b || (blankValue(a) && blankValue(b));
