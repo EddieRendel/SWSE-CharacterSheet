@@ -46,7 +46,7 @@ export function Droid({
   const unresolved = priced.filter(p => p === null).length;
 
   return (
-    <Panel title="Droid chassis">
+    <Panel title="Droid chassis" className="framed tint-green">
       <p className="hint" style={{ marginBottom: 12 }}>
         Droids have no Constitution score: no bonus hit points from it, and Strength applies to
         Fortitude Defense instead. They are immune to poison, disease, radiation, vacuum,

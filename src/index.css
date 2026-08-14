@@ -916,6 +916,85 @@ button.linklike.block { display: block; width: 100%; }
    inheritance. These only set the variable the frame reads. */
 .panel.tint-green { --tone: var(--green); }
 .panel.tint-purple { --tone: var(--purple); }
+.panel.tint-accent { --tone: var(--sheet-accent); }
+
+/* ---------- the character page ---------- */
+/* It was three identical grey boxes of identical inputs, and the only colour on it was the
+   fourteen ticked checkboxes on the least interesting panel. */
+
+/* Who this is: the portrait at a size worth looking at, the name at the size of a name. */
+.identity-edit { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+.identity-edit > .grow { flex: 1 1 320px; min-width: 0; }
+.identity-edit .name-field input {
+  font-size: 20px; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--sheet-accent); padding: 8px 11px;
+}
+/* The same line the sheet leads with, so the two pages agree about who is being edited. */
+.identity-summary {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-dim);
+}
+.identity-summary .sep { color: var(--text-faint); }
+.identity-summary strong { color: var(--sheet-accent); font-family: var(--mono); }
+
+/* What the species gives you, as numbers rather than as a sentence in grey 12px. A bonus
+   and a penalty are not the same news, so they are not the same colour. */
+.species-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.species-name { font-size: 17px; font-weight: 600; }
+.species-mods { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.species-mod {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 3px 9px;
+}
+.species-mod .k {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-faint);
+}
+.species-mod .v { font-family: var(--mono); font-weight: 700; font-size: 14px; }
+.species-mod .v.up { color: var(--green); }
+.species-mod .v.down { color: var(--red); }
+.species-facts {
+  display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 10px; font-size: 13px;
+}
+.species-facts .k {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700; margin-right: 5px;
+}
+.species-facts .v { font-family: var(--mono); font-weight: 700; }
+/* Nothing chosen yet is the one thing on this page worth interrupting for. */
+.species-empty {
+  display: block; width: 100%; text-align: left;
+  padding: 14px 16px; border-radius: 6px;
+  background: rgba(255,207,77,0.05);
+  border: 1px dashed var(--accent-dim); color: var(--accent);
+  font-weight: 600; cursor: pointer;
+}
+.species-empty:hover:not(:disabled) { background: rgba(255,207,77,0.11); border-color: var(--accent); }
+
+/* A rule with a name on it, for splitting one long panel into the things it is actually
+   about — the description panel was twelve identical boxes in a row. */
+.group-rule {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px 0 10px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--text-faint); font-weight: 700;
+}
+.group-rule::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.group-rule:first-child { margin-top: 0; }
+
+/* Fourteen checkbox rows read as the most important thing on the page purely by taking up
+   the most of it. As toggles they are a third of the height and stop shouting. */
+.book-toggles { display: flex; flex-wrap: wrap; gap: 5px; }
+.book-toggles button { font-size: 12px; padding: 4px 10px; }
+/* Every book is in play unless you say otherwise, so being on is the quiet state and what
+   you have ruled out is what wants marking. Filling all fourteen instead made the least
+   interesting panel on the page the brightest thing on it. */
+.book-toggles button.off {
+  background: none; border-style: dashed; color: var(--text-faint);
+  text-decoration: line-through; text-decoration-color: var(--border-2);
+}
+.book-toggles button.off:hover:not(:disabled) { color: var(--text-dim); background: var(--bg-3); }
 
 /* ---------- the lower column ---------- */
 /* One switcher, not three loose buttons that happened to sit in a panel header. */
