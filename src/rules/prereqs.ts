@@ -27,8 +27,11 @@ export interface ReqCheck {
   ref?: FeatureRef;
   /**
    * True when the check describes the state at the moment of choosing rather than a standing
-   * condition — Skill Training wants a skill you are *not* trained in, which taking it
-   * immediately makes false. Re-checking a pick you already hold must skip these.
+   * condition. Skill Training reads "choose one untrained skill from your list of class
+   * skills": taking it makes the skill trained at once, and the class skill it was chosen
+   * from can stop being one later — drop the Force Sensitivity that made Use the Force a
+   * class skill and the training stays, because it was already spent. Re-checking a pick you
+   * already hold must skip these.
    */
   atSelection?: boolean;
 }
@@ -236,6 +239,7 @@ export function checkRequirements(
       text: spec ? `${SKILLS[spec]?.name ?? spec} must be a class skill` : 'The chosen skill must be a class skill',
       met: !!spec && derived.classSkills.has(spec),
       kind: 'skill',
+      atSelection: true,
     });
   }
 

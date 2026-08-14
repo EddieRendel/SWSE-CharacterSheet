@@ -776,6 +776,46 @@ console.log('\n▸ A pick whose prerequisites lapse is reported, not silently dr
   const dt = computeCharacter(trainer);
   check('Skill Training reads as satisfied once taken', lapsedSelections(trainer, dt), []);
 
+  // The class-skill half is choice-time too. Force Sensitivity makes Use the Force a class
+  // skill; spend a Skill Training on it, then drop the feat, and the training stays — it was
+  // already spent, and "choose one untrained skill from your list of class skills" described
+  // the moment of choosing. What it must not do is stop the gate applying on the way in.
+  const soldierOne = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 12, con: 12, int: 14, wis: 14, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const featSlots = computeCharacter(soldierOne).slots
+    .filter(s => !s.auto && (s.kind === 'feat' || s.kind === 'species-feat')).map(s => s.key);
+
+  // With the feat, before spending the training: Use the Force is a class skill and untrained.
+  const offered = structuredClone(soldierOne);
+  offered.selections = [{ key: featSlots[0], choiceId: 'feat', featureId: 'force-sensitivity' }];
+  const doffered = computeCharacter(offered);
+  check('Force Sensitivity makes Use the Force a class skill',
+    doffered.classSkills.has('use-the-force'), true);
+  check('so Skill Training may be spent on it',
+    canSelect('skill-training', offered, doffered, 'use-the-force').met, true);
+
+  // Spent, then the feat behind the class skill is dropped.
+  const spent = structuredClone(offered);
+  spent.trainedSkills = ['use-the-force'];
+  spent.selections.push(
+    { key: featSlots[1], choiceId: 'feat', featureId: 'skill-training', spec: 'use-the-force' });
+  check('and once spent it is settled', lapsedSelections(spent, computeCharacter(spent)), []);
+
+  const lapsedGrant = structuredClone(spent);
+  lapsedGrant.selections = lapsedGrant.selections.filter(s => s.featureId !== 'force-sensitivity');
+  const dlapsed = computeCharacter(lapsedGrant);
+  check('dropping the feat takes the class skill with it',
+    dlapsed.classSkills.has('use-the-force'), false);
+  check('but the training already spent is not a conflict',
+    lapsedSelections(lapsedGrant, dlapsed), []);
+  check('while spending a fresh one on it would still be refused',
+    canSelect('skill-training', lapsedGrant, dlapsed, 'use-the-force').checks
+      .filter(c => !c.met).map(c => c.text),
+    ['Not already trained in Use the Force', 'Use the Force must be a class skill']);
+
   // Stolen Form has no prerequisites of its own — it takes a Lightsaber Form talent, and
   // "you must meet all the prerequisites as normal for the chosen Talent". Losing the Juyo
   // that Vaapad stands on has to surface against the Stolen Form holding it, or a feature
