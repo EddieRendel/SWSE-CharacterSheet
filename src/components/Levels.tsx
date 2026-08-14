@@ -50,6 +50,7 @@ export function Levels({
     <>
       <Panel
         collapseId="edit:levels"
+        className="framed tint-purple"
         title={`Class progression — level ${derived.level}`}
         actions={
           <div className="row">

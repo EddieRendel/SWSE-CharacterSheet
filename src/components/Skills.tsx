@@ -24,7 +24,7 @@ export function Skills({
 
   return (
     <>
-      <Panel collapseId="edit:skills" title="Trained skills">
+      <Panel collapseId="edit:skills" title="Trained skills" className="framed tint-green">
         <div className={`notice ${used > allowed ? 'warn' : ''}`} style={{ marginBottom: 12 }}>
           <strong>{used}</strong> of <strong>{allowed}</strong> trained skills chosen
           {' '}({derived.classLevels[0] ? `${derived.classLevels.find(c => c.cls.id === char.levels[0].classId)?.cls.baseSkills ?? 0} from class` : ''}
@@ -62,7 +62,7 @@ export function Skills({
                     ? [`${RULES.carryingCapacity.heavyLoadPenalty} heavy load`] : []),
                 ];
                 return (
-                  <tr key={sk.id}>
+                  <tr key={sk.id} className={`skill-row${sk.trained ? ' trained' : ''}`}>
                     <td>
                       <input
                         type="checkbox"
@@ -73,7 +73,7 @@ export function Skills({
                       />
                     </td>
                     <td>
-                      <strong>{sk.name}</strong>
+                      <strong className="skill-label">{sk.name}</strong>
                       {sk.classSkill && <span className="badge accent" style={{ marginLeft: 6 }}>class</span>}
                       {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
                       {granted && <span className="badge blue" style={{ marginLeft: 6 }}>granted</span>}
@@ -120,6 +120,7 @@ function Languages({
   return (
     <Panel
       collapseId="edit:languages"
+      className="framed tint-green"
       title="Languages"
       actions={
         <div className="row">
