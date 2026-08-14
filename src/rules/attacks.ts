@@ -1,6 +1,6 @@
-import type { Character, EquipmentItem, Feature } from '../types';
+import type { Character, EquipmentItem, Feature, ResolvedItem } from '../types';
 import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
-import { countFeature, hasFeature, getItem } from './engine';
+import { countFeature, hasFeature, carriedItems } from './engine';
 import type { Derived } from './engine';
 
 /** Situational choices the player makes before rolling. */
@@ -171,7 +171,7 @@ export function needsTwoHands(
 export interface Part { label: string; value: number }
 
 export interface AttackProfile {
-  weapon: EquipmentItem;
+  weapon: ResolvedItem;
   melee: boolean;
   proficient: boolean;
   attack: number;
@@ -225,12 +225,17 @@ const AUTOMATIC = new Set([
 export function buildAttack(
   _char: Character,
   derived: Derived,
-  weapon: EquipmentItem,
+  weapon: ResolvedItem,
   opts: AttackOptions,
 ): AttackProfile {
   const have = derived.features;
   const group = weapon.group ?? '';
-  const melee = isMelee(weapon);
+  // A weapon marked thrown is hurled rather than swung, which makes the attack a ranged
+  // one: Dexterity on the roll, no Power Attack, no melee talents. The Strength modifier
+  // still lands on the damage, as it does for any weapon thrown by hand. Where a weapon
+  // is used both ways — a spear kept for either — carry it twice and mark one copy.
+  const thrown = weapon.thrown === true;
+  const melee = isMelee(weapon) && !thrown;
   const notes: string[] = [];
 
   const proficient = hasFeature(have, 'weapon-proficiency', group)
@@ -321,13 +326,15 @@ export function buildAttack(
   // A weapon that takes two hands is always held that way, so it does not wait on the
   // toggle; a one-handed one counts only when the player says they are gripping it in two.
   // Neither is possible while holding a weapon in each hand.
-  const inherent = needsTwoHands(weapon, derived.size, have);
-  const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
+  // Nothing is gripped in two hands on the way out of them, so a throw takes neither the
+  // doubled Strength bonus nor the two-handed half of Power Attack.
+  const inherent = !thrown && needsTwoHands(weapon, derived.size, have);
+  const bothHands = !thrown && !opts.twoWeapon && (inherent || opts.twoHanded);
 
   // Ataru puts Dexterity on lightsaber damage in place of Strength, and says so for the
   // doubled case too — two-handed it is double Dexterity rather than double Strength. Also
   // a "may", so the higher modifier wins.
-  const ataru = lightsaber && hasFeature(have, 'ataru');
+  const ataru = lightsaber && !thrown && hasFeature(have, 'ataru');
   const ataruDamage = ataru && derived.mods.dex > derived.mods.str;
 
   if (melee) {
@@ -346,6 +353,12 @@ export function buildAttack(
     if (opts.twoWeapon && (inherent || opts.twoHanded)) {
       notes.push('A weapon in each hand cannot also be held in two, so the doubled Strength bonus does not apply.');
     }
+  } else if (thrown) {
+    damageParts.push({ label: 'Strength (thrown)', value: derived.mods.str });
+    notes.push(
+      'Marked as thrown: the attack roll is a ranged one made with Dexterity, and your '
+      + 'Strength modifier is added to the damage. Clear the flag on the item to swing it instead.',
+    );
   }
   if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
   if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
@@ -396,6 +409,17 @@ export function buildAttack(
     if (effect.extraDice) extraDice.push({ label: mod.label, dice: effect.extraDice });
   }
 
+  // ---- modifications fitted to this particular weapon ----
+  // A crystal, an attunement, whatever the player recorded against their own copy. Each
+  // is named in the breakdown rather than summed into one anonymous line, so a bonus can
+  // be traced back to the thing that granted it.
+  for (const up of weapon.upgrades ?? []) {
+    const label = up.name.trim() || 'modification';
+    if (up.attack) attackParts.push({ label, value: up.attack });
+    if (up.damage) damageParts.push({ label, value: up.damage });
+    if (up.damageDice) extraDice.push({ label, dice: up.damageDice });
+  }
+
   const sneakDice = countFeature(have, 'sneak-attack');
   if (opts.flatFooted && sneakDice) {
     damageDice += ` + ${sneakDice}d6`;
@@ -442,12 +466,16 @@ export function buildAttack(
  */
 export function buildAttacks(char: Character, derived: Derived, opts: AttackOptions): AttackProfile[] {
   const seen = new Set<string>(['unarmed']);
-  const carried = char.inventory
-    .filter(e => e.equipped)
-    .map(e => getItem(char, e.itemId))
-    .filter((w): w is EquipmentItem => {
-      if (w?.category !== 'weapon' || seen.has(w.id)) return false;
-      seen.add(w.id);
+  const carried = carriedItems(char)
+    .filter(r => r.entry.equipped)
+    .map(r => r.item)
+    .filter((w): w is ResolvedItem => {
+      if (w.category !== 'weapon') return false;
+      // Two identical blasters make one profile, but two copies customized differently
+      // are different weapons and each earns its own line.
+      const key = w.modified ? `${w.id}:${w.entryUid}` : w.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
 

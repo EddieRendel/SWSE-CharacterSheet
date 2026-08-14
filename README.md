@@ -122,6 +122,13 @@ built them on. Use the JSON export/import to move one somewhere else or to share
   3d6 at 15th) and a list of everything you own that a point can be spent on.
 - **535 equipment items** — weapons, armor and gear, plus custom items. Ticking a weapon as
   **worn** is what puts it in hand and on the attack list. Credits editable inline.
+- **Every carried item can be made your own** — ✎ on any row rewrites that copy's stats
+  (damage, weight, the armor's Reflex, Fortitude and maximum Dexterity, whether it is
+  two-handed or thrown) and fits **modifications** to it: an armor upgrade, a lightsaber
+  crystal, an attunement talent, a talisman's blessing. Each carries its own bonus to attack,
+  damage, extra dice, your three defenses, weight and cost, and each is named in the
+  breakdown where it lands. Changes stay on the copy you carry — the compendium entry and
+  every other copy are untouched.
 - **Carrying capacity is enforced**, not just shown: heavy load at (Str × ½)², straining at
   Str² × ½, maximum at Str², scaled by size, each band applying its real speed and skill
   penalties.

@@ -1,11 +1,11 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import type { EquipmentItem, Feature } from '../types';
+import type { Feature, ResolvedItem } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
 import { useDismissLayer } from '../dismiss';
-import { descriptorsOf, itemStatRows, talentSources } from './labels';
+import { descriptorsOf, itemStatRows, talentSources, upgradeEffects } from './labels';
 
 const GAP = 8;
 
@@ -238,7 +238,7 @@ export function FeatureTip({
 }
 
 /** What a piece of gear is, at a glance: its line from the equipment tables. */
-export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactNode }) {
+export function ItemTipBody({ item, note }: { item: ResolvedItem; note?: ReactNode }) {
   const rows = itemStatRows(item);
   return (
     <div className="tip-body">
@@ -246,7 +246,9 @@ export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactN
         <strong>{item.name}</strong>
         <span className="badge">{item.category}</span>
         {item.twoHanded && <span className="badge">two-handed</span>}
+        {item.thrown && <span className="badge">thrown</span>}
         {item.custom && <span className="badge green">custom</span>}
+        {item.modified && !item.custom && <span className="badge green">modified</span>}
       </div>
       {item.book && item.book !== 'unknown' && (
         <div className="tip-source">{BOOK_NAMES[item.book] ?? item.book}</div>
@@ -259,6 +261,17 @@ export function ItemTipBody({ item, note }: { item: EquipmentItem; note?: ReactN
           ))}
         </tbody>
       </table>
+      {!!item.upgrades?.length && (
+        <>
+          <div className="tip-label">Fitted</div>
+          {item.upgrades.map(u => (
+            <p key={u.id}>
+              <strong>{u.name}</strong>
+              {upgradeEffects(u).length ? ` — ${upgradeEffects(u).join(', ')}` : ''}
+            </p>
+          ))}
+        </>
+      )}
       {item.notes && <p className="tip-clamp" style={{ marginTop: 6 }}>{item.notes}</p>}
     </div>
   );
