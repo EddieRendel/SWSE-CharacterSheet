@@ -1,18 +1,32 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Character } from '../types';
 import { ABILITY_IDS } from '../types';
 import { RULES, SPECIES, FEATURES, groupRefs } from '../data';
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { forcePointDice } from '../rules/attacks';
-import { Panel, Stat, Descriptors, PortraitButton, Field, Modal, FeatureDetail } from './ui';
+import { Panel, PortraitButton, Modal, FeatureDetail } from './ui';
 import { Tip, FeatureTip, TipRows } from './Tip';
 import type { TipRow } from './Tip';
 import { Attacks } from './Attacks';
 import { Equipment } from './Equipment';
 
 type SheetTab = 'actions' | 'features' | 'equipment';
+
+/**
+ * What each kind of feature is drawn in, so the groups separate without being read. These
+ * mirror `REQ_TAGS` in labels.ts: the same kind of thing is the same colour whether you are
+ * looking at what you have or at what something else wants of you.
+ */
+const FEATURE_TONES: Record<string, string> = {
+  'Feats': 'blue',
+  'Talents': 'purple',
+  'Force powers': 'green',
+  'Force techniques': 'green',
+  'Force secrets': 'green',
+  'Starship maneuvers': 'accent',
+};
 
 /** A stat tile whose working appears on hover. */
 function StatTip({
@@ -28,6 +42,35 @@ function StatTip({
     <Tip className="block" content={<TipRows title={title} rows={rows} total={total} footer={footer} />}>
       {children}
     </Tip>
+  );
+}
+
+/**
+ * One of the three defenses, or the damage threshold hanging off Fortitude — `minor` draws
+ * it a size down, because a threshold is a consequence of a defense rather than a fourth one.
+ */
+function DefCell({
+  label, title, value, sub, rows, footer, minor,
+}: {
+  label: string;
+  /** The heading on the hover card, where the short column label would read oddly. */
+  title: string;
+  value: number;
+  sub?: string;
+  rows: TipRow[];
+  footer?: string;
+  minor?: boolean;
+}) {
+  return (
+    <div className={`def-cell${minor ? ' minor' : ''}`}>
+      <StatTip title={title} rows={rows} total={String(value)} footer={footer}>
+        <div>
+          <div className="vital-label">{label}</div>
+          <div className="def-value">{value}</div>
+          <div className="sub">{sub}</div>
+        </div>
+      </StatTip>
+    </div>
   );
 }
 
@@ -78,133 +121,101 @@ export function Sheet({
     { id: 'equipment', label: 'Equipment', count: carried },
   ];
 
+  const hpFraction = derived.maxHitPoints > 0 ? currentHp / derived.maxHitPoints : 0;
+  const hpState = hpFraction > 0.5 ? '' : hpFraction > 0.25 ? 'hurt' : 'bad';
+
+  const track = RULES.conditionTrack;
+  const bottomStep = track[track.length - 1].index;
+  const trainedCount = derived.skills.filter(s => s.trained).length;
+  // Split in half rather than flowed across, so the two columns read A–K then L–Z. An odd
+  // count leaves the extra row on the right: the left column carries the long names that
+  // wrap, so giving it the shorter half is what makes the two ends up level.
+  const skillSplit = Math.floor(derived.skills.length / 2);
+  const skillColumns = [derived.skills.slice(0, skillSplit), derived.skills.slice(skillSplit)];
+
+  // Force points are read and spent in the vitals band — the Actions tab used to carry a
+  // second copy of the same pips, which after the band arrived was the same pool twice.
+  const fpLeft = Math.max(0, derived.forcePoints - char.forcePointsSpent);
+  const spendFP = (n: number) =>
+    update(c => {
+      c.forcePointsSpent = Math.max(0, Math.min(derived.forcePoints, c.forcePointsSpent + n));
+    });
+
+  // The dark side score is measured against Wisdom, and how near it is repoints the whole
+  // sheet's accent. Two characters at the same level should not produce the same page, and
+  // this is the state that says the most about who one of them has become.
+  const wisdom = derived.abilities.wis;
+  const fallen = !derived.isDroid && wisdom > 0 && char.darkSideScore >= wisdom;
+  const tempted = !derived.isDroid && wisdom > 0 && !fallen && char.darkSideScore * 2 >= wisdom;
+  const fallFraction = wisdom > 0 ? Math.min(1, char.darkSideScore / wisdom) : 0;
+
+  const accentVars = fallen
+    ? { '--sheet-accent': 'var(--red)', '--sheet-accent-dim': '#8f3b3b' }
+    : tempted
+      ? { '--sheet-accent': '#ff9f45', '--sheet-accent-dim': '#a8611c' }
+      : undefined;
+
+  const loadWord = derived.carrying.level === 'heavy' ? 'heavy load'
+    : derived.carrying.level === 'strained' ? 'straining'
+      : derived.carrying.level === 'normal' ? '' : 'overloaded';
+
   return (
-    <>
-      <Panel>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 14 }}>
-          <PortraitButton char={char} update={update} size={72} />
+    <div className="sheet" style={accentVars as CSSProperties | undefined}>
+      <section className={`frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="frame-body identity">
+          <PortraitButton char={char} update={update} size={68} />
           <div className="grow">
-            <h1 style={{ color: 'var(--accent)' }}>{char.name || 'Unnamed'}</h1>
-            <div className="dim">
-              {species?.name ?? 'No species'} · {classLine} · Level {derived.level}
-              {char.playerName && ` · played by ${char.playerName}`}
+            <h1>{char.name || 'Unnamed'}</h1>
+            <div className="identity-line">
+              <span>{species?.name ?? 'No species'}</span>
+              <span className="sep">·</span>
+              <span>{classLine}</span>
+              <span className="sep">·</span>
+              <span className="identity-level">Level {derived.level}</span>
+              {char.playerName && (
+                <>
+                  <span className="sep">·</span>
+                  <span className="faint">played by {char.playerName}</span>
+                </>
+              )}
+              {fallen && <span className="badge red">fallen</span>}
             </div>
           </div>
           <button onClick={() => window.print()}>Print</button>
         </div>
-      </Panel>
+      </section>
 
-      <div className={`grid ${derived.isDroid ? 'g5' : 'g6'}`} style={{ marginBottom: 16 }}>
-        {ABILITY_IDS
-          // Droids have no Constitution score at all.
-          .filter(a => !(derived.isDroid && a === 'con'))
-          .map(a => (
-            <Stat
-              key={a}
-              label={RULES.abilities[a].name}
-              value={derived.abilities[a]}
-              sub={<strong style={{ color: 'var(--accent)' }}>{signed(derived.mods[a])}</strong>}
-            />
-          ))}
-      </div>
-
-      <div className="grid g4" style={{ marginBottom: 16 }}>
-        <StatTip rows={derived.defenseBreakdown.reflex} title="Reflex Defense"
-          total={String(derived.defenses.reflex)}
-          footer={`Flat-footed ${derived.defenses.flatFooted} — your Dexterity bonus does not apply.`}>
-          <Stat label="Reflex Defense" value={derived.defenses.reflex}
-            sub={`flat-footed ${derived.defenses.flatFooted}`} />
-        </StatTip>
-        <StatTip rows={derived.defenseBreakdown.fortitude} title="Fortitude Defense"
-          total={String(derived.defenses.fortitude)}>
-          <Stat label="Fortitude Defense" value={derived.defenses.fortitude} />
-        </StatTip>
-        <StatTip rows={derived.defenseBreakdown.will} title="Will Defense"
-          total={String(derived.defenses.will)}>
-          <Stat label="Will Defense" value={derived.defenses.will} />
-        </StatTip>
-        <StatTip
-          title="Damage Threshold"
-          rows={[
-            { label: 'Fortitude Defense', value: derived.defenses.fortitude },
-            { label: 'size and Improved Damage Threshold', value: derived.damageThreshold - derived.defenses.fortitude },
-          ]}
-          total={String(derived.damageThreshold)}
-          footer="Take this much damage from a single hit and you move one step down the condition track."
-        >
-          <Stat label="Damage Threshold" value={derived.damageThreshold} />
-        </StatTip>
-        <StatTip
-          title="Hit Points"
-          rows={[
-            { label: 'maximum', text: String(derived.maxHitPoints) },
-            { label: 'damage taken', text: String(char.damage) },
-          ]}
-          total={String(derived.maxHitPoints - char.damage)}
-          footer={`Second wind restores ${derived.secondWind}, once per encounter.`}
-        >
-          <Stat label="Hit Points" value={`${derived.maxHitPoints - char.damage}/${derived.maxHitPoints}`}
-            sub={`second wind ${derived.secondWind}`} />
-        </StatTip>
-        <StatTip
-          title="Base Attack Bonus"
-          rows={derived.classLevels.map(c => ({ label: `${c.cls.name} ${c.levels}`, value: c.bab }))}
-          total={signed(derived.baseAttackBonus)}
-          footer="Every class contributes; multiclass characters add them together."
-        >
-          <Stat label="Base Attack Bonus" value={signed(derived.baseAttackBonus)} />
-        </StatTip>
-        <StatTip
-          title="Speed"
-          rows={[
-            { label: 'base', text: `${derived.size} ${species?.name ?? ''}`.trim() },
-            { label: 'carrying', text: `${derived.carrying.weight.toFixed(1)} of ${derived.carrying.heavy.toFixed(0)} kg` },
-          ]}
-          total={`${derived.speed} squares`}
-          footer={derived.carrying.level === 'normal'
-            ? undefined
-            : `Carrying a ${derived.carrying.level === 'heavy' ? 'heavy load' : derived.carrying.level === 'strained' ? 'straining load' : 'load over your maximum'} — `
-              + (derived.carrying.level === 'heavy'
-                ? 'speed is three quarters and seven skills take −10.'
-                : derived.carrying.level === 'strained' ? 'you can move one square a turn.' : 'you cannot move.')}
-        >
-          <Stat
-            label="Speed"
-            value={`${derived.speed} sq`}
-            sub={derived.carrying.level === 'normal'
-              ? derived.size
-              : <span className="err">{derived.carrying.level === 'heavy' ? 'heavy load' : derived.carrying.level === 'strained' ? 'straining' : 'overloaded'}</span>}
-          />
-        </StatTip>
-        {derived.isDroid
-          ? <Stat label="Destiny Points" value={char.destinyPoints} sub="droids have no Force Points" />
-          : (
+      {/* Tier one: the numbers that move during play. They used to be three tiles among
+          fourteen identical ones, with their controls in a separate panel further down the
+          page — the reading and the editing of the same number, half a screen apart. */}
+      <section className={`frame vitals-frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="frame-body vitals">
+          <div className={`vital hp ${hpState}`}>
+            <div className="vital-label">Hit points</div>
             <StatTip
-              title="Force Points"
+              title="Hit Points"
               rows={[
-                { label: 'left to spend', text: String(Math.max(0, derived.forcePoints - char.forcePointsSpent)) },
-                { label: 'this level', text: String(derived.forcePoints) },
+                { label: 'maximum', text: String(derived.maxHitPoints) },
+                { label: 'damage taken', text: String(char.damage) },
               ]}
-              footer={`Each one spent adds ${forcePointDice(derived.level)} to a roll. Spend them from the Actions tab.`}
+              total={String(currentHp)}
+              footer={`Second wind restores ${derived.secondWind}, once per encounter.`}
             >
-              <Stat label="Force Points" value={Math.max(0, derived.forcePoints - char.forcePointsSpent)}
-                sub={`destiny ${char.destinyPoints} · dark side ${char.darkSideScore}`} />
+              <div>
+                <div className="vital-value">
+                  {currentHp}<span className="of">/{derived.maxHitPoints}</span>
+                </div>
+                <div className="hp-bar">
+                  <div className={`hp-fill ${hpState}`} style={{ width: `${hpFraction * 100}%` }} />
+                </div>
+              </div>
             </StatTip>
-          )}
-      </div>
-
-      {/* Everything that changes during play rather than while building the character. It
-          used to sit on the Character tab, which is for the build. The tiles above show the
-          resulting numbers; these are the controls behind them. */}
-      <Panel title="Condition &amp; resources">
-        <div className="grid g2">
-          <Field label="Hit points">
-            <div className="row">
+            <div className="row hp-controls">
               <button className="sm" disabled={hpStep === 0 || currentHp <= 0}
                 title="Take that much damage"
                 onClick={() => moveHp(-1)}>−</button>
               <input
-                className="mono center" style={{ width: 64 }}
+                className="mono center"
                 inputMode="numeric" aria-label="Hit points to add or remove" placeholder="hp"
                 value={hpAmount}
                 onChange={e => setHpAmount(e.target.value.replace(/\D/g, ''))}
@@ -214,86 +225,242 @@ export function Sheet({
                 onClick={() => moveHp(1)}>+</button>
               <button className="sm ghost" disabled={char.damage <= 0} title="Back to full"
                 onClick={() => update(c => { c.damage = 0; })}>Full</button>
-              <span className="hint nowrap">
-                {currentHp} / {derived.maxHitPoints}
-              </span>
             </div>
-          </Field>
+            <div className="hint">
+              Second wind {derived.secondWind} · threshold {derived.damageThreshold}
+            </div>
+          </div>
 
-          <Field label="Condition track">
-            <div className="row" style={{ flexWrap: 'wrap' }}>
-              {RULES.conditionTrack.map(step => (
+          <div className="vital">
+            <div className="vital-label">Condition track</div>
+            <div className="ctrack">
+              {track.map(step => (
                 <button
                   key={step.index}
-                  className={`sm ${char.conditionIndex === step.index ? 'primary' : ''}`}
+                  type="button"
+                  className={`ctrack-step${char.conditionIndex === step.index ? ' here' : ''}`
+                    + `${char.conditionIndex > step.index ? ' passed' : ''}`
+                    + `${step.index === bottomStep ? ' out' : ''}`}
+                  title={step.index === 0 ? 'Normal — no penalty'
+                    : step.index === bottomStep ? 'Unconscious'
+                      : `${step.defenses} to defenses, attack rolls, skill checks and ability checks`}
                   onClick={() => update(c => { c.conditionIndex = step.index; })}
                 >
-                  {step.name}
+                  <span className="ctrack-mark" />
+                  <span className="ctrack-name">
+                    {step.index === 0 ? 'OK' : step.index === bottomStep ? 'Out' : step.name}
+                  </span>
                 </button>
               ))}
             </div>
-            {derived.conditionPenalty !== 0 && (
-              <p className="hint warn" style={{ marginTop: 6 }}>
-                {signed(derived.conditionPenalty)} to all defenses, attack rolls, skill checks and ability checks.
-                {derived.speed === 0 ? ' You cannot move.' : ''}
+            {char.conditionIndex >= bottomStep ? (
+              <p className="hint err">Unconscious — helpless until you are revived.</p>
+            ) : derived.conditionPenalty !== 0 ? (
+              <p className="hint warn">
+                {signed(derived.conditionPenalty)} to all defenses, attack rolls, skill checks
+                and ability checks.{derived.speed === 0 ? ' You cannot move.' : ''}
               </p>
+            ) : (
+              <p className="hint">Unharmed. Take damage past your threshold and you drop a step.</p>
             )}
-          </Field>
-        </div>
+          </div>
 
-        <div className="grid g3" style={{ marginTop: 14 }}>
-          <Field label="Destiny points">
-            <input
-              className="mono" value={char.destinyPoints}
-              onChange={e => update(c => { c.destinyPoints = parseInt(e.target.value, 10) || 0; })}
-            />
-          </Field>
-          <Field label="Dark Side score">
-            <input
-              className="mono" value={char.darkSideScore}
-              onChange={e => update(c => { c.darkSideScore = parseInt(e.target.value, 10) || 0; })}
-            />
-            <p className="hint" style={{ marginTop: 4 }}>
-              Reaching your Wisdom score ({derived.abilities.wis}) turns you to the dark side.
-              {char.darkSideScore >= derived.abilities.wis && <span className="err"> You have fallen.</span>}
-            </p>
-          </Field>
-          <Field label="Destiny">
-            <input value={char.destiny} onChange={e => update(c => { c.destiny = e.target.value; })} placeholder="Destruction, Discovery…" />
-          </Field>
+          <div className="vital">
+            {derived.isDroid ? (
+              <div className="vital-label">Destiny &amp; the dark side</div>
+            ) : (
+              <>
+                <div className="vital-label">Force points</div>
+                <StatTip
+                  title="Force Points"
+                  rows={[
+                    { label: 'left to spend', text: String(fpLeft) },
+                    { label: 'this level', text: String(derived.forcePoints) },
+                  ]}
+                  footer={`Each one spent adds ${forcePointDice(derived.level)} to a roll. Spend them from the Actions tab.`}
+                >
+                  <div>
+                    <div className="vital-value">
+                      {fpLeft}<span className="of">/{derived.forcePoints}</span>
+                    </div>
+                    <span className="uses">
+                      {Array.from({ length: Math.min(derived.forcePoints, 12) }, (_, i) => (
+                        <span key={i} className={`pip ${i < fpLeft ? 'full' : ''}`} />
+                      ))}
+                    </span>
+                  </div>
+                </StatTip>
+                <div className="row hp-controls">
+                  <button className="sm" disabled={fpLeft <= 0} title="Spend a Force Point"
+                    onClick={() => spendFP(1)}>Spend</button>
+                  <button className="sm ghost" disabled={char.forcePointsSpent <= 0}
+                    title="Take one back" onClick={() => spendFP(-1)}>↺</button>
+                  <span className="hint nowrap">adds {forcePointDice(derived.level)} to a roll</span>
+                </div>
+              </>
+            )}
+
+            <div className="mini-fields">
+              <div className="mini-field">
+                <label htmlFor="destiny-points">Destiny pts</label>
+                <input
+                  id="destiny-points" className="mono" value={char.destinyPoints}
+                  onChange={e => update(c => { c.destinyPoints = parseInt(e.target.value, 10) || 0; })}
+                />
+              </div>
+              <div className="mini-field">
+                <label htmlFor="dark-side">Dark side</label>
+                <input
+                  id="dark-side" className="mono" value={char.darkSideScore}
+                  onChange={e => update(c => { c.darkSideScore = parseInt(e.target.value, 10) || 0; })}
+                />
+                <div
+                  className="fall-bar"
+                  title={fallen
+                    ? 'You have fallen to the dark side.'
+                    : `Reaching your Wisdom score (${wisdom}) turns you to the dark side.`}
+                >
+                  <div className={`fall-fill ${fallen || tempted ? 'near' : ''}`}
+                    style={{ width: `${fallFraction * 100}%` }} />
+                </div>
+              </div>
+              <div className="mini-field wide">
+                <label htmlFor="destiny">Destiny</label>
+                <input
+                  id="destiny" value={char.destiny} placeholder="Destruction, Discovery…"
+                  onChange={e => update(c => { c.destiny = e.target.value; })}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </Panel>
+      </section>
+
+      {/* Tier two: what the galaxy rolls against. A set, framed as a set. */}
+      <section className="frame lit-blue">
+        <div className="frame-body defenses">
+          <DefCell
+            label="Reflex" title="Reflex Defense" value={derived.defenses.reflex}
+            sub={`flat-footed ${derived.defenses.flatFooted}`}
+            rows={derived.defenseBreakdown.reflex}
+            footer={`Flat-footed ${derived.defenses.flatFooted} — your Dexterity bonus does not apply.`}
+          />
+          <DefCell label="Fortitude" title="Fortitude Defense" value={derived.defenses.fortitude}
+            rows={derived.defenseBreakdown.fortitude} />
+          <DefCell label="Will" title="Will Defense" value={derived.defenses.will}
+            rows={derived.defenseBreakdown.will} />
+          <DefCell
+            minor label="Threshold" title="Damage Threshold"
+            value={derived.damageThreshold} sub="one step down"
+            rows={[
+              { label: 'Fortitude Defense', value: derived.defenses.fortitude },
+              { label: 'size and Improved Damage Threshold', value: derived.damageThreshold - derived.defenses.fortitude },
+            ]}
+            footer="Take this much damage from a single hit and you move one step down the condition track."
+          />
+        </div>
+      </section>
+
+      {/* Tier three: what is simply true about the character. The modifier is what you add
+          at the table, so it is the number here; the score below it is where it came from. */}
+      <section className="frame">
+        <div className={`frame-body abil-strip${derived.isDroid ? ' five' : ''}`}>
+          {ABILITY_IDS
+            // Droids have no Constitution score at all.
+            .filter(a => !(derived.isDroid && a === 'con'))
+            .map(a => (
+              <div key={a} className="abil" title={RULES.abilities[a].name}>
+                <div className="abil-name">{a.toUpperCase()}</div>
+                <div className="abil-mod">{signed(derived.mods[a])}</div>
+                <div className="abil-score">{derived.abilities[a]}</div>
+              </div>
+            ))}
+        </div>
+      </section>
+
+      <div className="factline">
+        <Tip content={
+          <TipRows
+            title="Base Attack Bonus"
+            rows={derived.classLevels.map(c => ({ label: `${c.cls.name} ${c.levels}`, value: c.bab }))}
+            total={signed(derived.baseAttackBonus)}
+            footer="Every class contributes; multiclass characters add them together."
+          />
+        }>
+          <span className="fact">
+            <span className="k">Base attack</span>
+            <span className="v breakdown">{signed(derived.baseAttackBonus)}</span>
+          </span>
+        </Tip>
+        <Tip content={
+          <TipRows
+            title="Speed"
+            rows={[
+              { label: 'base', text: `${derived.size} ${species?.name ?? ''}`.trim() },
+              { label: 'carrying', text: `${derived.carrying.weight.toFixed(1)} of ${derived.carrying.heavy.toFixed(0)} kg` },
+            ]}
+            total={`${derived.speed} squares`}
+            footer={derived.carrying.level === 'normal'
+              ? undefined
+              : `Carrying a ${derived.carrying.level === 'heavy' ? 'heavy load' : derived.carrying.level === 'strained' ? 'straining load' : 'load over your maximum'} — `
+                + (derived.carrying.level === 'heavy'
+                  ? 'speed is three quarters and seven skills take −10.'
+                  : derived.carrying.level === 'strained' ? 'you can move one square a turn.' : 'you cannot move.')}
+          />
+        }>
+          <span className="fact">
+            <span className="k">Speed</span>
+            <span className="v breakdown">{derived.speed} sq</span>
+          </span>
+        </Tip>
+        <span className="fact">
+          <span className="k">Size</span>
+          <span className="v">{derived.size}</span>
+        </span>
+        <span className="fact">
+          <span className="k">Carrying</span>
+          <span className={`v ${loadWord ? 'err' : ''}`}>
+            {derived.carrying.weight.toFixed(1)} / {derived.carrying.heavy.toFixed(0)} kg
+          </span>
+          {loadWord && <span className="badge red" style={{ marginLeft: 6 }}>{loadWord}</span>}
+        </span>
+      </div>
 
       <div className="grid g2">
         <div>
-          <Panel title="Skills">
-            <div className="table-scroll">
-              <table>
-                <tbody>
-                  {derived.skills.map(sk => (
-                    <tr key={sk.id}>
-                      <td style={{ width: 20 }}>{sk.trained ? '●' : <span className="faint">○</span>}</td>
-                      <td>
-                        <Tip content={
-                          <TipRows
-                            title={sk.name}
-                            rows={sk.parts}
-                            total={signed(sk.total)}
-                            footer={sk.classSkill ? undefined : 'Not a class skill — you can only train it through a feat.'}
-                          />
-                        }>
-                          <span className="breakdown">{sk.name}</span>
-                        </Tip>
-                        {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
-                      </td>
-                      <td className="faint">{sk.ability.toUpperCase()}</td>
-                      <td className="num" style={{ fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
-                        {signed(sk.total)}
-                      </td>
-                    </tr>
+          <Panel
+            title="Skills"
+            className="reference framed tint-green"
+            actions={<span className="hint nowrap">{trainedCount} trained</span>}
+          >
+            {/* Two columns on a wide screen. The list is the longest thing on the page and
+                a single column of it left the tabbed box beside it staring at dead space.
+
+                Two real columns rather than one grid flowing down them: a grid ties the two
+                together row by row, so a name long enough to wrap — Knowledge (Physical
+                Sciences) — stretched whatever sat beside it in the other column. Split here
+                and each column is free to be its own height. Stacked on a narrow screen the
+                halves still read in order. */}
+            <div className="skill-cols">
+              {skillColumns.map((column, i) => (
+                <div key={i} className="skill-col">
+                  {column.map(sk => (
+                    <div key={sk.id} className={`skill${sk.trained ? ' trained' : ''}`}>
+                      <span
+                        className={`pip ${sk.trained ? 'full' : ''}`}
+                        title={sk.trained ? 'Trained' : 'Untrained'}
+                      />
+                      {/* No hover card here. The total is already on the row, and whether
+                          something is a class skill only bears on training it, which happens
+                          on the edit page. */}
+                      <span className="skill-name">{sk.name}</span>
+                      {sk.focused && <span className="badge green">focus</span>}
+                      <span className="skill-ability">{sk.ability.toUpperCase()}</span>
+                      <span className="skill-total">{signed(sk.total)}</span>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              ))}
             </div>
             {(derived.languages.automatic.length > 0 || derived.languages.chosen.length > 0) && (
               <div className="row" style={{ marginTop: 10, flexWrap: 'wrap', gap: 6 }}>
@@ -307,17 +474,19 @@ export function Sheet({
 
         <div>
           <Panel
+            className="framed tint-purple"
             title={SHEET_TABS.find(t => t.id === tab)!.label}
             actions={
-              <div className="row" style={{ gap: 2 }}>
+              <div className="seg">
                 {SHEET_TABS.map(t => (
                   <button
                     key={t.id}
-                    className={`sm ${tab === t.id ? 'primary' : 'ghost'}`}
+                    className={tab === t.id ? 'on' : ''}
+                    aria-pressed={tab === t.id}
                     onClick={() => setTab(t.id)}
                   >
                     {t.label}
-                    {t.count !== undefined && <span className="faint"> {t.count}</span>}
+                    {t.count !== undefined && <span className="count">{t.count}</span>}
                   </button>
                 ))}
               </div>
@@ -329,9 +498,10 @@ export function Sheet({
               featureGroups.length === 0
                 ? <div className="empty">Nothing chosen yet.</div>
                 : featureGroups.map(([title, items]) => (
-                  <div key={title} style={{ marginBottom: 12 }}>
-                    <h3 style={{ marginBottom: 6 }}>
+                  <div key={title} className="feature-group">
+                    <h3 className={`tone-${FEATURE_TONES[title]}`}>
                       {title} <span className="faint">({items.length})</span>
+                      <span className="rule" />
                     </h3>
                     <div className="chips">
                       {groupRefs(items).map(g => {
@@ -348,16 +518,19 @@ export function Sheet({
                               : g.count > 1 ? `Taken ${g.count} times.` : undefined}
                           >
                             {/* Hovering peeks at the rules; clicking opens the full text, the
-                                same dialog the Edit page uses. */}
+                                same dialog the Edit page uses. Descriptors — dark side,
+                                telekinetic — are on both of those and not on the chip: this
+                                is a list of what you have, and a badge on every second pill
+                                buried the names it was sitting next to. They still tag the
+                                options in the picker, where they bear on what to choose. */}
                             <button
                               type="button"
-                              className="chip"
+                              className={`chip tone-${FEATURE_TONES[title]}`}
                               disabled={!FEATURES[g.ref.id]}
                               onClick={() => setViewing({ id: g.ref.id, spec: g.ref.spec })}
                             >
                               {g.label}{g.count > 1 && <span className="faint"> x{g.count}</span>}
                               {via && <span className="faint"> · via {via}</span>}
-                              {FEATURES[g.ref.id] && <Descriptors feature={FEATURES[g.ref.id]} compact />}
                             </button>
                           </FeatureTip>
                         );
@@ -372,8 +545,10 @@ export function Sheet({
             )}
           </Panel>
 
+          {/* Framed like its neighbours but untoned — a rounded panel down here would be the
+              only one left from the old styling. */}
           {(char.traits.background || char.traits.appearance || char.traits.personality || char.notes) && (
-            <Panel title="Notes">
+            <Panel title="Notes" className="reference framed">
               {char.traits.appearance && <p><strong>Appearance.</strong> {char.traits.appearance}</p>}
               {char.traits.personality && <p><strong>Personality.</strong> {char.traits.personality}</p>}
               {char.traits.background && <p><strong>Background.</strong> {char.traits.background}</p>}
@@ -388,6 +563,6 @@ export function Sheet({
           <FeatureDetail feature={FEATURES[viewing.id]} spec={viewing.spec} />
         </Modal>
       )}
-    </>
+    </div>
   );
 }

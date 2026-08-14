@@ -10,6 +10,12 @@
   --text-faint: #64758a;
   --accent: #ffcf4d;
   --accent-dim: #b08c22;
+  /* The sheet re-points this at another hue when the character's state calls for it — a
+     fallen character's page is not the same gold as an untouched one. Everything on the
+     sheet that used to hard-code --accent reads this instead, which is also the seam the
+     palette picker will hang off. */
+  --sheet-accent: #ffcf4d;
+  --sheet-accent-dim: #b08c22;
   --blue: #4ea8de;
   --red: #ef5b5b;
   --green: #5cc98b;
@@ -456,6 +462,9 @@ button.chip:disabled { cursor: default; }
 
 @media print {
   .topbar, .tabs, button { display: none !important; }
+  /* A name rendered as a button is still a name. The blanket rule above was blanking every
+     weapon in the attack list and every item in the kit table, leaving rows of bare numbers. */
+  button.linklike { display: inline !important; }
   body, .panel { background: #fff; color: #000; }
   .panel { border-color: #ccc; break-inside: avoid; }
 }
@@ -656,3 +665,417 @@ button.linklike.block { display: block; width: 100%; }
 }
 .needs-header.conflict { color: #ff9d9d; }
 @media print { .level-bar, .needs-header { display: none; } }
+
+/* ================= the sheet =================================================
+   The sheet used to be fourteen identical .stat tiles in two rows: an ability score and
+   your remaining hit points were drawn the same way, at the same size, so nothing on the
+   page told you where to look. It is now three tiers that look different because they are
+   different — what changes every round, what you are rolled against, and what is simply
+   true about the character — and the chrome moves with the character's state.
+   ---------------------------------------------------------------------------- */
+
+/* The sheet's own container: squarer than the 8px `.panel` used on the other pages, with a
+   bracket at two opposite corners and a lit top edge saying which tier it is.
+
+   The corner was a cut one at first, via clip-path. That clips the whole subtree — and the
+   portrait editor's overlay and every hover card are `position: fixed` inside these frames,
+   so both came out trimmed to the frame's shape. Brackets read the same way and clip
+   nothing. */
+.frame {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: 3px;
+  margin-bottom: 14px;
+}
+.frame > .frame-body { padding: 14px 16px; }
+.frame::before, .frame::after {
+  content: ''; position: absolute;
+  width: 13px; height: 13px;
+  border: 2px solid var(--border-2);
+  /* Decoration sitting over the padding — it must never eat a click. */
+  pointer-events: none;
+}
+.frame::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
+.frame::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
+
+.frame.lit { box-shadow: inset 0 2px 0 var(--sheet-accent); }
+.frame.lit::before, .frame.lit::after { border-color: var(--sheet-accent); }
+.frame.lit-blue { box-shadow: inset 0 2px 0 var(--blue); }
+.frame.lit-blue::before, .frame.lit-blue::after { border-color: var(--blue); }
+.frame.lit-red { box-shadow: inset 0 2px 0 var(--red); }
+.frame.lit-red::before, .frame.lit-red::after { border-color: var(--red); }
+
+/* ---------- identity ---------- */
+.identity { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.identity .grow { flex: 1; min-width: 0; }
+.identity h1 {
+  color: var(--sheet-accent); font-size: 22px; letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+.identity-line {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 3px; font-size: 12px; color: var(--text-dim);
+}
+.identity-line .sep { color: var(--text-faint); }
+.identity-level {
+  font-family: var(--mono); font-weight: 700; color: var(--sheet-accent);
+}
+
+/* ---------- tier one: what changes during play ---------- */
+/* Brighter than the reference panels below it on purpose — this is the live surface. */
+.vitals-frame { background: var(--bg-3); }
+.vitals-frame > .frame-body { padding: 0; }
+.vitals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.vital { padding: 12px 16px; min-width: 0; }
+.vital + .vital { border-left: 1px solid var(--border); }
+
+/* Stacked, a left edge would rule off the wrong side. */
+@media (max-width: 860px) {
+  .vitals { grid-template-columns: minmax(0, 1fr); }
+  .vital + .vital { border-left: none; border-top: 1px solid var(--border); }
+}
+
+.vital-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: 3px;
+}
+.vital-value {
+  font-family: var(--mono); font-size: 34px; font-weight: 700; line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.vital-value .of { font-size: 17px; color: var(--text-faint); font-weight: 600; }
+
+/* Hit points, the one number read most often, so it is the largest thing on the page and
+   the only one with a filled bar behind it. */
+.hp-bar {
+  height: 7px; margin: 7px 0 8px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden;
+}
+.hp-fill {
+  height: 100%; background: var(--green);
+  transition: width 0.18s ease-out, background 0.18s;
+}
+.hp-fill.hurt { background: var(--accent); }
+.hp-fill.bad { background: var(--red); }
+.vital.hp.bad .vital-value { color: var(--red); }
+.hp-controls { flex-wrap: wrap; gap: 5px; }
+.hp-controls input { width: 56px; }
+
+/* The condition track is a track: five steps down to unconscious, each one a segment you
+   can drop to. The old row of six identical buttons said none of that. */
+.ctrack { display: flex; gap: 3px; margin: 8px 0 6px; }
+.ctrack-step {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; border-radius: 4px;
+  padding: 3px 1px; cursor: pointer;
+}
+.ctrack-step:hover:not(:disabled) { background: rgba(255,255,255,0.04); }
+.ctrack-mark {
+  width: 100%; height: 5px; border-radius: 2px;
+  background: var(--border-2); transition: background 0.12s;
+}
+.ctrack-name {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-faint); white-space: nowrap;
+}
+/* Every step you have already dropped through stays lit, so the depth of the fall is the
+   length of the lit run rather than a single highlighted button. */
+.ctrack-step.passed .ctrack-mark { background: var(--sheet-accent-dim); }
+.ctrack-step.here .ctrack-mark { background: var(--sheet-accent); box-shadow: 0 0 8px var(--sheet-accent-dim); }
+.ctrack-step.here .ctrack-name { color: var(--sheet-accent); }
+.ctrack-step.out.passed .ctrack-mark, .ctrack-step.out.here .ctrack-mark { background: var(--red); box-shadow: none; }
+.ctrack-step.out.here .ctrack-name { color: var(--red); }
+
+/* Force points, destiny and the dark side share the third cell. */
+.vital .uses { flex-wrap: wrap; gap: 4px; margin: 7px 0 4px; }
+.vital .pip { width: 11px; height: 11px; }
+/* Including the pair in the Actions tab, so the whole page turns together. */
+.sheet .pip.full { background: var(--sheet-accent); border-color: var(--sheet-accent); }
+.mini-fields { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.mini-field { flex: 1 1 78px; min-width: 0; }
+.mini-field.wide { flex: 1 1 130px; }
+.mini-field label {
+  display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: 3px;
+}
+.mini-field input { padding: 3px 7px; font-size: 12px; }
+
+/* How near the dark side score is to Wisdom — the roll you are one bad choice away from
+   failing. Empty at zero, full at the score that turns you. */
+.fall-bar {
+  height: 4px; margin-top: 6px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+}
+.fall-fill { height: 100%; background: var(--purple); transition: width 0.18s, background 0.18s; }
+.fall-fill.near { background: var(--red); }
+
+/* ---------- tier two: what you are rolled against ---------- */
+.defenses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 0.85fr; }
+.def-cell { padding: 2px 14px; min-width: 0; text-align: center; }
+.def-cell + .def-cell { border-left: 1px solid var(--border); }
+.def-cell .vital-label { margin-bottom: 1px; }
+.def-value {
+  font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1.15;
+  color: var(--blue);
+}
+/* Reserved even when empty, so Fortitude and Will do not sit a line higher than Reflex. */
+.def-cell .sub { font-size: 11px; color: var(--text-faint); min-height: 16px; }
+/* Damage threshold is a consequence of Fortitude rather than a fourth defense, so it is
+   attached to the group but drawn a size down. */
+.def-cell.minor .def-value { font-size: 22px; color: var(--text); }
+.def-cell .tip-anchor.block { display: block; cursor: help; }
+.def-cell:hover .def-value { color: var(--sheet-accent); }
+
+@media (max-width: 700px) {
+  .defenses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .def-cell:nth-child(odd) { border-left: none; }
+  .def-cell:nth-child(n + 3) { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 8px; }
+}
+
+/* ---------- tier three: what is simply true ---------- */
+/* The modifier is the number you add at the table; the score is the footnote it comes
+   from. The old tiles had that the other way round. */
+.abil-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.abil-strip.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.abil { text-align: center; padding: 0 6px; min-width: 0; }
+.abil + .abil { border-left: 1px solid var(--border); }
+.abil-name {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-faint);
+}
+.abil-mod {
+  font-family: var(--mono); font-size: 24px; font-weight: 700; line-height: 1.15;
+  color: var(--sheet-accent);
+}
+.abil-score { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+
+@media (max-width: 620px) {
+  .abil-strip, .abil-strip.five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .abil { padding: 6px 4px; }
+  .abil:nth-child(3n + 1) { border-left: none; }
+  .abil:nth-child(n + 4) { border-top: 1px solid var(--border); }
+}
+
+/* Base attack bonus, speed and size are set at level-up and read once a session. One line,
+   not four tiles the size of your hit points. */
+.factline {
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
+  padding: 9px 16px; margin-bottom: 14px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 13px;
+}
+.factline .k {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700; margin-right: 5px;
+}
+.factline .v { font-family: var(--mono); font-weight: 700; }
+.factline .fact { display: inline-flex; align-items: baseline; white-space: nowrap; }
+.factline > * { min-width: 0; }
+
+/* A reference panel — Skills, Notes — sits flatter than the live surfaces above it, so the
+   eye sorts the page by brightness before it reads a word of it. */
+.panel.reference { background: var(--bg-2); }
+
+/* The panels in the lower column take the same frame as the tiers above them: square
+   corners with a bracket at two of them, and a lit top edge. --tone carries the panel's
+   colour to the edge, the brackets, the heading and the tab switcher inside it, so each
+   box reads as one thing. Kept to the palette's existing hues rather than new ones, since
+   every hue here is something the theme picker will have to re-map.
+
+   Left as position: relative and pseudo-elements on purpose — the equipment browser and
+   the item dialogs are `position: fixed` inside these panels, and anything that clipped or
+   created a stacking context here would trap them. */
+.panel.framed {
+  position: relative;
+  border-radius: 3px;
+  border-color: var(--border-2);
+}
+.panel.framed::before, .panel.framed::after {
+  content: ''; position: absolute;
+  width: 13px; height: 13px;
+  border: 2px solid var(--tone, var(--border-2));
+  pointer-events: none;
+}
+.panel.framed::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
+.panel.framed::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
+.panel.framed > header {
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset 0 2px 0 var(--tone, var(--border-2));
+}
+.panel.framed.collapsed > header { border-radius: 3px; }
+.panel.framed > header h2 { color: var(--tone, var(--text-dim)); }
+/* The active tab belongs to its box rather than to the sheet's accent, which beside a
+   coloured frame read as a stray piece of another panel. */
+.panel.framed .seg button.on,
+.panel.framed .seg button.on:hover:not(:disabled) { background: var(--tone, var(--sheet-accent)); }
+
+/* Deliberately not named .tone-*: those are text-colour utilities used by the feature
+   groups, and putting one on the panel itself would repaint every name inside it by
+   inheritance. These only set the variable the frame reads. */
+.panel.tint-green { --tone: var(--green); }
+.panel.tint-purple { --tone: var(--purple); }
+
+/* ---------- the lower column ---------- */
+/* One switcher, not three loose buttons that happened to sit in a panel header. */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border-2); border-radius: 5px; overflow: hidden;
+}
+.seg button {
+  background: none; border: none; border-radius: 0;
+  padding: 4px 11px; font-size: 12px; color: var(--text-dim); white-space: nowrap;
+}
+.seg button + button { border-left: 1px solid var(--border-2); }
+.seg button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+.seg button.on { background: var(--sheet-accent); color: var(--bg); font-weight: 700; }
+.seg button.on:hover:not(:disabled) { background: var(--sheet-accent); color: var(--bg); }
+.seg .count { opacity: 0.6; margin-left: 5px; }
+
+/* Twenty-four rows drawn identically, alphabetical, with the three you are actually good at
+   buried among them. Trained skills are lifted out with an edge and a brighter row, the
+   modifier is the only number so it is the largest thing in the row, and on a wide screen
+   the list runs in two columns rather than a single mile-long one. */
+/* Column-major, like an index: A–K down the left, L–Z down the right. Filling across
+   instead would make looking one skill up a zigzag. Two independent columns rather than one
+   grid flowing down them — a grid gives every row the height of its tallest cell, so a
+   wrapped name in one column padded out whatever sat beside it in the other. */
+.skill-cols { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1180px) {
+  .skill-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+}
+.skill-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.skill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 8px; border-radius: 4px;
+  min-width: 0;
+}
+.skill:hover { background: var(--bg-3); }
+.skill.trained { background: var(--bg-3); }
+/* Trained or not is the ● / ○ it always was; the brighter row is what carries it now that
+   the modifier beside it is the thing you actually read. */
+.skill > .pip { flex-shrink: 0; }
+.skill-name { flex: 1; min-width: 0; font-size: 13px; }
+.skill.trained .skill-name { font-weight: 600; }
+.skill-ability {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-faint);
+  flex-shrink: 0;
+}
+.skill-total {
+  font-family: var(--mono); font-weight: 700; font-size: 14px;
+  /* Fixed, so the larger number on a trained row does not make that row taller than the
+     ones around it — the emphasis is in the size of the glyphs, not in the spacing. */
+  line-height: 20px;
+  min-width: 32px; text-align: right; flex-shrink: 0;
+}
+.skill.trained .skill-total { color: var(--sheet-accent); font-size: 16px; }
+.skill .badge { flex-shrink: 0; }
+
+/* The switches that change the numbers below them, ruled off from the numbers themselves —
+   they used to run straight into the attack list as one undifferentiated block. */
+.modifiers {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 9px; margin-bottom: 10px;
+}
+.modifiers .modifiers-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: 6px;
+}
+
+/* An attack leads with the roll, because that is what you reach for first. The damage is
+   the consequence, so it sits below at reading size. The left edge says which kind of thing
+   the row is without spending a word on it. */
+.attack-row { display: flex; align-items: center; gap: 11px; border-left: 3px solid var(--border-2); }
+.attack-row.melee { border-left-color: var(--sheet-accent); }
+.attack-row.ranged { border-left-color: var(--blue); }
+/* Green, with the Force powers everywhere else on the sheet. */
+.attack-row.power { border-left-color: var(--green); }
+/* The number centres on the cell, not on what is left of the cell after its own padding —
+   box-sizing means a right padding here shifts the contents left of true centre. The gap on
+   the row does the separating instead. */
+.attack-roll {
+  flex-shrink: 0; width: 54px; align-self: stretch;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.attack-roll .breakdown { font-size: 19px; line-height: 1.15; }
+.attack-roll .k {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700;
+}
+.attack-row > .grow { min-width: 0; flex: 1; }
+.attack-row .attack-name { margin-bottom: 1px; }
+
+/* Feats, talents and powers were one undifferentiated drift of chips. Each kind now carries
+   its own tone, and its heading carries the same one, so the groups separate at a glance. */
+.feature-group { margin-bottom: 12px; }
+.feature-group h3 {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 7px;
+}
+.feature-group h3 .rule { flex: 1; height: 1px; background: var(--border); }
+.tone-accent { color: var(--sheet-accent); }
+.tone-blue { color: var(--blue); }
+.tone-purple { color: var(--purple); }
+.tone-green { color: var(--green); }
+button.chip.tone-accent { background: rgba(255,207,77,0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
+button.chip.tone-blue { background: rgba(78,168,222,0.09); border-color: #2b455c; color: var(--text); }
+button.chip.tone-purple { background: rgba(169,139,220,0.09); border-color: #453b5c; color: var(--text); }
+button.chip.tone-green { background: rgba(92,201,139,0.09); border-color: #2b5c40; color: var(--text); }
+button.chip.tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
+button.chip.tone-blue:hover:not(:disabled) { border-color: var(--blue); }
+button.chip.tone-purple:hover:not(:disabled) { border-color: var(--purple); }
+button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
+
+/* One table for everything carried, with the category as a rule across it — three tables
+   each repeating WORN / ITEM / QTY / WEIGHT was more chrome than cargo. */
+.kit-head td {
+  padding: 12px 10px 4px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700;
+  border-bottom: 1px solid var(--border-2);
+}
+.kit-head:first-child td { padding-top: 2px; }
+/* Worn or wielded is the distinction that matters in play, so it is an edge on the row
+   rather than a tick you have to go looking for. */
+.kit-row td:first-child { border-left: 3px solid transparent; }
+.kit-row.worn td:first-child { border-left-color: var(--sheet-accent); }
+.kit-row.worn .item-name { font-weight: 600; }
+.kit-row:hover td { background: rgba(255,255,255,0.02); }
+.kit-actions { display: flex; gap: 2px; justify-content: flex-end; }
+
+@media print {
+  .seg, .modifiers, .kit-actions { display: none !important; }
+  .skill.trained { background: none; }
+  .skill > .pip { border-color: #333; }
+  .skill > .pip.full { background: #333; }
+  .attack-row { border-left-color: #999; }
+  .kit-row.worn td:first-child { border-left-color: #333; }
+  /* Quantity is a value on paper, not a field to type in. */
+  .kit-row input.mono { background: transparent; border-color: transparent; color: #000; }
+}
+
+@media print {
+  .frame, .vitals-frame { background: #fff !important; border-color: #ccc; box-shadow: none !important; }
+  .frame::before, .frame::after { border-color: #999; }
+  .vital + .vital, .def-cell + .def-cell, .abil + .abil { border-color: #ccc; }
+  .factline { background: #fff; border-color: #ccc; }
+  .hp-bar, .fall-bar { border-color: #999; }
+  /* The condition track is part of the sheet, not a control — buttons are hidden in print
+     but the track has to survive, or the printout loses where the character stands. */
+  .ctrack-step { display: flex !important; }
+  .ctrack-mark { background: #ddd; }
+  .ctrack-step.passed .ctrack-mark, .ctrack-step.here .ctrack-mark { background: #333; box-shadow: none; }
+  .hp-controls { display: none !important; }
+  /* The destiny and dark-side inputs are values on the printed sheet, so they stay —
+     stripped back to the number they hold. */
+  .mini-field input {
+    background: transparent; border-color: transparent; padding-left: 0; color: #000;
+  }
+  /* A reference panel is dimmer than the live ones on screen; on paper it is just a panel,
+     and its own background would otherwise outrank the white one set for `.panel`. */
+  .panel.reference { background: #fff; }
+  .panel.framed::before, .panel.framed::after { border-color: #999; }
+  .panel.framed > header { box-shadow: none; }
+}

@@ -50,7 +50,7 @@ await step('no stray buttons under the portrait', async () => {
 });
 await step('the sheet portrait is editable too', async () => {
   await page.click('.tabs button:has-text("Sheet")');
-  await page.click('.panel .portrait-button');
+  await page.click('.identity .portrait-button');
   await page.waitForSelector('.portrait-choices');
   await page.click('.modal header button');
   await page.click('.tabs button:has-text("Character")');
@@ -252,7 +252,7 @@ await step('read the attack bonus first', async () => {
   await gearBox().locator('header button:has-text("Equipment")').click();
   await page.locator('tr:has-text("Blaster Rifle")').first().locator('input[type="checkbox"]').check();
   await gearBox().locator('header button:has-text("Actions")').click();
-  attackBefore = Number((await page.locator('.attack-row:has-text("Blaster Rifle") .attack-nums .breakdown')
+  attackBefore = Number((await page.locator('.attack-row:has-text("Blaster Rifle") .attack-roll .breakdown')
     .first().textContent()).trim());
   await gearBox().locator('header button:has-text("Equipment")').click();
 });
@@ -271,7 +271,7 @@ await step('the row says the copy has been altered', async () => {
 });
 await step('and the attack roll picks it up, by name', async () => {
   await gearBox().locator('header button:has-text("Actions")').click();
-  const total = page.locator('.attack-row:has-text("Blaster Rifle") .attack-nums .breakdown').first();
+  const total = page.locator('.attack-row:has-text("Blaster Rifle") .attack-roll .breakdown').first();
   const after = Number((await total.textContent()).trim());
   if (after !== attackBefore + 1) throw new Error(`attack went ${attackBefore} -> ${after}`);
   await total.hover();
@@ -298,8 +298,8 @@ await step('a heavy load slows you down and is explained on hover', async () => 
   await box.locator('header button:has-text("Equipment")').click();
   const load = box.locator('.hint.breakdown').first();
   const before = await load.textContent();
-  const unloadedSpeed = parseInt((await page.locator('.stat:has-text("Speed") .value').textContent()).trim(), 10);
-  const unloadedStealth = parseInt((await page.locator('tr:has-text("Stealth") td.num').first().textContent()).trim(), 10);
+  const unloadedSpeed = parseInt((await page.locator('.factline .fact:has-text("Speed") .v').textContent()).trim(), 10);
+  const unloadedStealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
 
   const quantity = box.locator('tbody input.mono').last();
   await quantity.fill('12');
@@ -322,9 +322,9 @@ await step('a heavy load slows you down and is explained on hover', async () => 
   await card.waitFor({ state: 'detached' }).catch(() => {});
 
   // Speed and the affected skills must move with it.
-  const speed = parseInt((await page.locator('.stat:has-text("Speed") .value').textContent()).trim(), 10);
+  const speed = parseInt((await page.locator('.factline .fact:has-text("Speed") .v').textContent()).trim(), 10);
   if (!(speed < unloadedSpeed)) throw new Error(`speed did not drop: ${unloadedSpeed} -> ${speed}`);
-  const stealth = parseInt((await page.locator('tr:has-text("Stealth") td.num').first().textContent()).trim(), 10);
+  const stealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
   if (!(stealth < unloadedStealth)) throw new Error(`Stealth did not drop: ${unloadedStealth} -> ${stealth}`);
   console.log(`       ${after} — speed ${unloadedSpeed} to ${speed}, Stealth ${unloadedStealth} to ${stealth}`);
 
@@ -334,7 +334,7 @@ await step('a heavy load slows you down and is explained on hover', async () => 
 
 await step('sheet is open', async () => { await page.click('.tabs button:has-text("Sheet")'); });
 await step('sheet shows defenses', async () => {
-  await page.waitForSelector('.stat:has-text("Reflex Defense")');
+  await page.waitForSelector('.def-cell:has-text("Reflex")');
 });
 await step('sheet shows attacks, with the working on hover', async () => {
   // Attacks, features and equipment share one tabbed box on the sheet.
@@ -357,10 +357,10 @@ await step('sheet shows attacks, with the working on hover', async () => {
     return t;
   };
 
-  const nums = panel.locator('.attack-nums .breakdown');
-  const attack = await hoverText(nums.first());
+  // The roll leads the row and the damage follows it, so they are two different blocks.
+  const attack = await hoverText(panel.locator('.attack-roll .breakdown').first());
   if (!/base attack bonus/.test(attack)) throw new Error('no attack breakdown tooltip');
-  const damage = await hoverText(nums.nth(1));
+  const damage = await hoverText(panel.locator('.attack-nums .breakdown').first());
   if (!/half character level/.test(damage)) throw new Error('no damage breakdown tooltip');
 
   // Feats and powers show their rules, but never their prerequisites.
@@ -375,7 +375,7 @@ await step('sheet shows attacks, with the working on hover', async () => {
   if (!/Cost|Weight|Damage/.test(item)) throw new Error('item tooltip carried no stats');
 
   // And a defense tile shows where its number came from.
-  const reflex = await hoverText(page.locator('.stat:has-text("Reflex Defense")'));
+  const reflex = await hoverText(page.locator('.def-cell:has-text("Reflex")'));
   if (!/heroic level/.test(reflex)) throw new Error('no defense breakdown tooltip');
 
   await panel.locator('header button:has-text("Actions")').click();
@@ -429,13 +429,71 @@ await step('every hover card stays inside the window', async () => {
   if (offscreen.length) throw new Error(`${offscreen.length} cut off: ${offscreen.slice(0, 3).join('; ')}`);
   console.log(`       ${checked} hover cards, all on screen (${JSON.stringify(places)})`);
 });
+// The sheet is read in three tiers — what changes in play, what you are rolled against,
+// and what is simply true — and each is drawn its own way, so each is scraped its own way.
+await step('the sheet reads in three tiers', async () => {
+  const missing = [];
+  for (const [what, sel] of [
+    ['vitals', '.vitals .vital'],
+    ['defenses', '.defenses .def-cell'],
+    ['abilities', '.abil-strip .abil'],
+    ['the fact line', '.factline .fact'],
+  ]) {
+    if (await page.locator(sel).count() === 0) missing.push(what);
+  }
+  if (missing.length) throw new Error(`missing from the sheet: ${missing.join(', ')}`);
+});
+await step('the lower column separates what matters from what does not', async () => {
+  // A trained skill is lifted out of the list rather than marked with a glyph you have to
+  // go looking for, and the attack roll leads its row ahead of the damage.
+  const trained = await page.locator('.skill.trained').count();
+  if (trained === 0) throw new Error('no skill is marked as trained');
+  if (trained >= await page.locator('.skill').count()) throw new Error('every skill reads as trained');
+
+  const panel = page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
+  await panel.locator('header button:has-text("Actions")').click();
+  const rows = panel.locator('.attack-row');
+  if (await rows.count() === 0) throw new Error('no attack rows');
+  // Melee and ranged are told apart by the edge, so every row must claim one.
+  const kinds = await rows.evaluateAll(els =>
+    els.filter(e => !e.classList.contains('melee') && !e.classList.contains('ranged')
+      && !e.classList.contains('power')).length);
+  if (kinds) throw new Error(`${kinds} attack rows carry no kind`);
+
+  // Force points are read and spent in the vitals band only — the Actions tab used to
+  // carry a second copy of the same pool.
+  if (await panel.locator('.fp-bar').count()) throw new Error('the Force point pool is on the sheet twice');
+
+  await panel.locator('header button:has-text("Equipment")').click();
+  const heads = await panel.locator('.kit-head').count();
+  const tables = await panel.locator('table').count();
+  if (heads === 0) throw new Error('the kit table has no category rules');
+  if (tables !== 1) throw new Error(`expected one kit table, got ${tables}`);
+  if (await panel.locator('.kit-row.worn').count() === 0) throw new Error('nothing reads as worn');
+  await panel.locator('header button:has-text("Actions")').click();
+});
+await step('the condition track is a track, not a row of buttons', async () => {
+  const steps = await page.locator('.ctrack .ctrack-step').count();
+  if (steps < 5) throw new Error(`expected the whole track, got ${steps} steps`);
+  // Dropping to a step lights it and everything above it, so the depth of the fall reads
+  // as the length of the lit run.
+  await page.locator('.ctrack .ctrack-step').nth(2).click();
+  const lit = await page.locator('.ctrack .ctrack-step.passed, .ctrack .ctrack-step.here').count();
+  if (lit !== 3) throw new Error(`expected 3 steps lit at index 2, got ${lit}`);
+  await page.locator('.ctrack .ctrack-step').first().click();
+});
 const stats = await page.evaluate(() => {
   const out = {};
-  document.querySelectorAll('.stat').forEach(s => {
-    const l = s.querySelector('.label')?.textContent?.trim();
-    const v = s.querySelector('.value')?.textContent?.trim();
-    if (l && v && !out[l]) out[l] = v;
-  });
+  const put = (l, v) => { if (l && v && !out[l]) out[l] = v; };
+  document.querySelectorAll('.vital').forEach(s => put(
+    s.querySelector('.vital-label')?.textContent?.trim(),
+    s.querySelector('.vital-value')?.textContent?.trim()));
+  document.querySelectorAll('.def-cell').forEach(s => put(
+    s.querySelector('.vital-label')?.textContent?.trim(),
+    s.querySelector('.def-value')?.textContent?.trim()));
+  document.querySelectorAll('.abil').forEach(s => put(
+    s.querySelector('.abil-name')?.textContent?.trim(),
+    s.querySelector('.abil-mod')?.textContent?.trim()));
   return out;
 });
 console.log('       sheet stats:', JSON.stringify(stats));
@@ -530,7 +588,7 @@ await page.screenshot({ path: 'screenshot-list.png' });
 await step('reopen and check sheet survived', async () => {
   await page.click('.item .name:has-text("Kira Vess")');
   await page.click('.tabs button:has-text("Sheet")');
-  await page.waitForSelector('.stat:has-text("Reflex Defense")');
+  await page.waitForSelector('.def-cell:has-text("Reflex")');
 });
 await page.screenshot({ path: 'screenshot-builder.png' });
 

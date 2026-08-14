@@ -219,30 +219,31 @@ export function Equipment({
         {rows.length === 0 ? (
           <div className="empty">Nothing carried yet.</div>
         ) : (
-          CATEGORIES.map(cat => {
-            const list = byCategory(cat);
-            if (!list.length) return null;
-            return (
-              <div key={cat} style={{ marginBottom: 14 }}>
-                <h3 style={{ marginBottom: 6 }}>{CATEGORY_LABELS[cat]}</h3>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style={{ width: 44 }}>Worn</th>
-                        <th>Item</th>
-                        {!compact && (
-                          <th>{cat === 'weapon' ? 'Damage' : cat === 'armor' ? 'Ref / Fort / Max Dex' : 'Notes'}</th>
-                        )}
-                        <th className="num">Qty</th>
-                        <th className="num">Weight</th>
-                        {!compact && <th className="num">Cost</th>}
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
+          // One table for the whole kit, with each category as a rule across it. Three
+          // tables each repeating Worn / Item / Qty / Weight was more chrome than cargo.
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}>Worn</th>
+                  <th>Item</th>
+                  {!compact && <th>Detail</th>}
+                  <th className="num">Qty</th>
+                  <th className="num">Weight</th>
+                  {!compact && <th className="num">Cost</th>}
+                  <th />
+                </tr>
+              </thead>
+              {CATEGORIES.map(cat => {
+                const list = byCategory(cat);
+                if (!list.length) return null;
+                return (
+                  <tbody key={cat}>
+                    <tr className="kit-head">
+                      <td colSpan={compact ? 5 : 7}>{CATEGORY_LABELS[cat]}</td>
+                    </tr>
                       {list.map(({ entry, item }) => (
-                        <tr key={entry.uid}>
+                        <tr key={entry.uid} className={`kit-row${entry.equipped ? ' worn' : ''}`}>
                           <td>
                             <input type="checkbox" checked={entry.equipped} onChange={() => toggleEquip(entry.uid)} />
                           </td>
@@ -293,7 +294,7 @@ export function Equipment({
                           <td className="num faint">{(item.weight * entry.quantity).toFixed(1)}</td>
                           {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}
                           <td>
-                            <div className="row">
+                            <div className="kit-actions">
                               <button
                                 className="sm ghost"
                                 title={item.custom ? 'Edit this item' : 'Customize this copy'}
@@ -306,12 +307,11 @@ export function Equipment({
                           </td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })
+                  </tbody>
+                );
+              })}
+            </table>
+          </div>
         )}
 
       {browsing && (

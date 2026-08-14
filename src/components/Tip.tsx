@@ -193,6 +193,12 @@ function Section({ title, lines }: { title: string; lines?: string[] }) {
 /**
  * What a feat, talent or power actually does. Prerequisites are deliberately left out:
  * by the time it is on your sheet you have met them, and they crowd out the rules.
+ *
+ * So is the kind of thing it is. Every caller already says it: the sheet groups its chips
+ * under Feats / Talents / Force powers, the Force power rows sit under their own heading,
+ * a toggle is named after the feat behind it, and a prerequisite line carries its own tag.
+ * Repeating it here bought nothing and pushed itself onto a second line whenever the name
+ * was long. The descriptors stay — "dark side" is not derivable from where you found it.
  */
 export function FeatureTipBody({ feature, spec, note }: { feature: Feature; spec?: string; note?: ReactNode }) {
   const descriptors = descriptorsOf(feature);
@@ -200,7 +206,6 @@ export function FeatureTipBody({ feature, spec, note }: { feature: Feature; spec
     <div className="tip-body">
       <div className="tip-head">
         <strong>{featureName(feature.id, spec)}</strong>
-        <span className="badge">{feature.type.replace('-', ' ')}</span>
         {descriptors.map(d => <span key={d.label} className={`badge ${d.cls}`}>{d.label}</span>)}
       </div>
       <div className="tip-source">
