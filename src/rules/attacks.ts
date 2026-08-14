@@ -1,6 +1,6 @@
-import type { Character, EquipmentItem, Feature } from '../types';
+import type { Character, EquipmentItem, Feature, ResolvedItem } from '../types';
 import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
-import { countFeature, hasFeature, getItem } from './engine';
+import { countFeature, hasFeature, carriedItems } from './engine';
 import type { Derived } from './engine';
 
 /** Situational choices the player makes before rolling. */
@@ -171,7 +171,7 @@ export function needsTwoHands(
 export interface Part { label: string; value: number }
 
 export interface AttackProfile {
-  weapon: EquipmentItem;
+  weapon: ResolvedItem;
   melee: boolean;
   proficient: boolean;
   attack: number;
@@ -192,7 +192,11 @@ export interface AttackProfile {
 /** Martial Arts steps unarmed damage up one die at a time. */
 const DIE_STEPS = ['1d3', '1d4', '1d6', '1d8', '1d10', '1d12'];
 export function unarmedDamage(have: { id: string }[], base = '1d4'): string {
-  let i = Math.max(0, DIE_STEPS.indexOf(base));
+  // A die the ladder does not carry — a customized unarmed strike rolling 2d6 — is left as
+  // written. There is no next rung to step it to, and snapping it to the bottom one would
+  // quietly turn a stronger attack into 1d3.
+  let i = DIE_STEPS.indexOf(base);
+  if (i < 0) return base;
   for (const feat of ['martial-arts-i', 'martial-arts-ii', 'martial-arts-iii']) {
     if (have.some(r => r.id === feat)) i = Math.min(i + 1, DIE_STEPS.length - 1);
   }
@@ -225,12 +229,19 @@ const AUTOMATIC = new Set([
 export function buildAttack(
   _char: Character,
   derived: Derived,
-  weapon: EquipmentItem,
+  weapon: ResolvedItem,
   opts: AttackOptions,
 ): AttackProfile {
   const have = derived.features;
   const group = weapon.group ?? '';
-  const melee = isMelee(weapon);
+  // A weapon marked thrown is hurled rather than swung, which makes the attack a ranged
+  // one: Dexterity on the roll, no Power Attack, no melee talents. The Strength modifier
+  // still lands on the damage, as it does for any weapon thrown by hand. Where a weapon
+  // is used both ways — a spear kept for either — carry it twice and mark one copy.
+  const thrown = weapon.thrown === true;
+  const melee = isMelee(weapon) && !thrown;
+  /** Shot from a weapon rather than thrown by hand — what the fire modes need. */
+  const fired = !melee && !thrown;
   const notes: string[] = [];
 
   const proficient = hasFeature(have, 'weapon-proficiency', group)
@@ -270,11 +281,18 @@ export function buildAttack(
   if (!melee && opts.aim && hasFeature(have, 'careful-shot')) {
     attackParts.push({ label: 'Careful Shot', value: 1 });
   }
-  if (!melee && opts.rapidShot && hasFeature(have, 'rapid-shot')) {
+  // Rapid Shot fires two shots as one attack and Burst Fire needs a weapon that can lay
+  // down autofire; neither is a thing a hurled spear can do, so a thrown weapon is ranged
+  // for everything except these two.
+  if (fired && opts.rapidShot && hasFeature(have, 'rapid-shot')) {
     attackParts.push({ label: 'Rapid Shot', value: -2 });
   }
-  if (!melee && opts.burstFire && hasFeature(have, 'burst-fire')) {
+  if (fired && opts.burstFire && hasFeature(have, 'burst-fire')) {
     attackParts.push({ label: 'Burst Fire', value: -5 });
+  }
+  if (thrown && ((opts.rapidShot && hasFeature(have, 'rapid-shot'))
+    || (opts.burstFire && hasFeature(have, 'burst-fire')))) {
+    notes.push('Rapid Shot fires two shots and Burst Fire needs autofire, so neither reaches a weapon you throw.');
   }
 
   // ---- full attack: Double and Triple Attack each add an attack and -5 to all rolls,
@@ -321,13 +339,15 @@ export function buildAttack(
   // A weapon that takes two hands is always held that way, so it does not wait on the
   // toggle; a one-handed one counts only when the player says they are gripping it in two.
   // Neither is possible while holding a weapon in each hand.
-  const inherent = needsTwoHands(weapon, derived.size, have);
-  const bothHands = !opts.twoWeapon && (inherent || opts.twoHanded);
+  // Nothing is gripped in two hands on the way out of them, so a throw takes neither the
+  // doubled Strength bonus nor the two-handed half of Power Attack.
+  const inherent = !thrown && needsTwoHands(weapon, derived.size, have);
+  const bothHands = !thrown && !opts.twoWeapon && (inherent || opts.twoHanded);
 
   // Ataru puts Dexterity on lightsaber damage in place of Strength, and says so for the
   // doubled case too — two-handed it is double Dexterity rather than double Strength. Also
   // a "may", so the higher modifier wins.
-  const ataru = lightsaber && hasFeature(have, 'ataru');
+  const ataru = lightsaber && !thrown && hasFeature(have, 'ataru');
   const ataruDamage = ataru && derived.mods.dex > derived.mods.str;
 
   if (melee) {
@@ -346,6 +366,12 @@ export function buildAttack(
     if (opts.twoWeapon && (inherent || opts.twoHanded)) {
       notes.push('A weapon in each hand cannot also be held in two, so the doubled Strength bonus does not apply.');
     }
+  } else if (thrown) {
+    damageParts.push({ label: 'Strength (thrown)', value: derived.mods.str });
+    notes.push(
+      'Marked as thrown: the attack roll is a ranged one made with Dexterity, and your '
+      + 'Strength modifier is added to the damage. Clear the flag on the item to swing it instead.',
+    );
   }
   if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
   if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
@@ -366,8 +392,8 @@ export function buildAttack(
 
   // ---- extra dice: Rapid Shot, Burst Fire and Deadeye explicitly do not stack ----
   const diceOptions: { label: string; dice: number }[] = [];
-  if (!melee && opts.rapidShot && hasFeature(have, 'rapid-shot')) diceOptions.push({ label: 'Rapid Shot', dice: 1 });
-  if (!melee && opts.burstFire && hasFeature(have, 'burst-fire')) diceOptions.push({ label: 'Burst Fire', dice: 2 });
+  if (fired && opts.rapidShot && hasFeature(have, 'rapid-shot')) diceOptions.push({ label: 'Rapid Shot', dice: 1 });
+  if (fired && opts.burstFire && hasFeature(have, 'burst-fire')) diceOptions.push({ label: 'Burst Fire', dice: 2 });
   if (!melee && opts.aim && hasFeature(have, 'deadeye')) diceOptions.push({ label: 'Deadeye', dice: 1 });
   const best = diceOptions.sort((a, b) => b.dice - a.dice)[0];
   if (diceOptions.length > 1) {
@@ -394,6 +420,17 @@ export function buildAttack(
     if (effect.attack) attackParts.push({ label, value: effect.attack });
     if (effect.damage) damageParts.push({ label, value: effect.damage });
     if (effect.extraDice) extraDice.push({ label: mod.label, dice: effect.extraDice });
+  }
+
+  // ---- modifications fitted to this particular weapon ----
+  // A crystal, an attunement, whatever the player recorded against their own copy. Each
+  // is named in the breakdown rather than summed into one anonymous line, so a bonus can
+  // be traced back to the thing that granted it.
+  for (const up of weapon.upgrades ?? []) {
+    const label = up.name.trim() || 'modification';
+    if (up.attack) attackParts.push({ label, value: up.attack });
+    if (up.damage) damageParts.push({ label, value: up.damage });
+    if (up.damageDice) extraDice.push({ label, dice: up.damageDice });
   }
 
   const sneakDice = countFeature(have, 'sneak-attack');
@@ -441,19 +478,31 @@ export function buildAttack(
  * available and steps up with Martial Arts.
  */
 export function buildAttacks(char: Character, derived: Derived, opts: AttackOptions): AttackProfile[] {
+  const inventory = carriedItems(char);
   const seen = new Set<string>(['unarmed']);
-  const carried = char.inventory
-    .filter(e => e.equipped)
-    .map(e => getItem(char, e.itemId))
-    .filter((w): w is EquipmentItem => {
-      if (w?.category !== 'weapon' || seen.has(w.id)) return false;
-      seen.add(w.id);
+  const carried = inventory
+    .filter(r => r.entry.equipped)
+    .map(r => r.item)
+    .filter((w): w is ResolvedItem => {
+      if (w.category !== 'weapon') return false;
+      // Two identical blasters make one profile, but two copies customized differently
+      // are different weapons and each earns its own line. Unarmed is keyed by its id
+      // alone however it was customized, because the profile below is the one it gets —
+      // a second entry for it would put your fists on the list twice.
+      const key = w.modified && w.id !== 'unarmed' ? `${w.id}:${w.entryUid}` : w.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
 
-  const unarmed: EquipmentItem = {
-    ...EQUIPMENT.unarmed,
-    damage: unarmedDamage(derived.features, EQUIPMENT.unarmed?.damage ?? '1d4'),
+  // Your fists are always to hand, so unarmed never waits on the "worn" tick. A copy of it
+  // the player has made their own — armored gauntlets, a species' natural weapon — stands
+  // in for the default entry rather than appearing beside it.
+  const ownUnarmed = inventory.find(r => r.item.id === 'unarmed' && r.item.modified)?.item;
+  const base = ownUnarmed ?? EQUIPMENT.unarmed;
+  const unarmed: ResolvedItem = {
+    ...base,
+    damage: unarmedDamage(derived.features, base?.damage ?? '1d4'),
   };
   return [...carried, unarmed].map(w => buildAttack(char, derived, w, opts));
 }

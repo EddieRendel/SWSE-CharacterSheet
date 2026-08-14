@@ -248,6 +248,12 @@ export interface EquipmentItem {
   /** Rounds between firing and detonation, for indirect-fire ordnance like mortar shells. */
   delay?: string;
   twoHanded?: boolean;
+  /**
+   * Hurled rather than swung or fired: the attack roll is a ranged one. Nothing in the
+   * compendium marks this — "Special: Can be Thrown" is prose — so it is set by hand on
+   * the copy you carry.
+   */
+  thrown?: boolean;
   // armor
   armorType?: 'light' | 'medium' | 'heavy';
   reflex?: number;
@@ -257,11 +263,75 @@ export interface EquipmentItem {
   custom?: boolean;
 }
 
+/**
+ * One modification fitted to a single carried item: a lightsaber crystal, an armor
+ * upgrade such as a helmet package, the bonus an attunement talent or a Sith talisman
+ * grants. The numbers are the player's to enter and are applied as written — the app has
+ * no way to know which of them are equipment bonuses that would not stack at the table.
+ */
+export const UPGRADE_NUMBERS = [
+  'attack', 'damage', 'reflexDefense', 'fortitudeDefense', 'willDefense', 'weight', 'cost',
+] as const;
+
+/** The numbers an upgrade may carry; the rest of it is a name, dice and a note. */
+export type UpgradeNumber = typeof UPGRADE_NUMBERS[number];
+
+export interface ItemUpgrade {
+  id: string;
+  name: string;
+  /** Bonus on attack rolls made with this weapon. */
+  attack?: number;
+  /** Bonus on its damage rolls. */
+  damage?: number;
+  /** Extra dice rolled alongside the weapon's own, e.g. "1d6". */
+  damageDice?: string;
+  /** Bonus to the bearer's defenses while the item is worn or wielded. */
+  reflexDefense?: number;
+  fortitudeDefense?: number;
+  willDefense?: number;
+  /** Added to the item's own weight and cost. */
+  weight?: number;
+  cost?: number;
+  notes?: string;
+}
+
+/**
+ * What an item is rather than what it is like: which catalogue entry it is, what kind of
+ * thing, and where it was printed. Rewriting these on a copy is not customization but a
+ * different item, so they are the keys an override may not carry.
+ */
+export const ITEM_IDENTITY_KEYS = ['id', 'category', 'custom', 'book', 'page', 'attribution'] as const;
+
+/** Stats of the item itself that a player may rewrite on their copy. */
+export type ItemOverrides = Partial<Omit<EquipmentItem, typeof ITEM_IDENTITY_KEYS[number]>>;
+
+/**
+ * How one character's copy of an item differs from the catalogue entry. Kept on the
+ * inventory entry rather than on the item, so upgrading one blaster does not upgrade
+ * every other copy of that model in the galaxy.
+ */
+export interface ItemCustomization {
+  /** Only the keys the player actually changed; the rest are inherited. */
+  overrides?: ItemOverrides;
+  upgrades?: ItemUpgrade[];
+}
+
+/** An item as one character actually carries it, with their changes already applied. */
+export interface ResolvedItem extends EquipmentItem {
+  /** The inventory entry it came from, present only on a customized copy. */
+  entryUid?: string;
+  upgrades?: ItemUpgrade[];
+  /** True when an override or an upgrade changed something. */
+  modified?: boolean;
+}
+
 export interface InventoryEntry {
   uid: string;
   itemId: string;
   quantity: number;
   equipped: boolean;
+  /** Set once the player customizes this copy — see ItemCustomization. */
+  mods?: ItemCustomization;
 }
 
 /** A selection the player made to fill a class-granted choice slot. */

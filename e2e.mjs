@@ -242,6 +242,54 @@ await step('currency can be adjusted', async () => {
   if (after !== before + 100) throw new Error(`credits went ${before} -> ${after}`);
 });
 
+console.log('\n▸ Customizing a carried item');
+// The bonus a crystal, an attunement or an armor upgrade grants is fitted to one copy,
+// and has to come out the other end on the attack list rather than only in the dialog.
+const gearBox = () => page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
+let attackBefore;
+await step('read the attack bonus first', async () => {
+  // The rifle was added but not drawn, and only a drawn weapon has an attack profile.
+  await gearBox().locator('header button:has-text("Equipment")').click();
+  await page.locator('tr:has-text("Blaster Rifle")').first().locator('input[type="checkbox"]').check();
+  await gearBox().locator('header button:has-text("Actions")').click();
+  attackBefore = Number((await page.locator('.attack-row:has-text("Blaster Rifle") .attack-nums .breakdown')
+    .first().textContent()).trim());
+  await gearBox().locator('header button:has-text("Equipment")').click();
+});
+await step('fit a modification to the rifle', async () => {
+  await page.locator('tr:has-text("Blaster Rifle") button:has-text("✎")').first().click();
+  await page.waitForSelector('.modal:has-text("Customize")');
+  await page.click('.modal button:has-text("Add modification")');
+  await page.fill('.upgrade input[placeholder^="What it is"]', 'Ilum crystal');
+  await page.locator('.upgrade .field:has(label:text-is("Attack")) input').fill('1');
+  await page.click('.modal footer button.primary:has-text("Save")');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
+await step('the row says the copy has been altered', async () => {
+  const text = (await page.locator('tr:has-text("Blaster Rifle")').first().textContent()).replace(/\s+/g, ' ');
+  if (!/modified/i.test(text) || !/Ilum crystal/.test(text)) throw new Error(`row reads: ${text}`);
+});
+await step('and the attack roll picks it up, by name', async () => {
+  await gearBox().locator('header button:has-text("Actions")').click();
+  const total = page.locator('.attack-row:has-text("Blaster Rifle") .attack-nums .breakdown').first();
+  const after = Number((await total.textContent()).trim());
+  if (after !== attackBefore + 1) throw new Error(`attack went ${attackBefore} -> ${after}`);
+  await total.hover();
+  await page.locator('.tip-card').waitFor({ state: 'visible' });
+  const text = (await page.locator('.tip-card').textContent()).replace(/\s+/g, ' ');
+  if (!/Ilum crystal/.test(text)) throw new Error(`breakdown does not name it: ${text}`);
+});
+await step('abandoning a new custom item leaves no empty row', async () => {
+  await gearBox().locator('header button:has-text("Equipment")').click();
+  const before = await page.locator('tbody tr').count();
+  await gearBox().locator('button:has-text("Custom")').first().click();
+  await page.waitForSelector('.modal');
+  await page.click('.modal footer button:has-text("Cancel")');
+  await page.waitForSelector('.modal', { state: 'detached' });
+  const after = await page.locator('tbody tr').count();
+  if (after !== before) throw new Error(`rows went ${before} -> ${after}`);
+});
+
 console.log('\n▸ Sheet');
 console.log('\n▸ Carrying capacity');
 await step('a heavy load slows you down and is explained on hover', async () => {

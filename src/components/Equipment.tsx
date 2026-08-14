@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
-import type { Character, EquipmentItem } from '../types';
+import type {
+  Character, EquipmentItem, InventoryEntry, ItemCustomization, ItemOverrides, ItemUpgrade,
+  UpgradeNumber,
+} from '../types';
+import { ITEM_IDENTITY_KEYS } from '../types';
 import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
-import { getItem, signed } from '../rules/engine';
+import { getItem, carriedItems, signed, upgradeTotal } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { uid } from '../storage';
 import { Panel, Modal, Field, ItemDetail } from './ui';
@@ -51,12 +55,15 @@ export function Equipment({
   bare?: boolean;
 }) {
   const [browsing, setBrowsing] = useState(false);
-  const [editing, setEditing] = useState<EquipmentItem | null>(null);
+  /** Which carried copy is being edited, and whether it was created for this dialog. */
+  const [editing, setEditing] = useState<{ entryUid: string; created?: boolean } | null>(null);
   const [viewing, setViewing] = useState<EquipmentItem | null>(null);
 
   const add = (itemId: string) =>
     update(c => {
-      const existing = c.inventory.find(e => e.itemId === itemId);
+      // Stacks only with an untouched row: adding a second blaster is how you get one the
+      // crystal in the first is not fitted to, so it must not join that stack.
+      const existing = c.inventory.find(e => e.itemId === itemId && !e.mods);
       if (existing) existing.quantity += 1;
       else c.inventory.push({ uid: uid(), itemId, quantity: 1, equipped: false });
     });
@@ -84,19 +91,53 @@ export function Equipment({
       e.equipped = !e.equipped;
     });
 
-  const saveCustom = (item: EquipmentItem) =>
+  /**
+   * What the player changed about their own copy. Upgrades always ride on the inventory
+   * entry; the item's own stats go to the entry too — except on a custom item, which
+   * nobody else owns, where they belong in the definition itself.
+   */
+  const saveItem = (entryUid: string, mods: ItemCustomization | undefined, definition?: EquipmentItem) =>
     update(c => {
-      const i = c.customItems.findIndex(x => x.id === item.id);
-      if (i >= 0) c.customItems[i] = item;
-      else c.customItems.push(item);
-      if (!c.inventory.some(e => e.itemId === item.id)) {
-        c.inventory.push({ uid: uid(), itemId: item.id, quantity: 1, equipped: false });
+      const e = c.inventory.find(x => x.uid === entryUid);
+      if (!e) return;
+      if (mods) e.mods = mods;
+      else delete e.mods;
+      if (definition) {
+        const i = c.customItems.findIndex(x => x.id === definition.id);
+        if (i >= 0) c.customItems[i] = definition;
       }
     });
 
-  const rows = char.inventory
-    .map(e => ({ entry: e, item: getItem(char, e.itemId) }))
-    .filter(r => !!r.item) as { entry: Character['inventory'][0]; item: EquipmentItem }[];
+  // A custom item exists as a definition plus the entry that carries it, both created up
+  // front so the one editor can be used for it and for anything out of the compendium.
+  const createCustom = () => {
+    const item: EquipmentItem = {
+      id: `custom-${uid()}`, name: '', category: 'gear', weight: 0, cost: 0, custom: true,
+    };
+    const entryUid = uid();
+    update(c => {
+      c.customItems.push(item);
+      c.inventory.push({ uid: entryUid, itemId: item.id, quantity: 1, equipped: false });
+    });
+    setEditing({ entryUid, created: true });
+  };
+
+  /** Abandoning a brand-new custom item takes the empty row and its definition with it. */
+  const discardNew = (entryUid: string) =>
+    update(c => {
+      const e = c.inventory.find(x => x.uid === entryUid);
+      if (!e) return;
+      c.inventory = c.inventory.filter(x => x.uid !== entryUid);
+      if (!c.inventory.some(x => x.itemId === e.itemId)) {
+        c.customItems = c.customItems.filter(i => i.id !== e.itemId);
+      }
+    });
+
+  // Resolved, so every column shows the item as this character has it rather than as the
+  // compendium prints it.
+  const rows = carriedItems(char);
+  const editingEntry = editing ? char.inventory.find(e => e.uid === editing.entryUid) : undefined;
+  const editingBase = editingEntry ? getItem(char, editingEntry.itemId) : undefined;
 
   const byCategory = (cat: string) => rows.filter(r => r.item.category === cat);
 
@@ -131,7 +172,7 @@ export function Equipment({
               </span>
             )}
             <div className="spacer" />
-            <button className="sm" onClick={() => setEditing(blankItem())}>Custom</button>
+            <button className="sm" onClick={createCustom}>Custom</button>
             <button className="sm primary" onClick={() => setBrowsing(true)}>Add</button>
           </div>
         ) : (
@@ -223,8 +264,16 @@ export function Equipment({
                               </button>
                             </Tip>
                             {item.custom && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}
-                            {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}</div>}
+                            {item.modified && !item.custom && (
+                              <span className="badge green" style={{ marginLeft: 6 }}>modified</span>
+                            )}
+                            {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}{item.thrown ? ' · thrown' : ''}</div>}
                             {item.armorType && <div className="meta faint">{item.armorType} armor</div>}
+                            {!!item.upgrades?.length && (
+                              <div className="meta faint">
+                                {item.upgrades.map(u => u.name.trim() || 'modification').join(' · ')}
+                              </div>
+                            )}
                           </td>
                           {!compact && (
                             <td className="faint">
@@ -245,8 +294,14 @@ export function Equipment({
                           {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}
                           <td>
                             <div className="row">
-                              {item.custom && <button className="sm ghost" onClick={() => setEditing(item)}>✎</button>}
-                              <button className="sm ghost" onClick={() => remove(entry.uid)}>✕</button>
+                              <button
+                                className="sm ghost"
+                                title={item.custom ? 'Edit this item' : 'Customize this copy'}
+                                onClick={() => setEditing({ entryUid: entry.uid })}
+                              >
+                                ✎
+                              </button>
+                              <button className="sm ghost" title="Remove" onClick={() => remove(entry.uid)}>✕</button>
                             </div>
                           </td>
                         </tr>
@@ -271,11 +326,15 @@ export function Equipment({
           <ItemDetail item={viewing} />
         </Modal>
       )}
-      {editing && (
-        <CustomItemEditor
-          item={editing}
-          onSave={item => { saveCustom(item); setEditing(null); }}
-          onClose={() => setEditing(null)}
+      {editing && editingEntry && editingBase && (
+        <ItemEditor
+          entry={editingEntry}
+          base={editingBase}
+          onSave={(mods, definition) => { saveItem(editingEntry.uid, mods, definition); setEditing(null); }}
+          onClose={() => {
+            if (editing.created) discardNew(editing.entryUid);
+            setEditing(null);
+          }}
         />
       )}
     </>
@@ -286,7 +345,7 @@ export function Equipment({
       title="Carried equipment"
       actions={
         <div className="row">
-          <button className="sm" onClick={() => setEditing(blankItem())}>Custom item</button>
+          <button className="sm" onClick={createCustom}>Custom item</button>
           <button className="sm primary" onClick={() => setBrowsing(true)}>Add equipment</button>
         </div>
       }
@@ -372,38 +431,30 @@ function ItemBrowser({
   );
 }
 
-const blankItem = (): EquipmentItem => ({
-  id: `custom-${uid()}`, name: '', category: 'gear', weight: 0, cost: 0, custom: true,
-});
-
-function CustomItemEditor({
-  item, onSave, onClose,
-}: { item: EquipmentItem; onSave: (i: EquipmentItem) => void; onClose: () => void }) {
-  const [draft, setDraft] = useState<EquipmentItem>({ ...item });
-  const set = (patch: Partial<EquipmentItem>) => setDraft(d => ({ ...d, ...patch }));
-
+/** The stats of the item itself, as opposed to what has been bolted onto it. */
+function ItemStatFields({
+  draft, set, allowCategory,
+}: {
+  draft: EquipmentItem;
+  set: (patch: Partial<EquipmentItem>) => void;
+  /** Only a custom item may change what kind of thing it is. */
+  allowCategory: boolean;
+}) {
   return (
-    <Modal
-      title={item.name ? `Edit ${item.name}` : 'Custom item'}
-      onClose={onClose}
-      footer={
-        <>
-          <button onClick={onClose}>Cancel</button>
-          <button className="primary" disabled={!draft.name.trim()} onClick={() => onSave(draft)}>Save</button>
-        </>
-      }
-    >
+    <>
       <div className="grid g2">
         <Field label="Name">
           <input value={draft.name} onChange={e => set({ name: e.target.value })} autoFocus />
         </Field>
-        <Field label="Category">
-          <select value={draft.category} onChange={e => set({ category: e.target.value as EquipmentItem['category'] })}>
-            <option value="weapon">Weapon</option>
-            <option value="armor">Armor</option>
-            <option value="gear">Gear</option>
-          </select>
-        </Field>
+        {allowCategory && (
+          <Field label="Category">
+            <select value={draft.category} onChange={e => set({ category: e.target.value as EquipmentItem['category'] })}>
+              <option value="weapon">Weapon</option>
+              <option value="armor">Armor</option>
+              <option value="gear">Gear</option>
+            </select>
+          </Field>
+        )}
         <Field label="Weight (kg)">
           <input type="number" step="0.1" value={draft.weight} onChange={e => set({ weight: parseFloat(e.target.value) || 0 })} />
         </Field>
@@ -427,6 +478,24 @@ function CustomItemEditor({
             </Field>
             <Field label="Rate of fire">
               <input placeholder="S, A" value={draft.rateOfFire ?? ''} onChange={e => set({ rateOfFire: e.target.value })} />
+            </Field>
+            <Field label="Handling">
+              {/* The compendium keeps all three of these in prose — "Special: Can be Thrown"
+                  — so they are set by hand on the copy you carry. */}
+              <div className="row" style={{ flexWrap: 'wrap', gap: 12 }}>
+                <label className="row" style={{ gap: 5 }}>
+                  <input type="checkbox" checked={!!draft.twoHanded} onChange={e => set({ twoHanded: e.target.checked })} />
+                  <span className="hint">two-handed</span>
+                </label>
+                <label className="row" style={{ gap: 5 }}>
+                  <input type="checkbox" checked={!!draft.thrown} onChange={e => set({ thrown: e.target.checked })} />
+                  <span className="hint">can be thrown</span>
+                </label>
+                <label className="row" style={{ gap: 5 }}>
+                  <input type="checkbox" checked={!!draft.stun} onChange={e => set({ stun: e.target.checked })} />
+                  <span className="hint">stun setting</span>
+                </label>
+              </div>
             </Field>
           </>
         )}
@@ -457,6 +526,205 @@ function CustomItemEditor({
           <textarea value={draft.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
         </Field>
       </div>
+    </>
+  );
+}
+
+/**
+ * The numbers one modification may carry, and which of them a weapon alone has use for.
+ * `total` is how the field reads in the summary line, where "+2 kg" beats "+2 weight".
+ */
+const UPGRADE_FIELDS: {
+  key: UpgradeNumber; label: string; total?: string; weaponOnly?: boolean; step?: string;
+}[] = [
+  { key: 'attack', label: 'Attack', weaponOnly: true },
+  { key: 'damage', label: 'Damage', weaponOnly: true },
+  { key: 'reflexDefense', label: 'Reflex' },
+  { key: 'fortitudeDefense', label: 'Fortitude' },
+  { key: 'willDefense', label: 'Will' },
+  { key: 'weight', label: 'Weight kg', total: 'kg', step: '0.1' },
+  { key: 'cost', label: 'Cost cr', total: 'credits' },
+];
+
+/** An empty field is not a value of zero: it means this modification does not touch that. */
+const numberOrNone = (raw: string) => {
+  const n = parseFloat(raw);
+  return raw.trim() === '' || Number.isNaN(n) ? undefined : n;
+};
+
+const upgradeIsEmpty = (u: ItemUpgrade) =>
+  !u.name.trim() && !u.damageDice?.trim() && !u.notes?.trim()
+  && UPGRADE_FIELDS.every(f => !u[f.key]);
+
+function UpgradeFields({
+  upgrade, category, onChange, onRemove,
+}: {
+  upgrade: ItemUpgrade;
+  category: EquipmentItem['category'];
+  onChange: (u: ItemUpgrade) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="upgrade">
+      <div className="row">
+        <input
+          style={{ flex: 1, minWidth: 0 }}
+          placeholder="What it is — Ilum crystal, helmet package, attuned…"
+          value={upgrade.name}
+          onChange={e => onChange({ ...upgrade, name: e.target.value })}
+        />
+        <button className="sm ghost" title="Remove this modification" onClick={onRemove}>✕</button>
+      </div>
+      <div className="grid g4">
+        {UPGRADE_FIELDS.filter(f => !f.weaponOnly || category === 'weapon').map(f => (
+          <Field key={f.key} label={f.label}>
+            <input
+              type="number"
+              step={f.step}
+              value={upgrade[f.key] ?? ''}
+              onChange={e => onChange({ ...upgrade, [f.key]: numberOrNone(e.target.value) })}
+            />
+          </Field>
+        ))}
+        {category === 'weapon' && (
+          <Field label="Extra dice">
+            <input
+              placeholder="1d6"
+              value={upgrade.damageDice ?? ''}
+              onChange={e => onChange({ ...upgrade, damageDice: e.target.value })}
+            />
+          </Field>
+        )}
+      </div>
+      <Field label="Note">
+        <input
+          placeholder="What the book says it does"
+          value={upgrade.notes ?? ''}
+          onChange={e => onChange({ ...upgrade, notes: e.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+const NOT_OVERRIDABLE = new Set<string>(ITEM_IDENTITY_KEYS);
+/** A cleared field and one that was never set both mean "whatever the book says". */
+const blankValue = (v: unknown) => v === undefined || v === null || v === '' || v === false;
+const sameValue = (a: unknown, b: unknown) => a === b || (blankValue(a) && blankValue(b));
+
+/**
+ * One dialog for both halves of owning a thing: the item's own stats, and everything
+ * fitted to it afterwards. Changes are kept against the inventory entry, so upgrading
+ * one blaster leaves every other copy of that model — on this character and on any
+ * other — exactly as the compendium prints it. A custom item is the exception: nobody
+ * else owns one, so its stats are written back to the definition itself.
+ */
+function ItemEditor({
+  entry, base, onSave, onClose,
+}: {
+  entry: InventoryEntry;
+  base: EquipmentItem;
+  onSave: (mods: ItemCustomization | undefined, definition?: EquipmentItem) => void;
+  onClose: () => void;
+}) {
+  const custom = base.custom === true;
+  // The draft starts from the item as owned — the book's stats with the player's edits on
+  // top — and deliberately not from the resolved item, whose weight and cost already carry
+  // what the upgrades below add. Editing that would count them twice.
+  const [draft, setDraft] = useState<EquipmentItem>(() => ({ ...base, ...entry.mods?.overrides }));
+  const [upgrades, setUpgrades] = useState<ItemUpgrade[]>(
+    () => (entry.mods?.upgrades ?? []).map(u => ({ ...u })),
+  );
+  const set = (patch: Partial<EquipmentItem>) => setDraft(d => ({ ...d, ...patch }));
+
+  const fitted = upgrades.filter(u => !upgradeIsEmpty(u));
+  const totals = UPGRADE_FIELDS
+    .map(f => ({ label: f.total ?? f.label.toLowerCase(), value: upgradeTotal(fitted, f.key) }))
+    .filter(t => t.value !== 0);
+
+  const save = () => {
+    const kept = fitted.map(u => ({ ...u, name: u.name.trim() || 'modification' }));
+    if (custom) {
+      onSave(kept.length ? { upgrades: kept } : undefined, { ...draft, id: base.id, custom: true });
+      return;
+    }
+    const printed: Record<string, unknown> = { ...base };
+    const overrides: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(draft)) {
+      if (NOT_OVERRIDABLE.has(key)) continue;
+      if (!sameValue(value, printed[key])) overrides[key] = value;
+    }
+    const changed = Object.keys(overrides).length > 0;
+    onSave(changed || kept.length
+      ? {
+        ...(changed ? { overrides: overrides as ItemOverrides } : {}),
+        ...(kept.length ? { upgrades: kept } : {}),
+      }
+      : undefined);
+  };
+
+  return (
+    <Modal
+      wide
+      title={base.name ? `${custom ? 'Edit' : 'Customize'} ${base.name}` : 'Custom item'}
+      onClose={onClose}
+      footer={
+        <>
+          {!custom && entry.mods && (
+            <button className="danger" onClick={() => onSave(undefined)}>Back to the book</button>
+          )}
+          <div className="spacer" />
+          <button onClick={onClose}>Cancel</button>
+          <button className="primary" disabled={!draft.name.trim()} onClick={save}>Save</button>
+        </>
+      }
+    >
+      {!custom && (
+        <div className="notice" style={{ marginBottom: 12 }}>
+          Changes apply to the copy you are carrying, not to the compendium entry — add the
+          item again for an unaltered one.
+          {entry.quantity > 1 && ` This row stacks ${entry.quantity}, so all of them are altered together.`}
+        </div>
+      )}
+
+      <ItemStatFields draft={draft} set={set} allowCategory={custom} />
+
+      <div className="row" style={{ margin: '16px 0 6px' }}>
+        <h3>Modifications</h3>
+        <div className="spacer" />
+        <button className="sm" onClick={() => setUpgrades(u => [...u, { id: uid(), name: '' }])}>
+          Add modification
+        </button>
+      </div>
+      <p className="hint" style={{ marginTop: 0 }}>
+        Anything fitted to this one item: an armor upgrade, a lightsaber crystal, a talisman's
+        blessing, a talent that attunes or empowers a weapon. Attack and damage apply when you
+        use it; Reflex, Fortitude and Will apply to your own defenses while it is worn or
+        wielded. Numbers are applied as entered — whether two bonuses of the same type stack is
+        a question for your table. Change what the armor itself grants above instead.
+      </p>
+
+      {upgrades.length === 0 ? (
+        <div className="empty">Nothing fitted.</div>
+      ) : (
+        <div className="col">
+          {upgrades.map((u, i) => (
+            <UpgradeFields
+              key={u.id}
+              upgrade={u}
+              category={draft.category}
+              onChange={next => setUpgrades(list => list.map((x, j) => (j === i ? next : x)))}
+              onRemove={() => setUpgrades(list => list.filter((_, j) => j !== i))}
+            />
+          ))}
+        </div>
+      )}
+
+      {totals.length > 0 && (
+        <p className="hint">
+          Fitted in total: {totals.map(t => `${signed(t.value)} ${t.label}`).join(', ')}.
+        </p>
+      )}
     </Modal>
   );
 }

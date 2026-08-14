@@ -277,6 +277,14 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   .item > .grow { flex: 1 1 calc(100% - 48px); }
 }
 
+/* One modification fitted to a carried item, in the equipment editor. The numbers sit in
+   a grid that folds to two columns on a phone, so nothing here has a fixed width. */
+.upgrade {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+}
+
 .clickable { cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
 
 .empty {

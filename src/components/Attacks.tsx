@@ -290,7 +290,9 @@ export function Attacks({
       </div>
 
       <div className="list">
-        {attacks.map(a => <AttackRow key={a.weapon.id} a={a} />)}
+        {/* Two copies of one weapon customized differently are two profiles, so the entry
+            they came from is what tells them apart. */}
+        {attacks.map(a => <AttackRow key={a.weapon.entryUid ?? a.weapon.id} a={a} />)}
       </div>
 
       {powers.length > 0 && (

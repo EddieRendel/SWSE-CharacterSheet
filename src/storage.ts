@@ -1,5 +1,12 @@
-import type { Character, AbilityScores } from './types';
+import type { Character, AbilityScores, InventoryEntry, ItemCustomization, ItemUpgrade } from './types';
+import { ITEM_IDENTITY_KEYS, UPGRADE_NUMBERS } from './types';
 
+/**
+ * The key is not versioned per shape change on purpose: reading a new one would orphan
+ * every character already saved, and there is no server to re-derive them from. Fields
+ * are added optionally and `migrate` below brings older and hand-edited saves up to the
+ * current shape — which is what has to happen for anything persisted.
+ */
 const KEY = 'swse-forge:characters:v1';
 
 export const emptyAbilities = (): AbilityScores => ({ str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 });
@@ -47,8 +54,70 @@ export function newCharacter(name = 'New Character'): Character {
   };
 }
 
+const finiteNumber = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+const nonEmpty = (v: unknown) => (typeof v === 'string' && v.trim() ? v : undefined);
+
+/** One fitted modification, with anything the file got wrong dropped rather than trusted. */
+function migrateUpgrade(raw: unknown, index: number): ItemUpgrade | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const from = raw as Record<string, unknown>;
+  // An upgrade with no id is still an upgrade; it just needs one, since the id is what
+  // the editor keys its rows by.
+  const upgrade: ItemUpgrade = {
+    id: nonEmpty(from.id) ?? `${uid()}-${index}`,
+    name: typeof from.name === 'string' ? from.name : '',
+  };
+  for (const key of UPGRADE_NUMBERS) {
+    const value = finiteNumber(from[key]);
+    if (value !== undefined) upgrade[key] = value;
+  }
+  const dice = nonEmpty(from.damageDice);
+  if (dice) upgrade.damageDice = dice;
+  const notes = nonEmpty(from.notes);
+  if (notes) upgrade.notes = notes;
+  return upgrade;
+}
+
+/**
+ * Customizations were added to inventory entries after characters were already being
+ * saved. A save from before them has none and needs nothing; what needs handling is an
+ * entry carrying a malformed one — an exported file edited by hand, or one written by a
+ * future shape — so the rules engine never has to defend itself against it.
+ */
+function migrateCustomization(raw: unknown): ItemCustomization | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const from = raw as Record<string, unknown>;
+  const mods: ItemCustomization = {};
+
+  if (from.overrides && typeof from.overrides === 'object') {
+    // What an item is stays what it is: an override naming its id, category or book is
+    // describing a different item, not a modified one.
+    const identity = new Set<string>(ITEM_IDENTITY_KEYS);
+    const overrides = Object.fromEntries(
+      Object.entries(from.overrides as Record<string, unknown>)
+        .filter(([key, value]) => value !== undefined && !identity.has(key)),
+    );
+    if (Object.keys(overrides).length) mods.overrides = overrides;
+  }
+
+  const upgrades = Array.isArray(from.upgrades)
+    ? from.upgrades.map(migrateUpgrade).filter((u): u is ItemUpgrade => !!u)
+    : [];
+  if (upgrades.length) mods.upgrades = upgrades;
+
+  return mods.overrides || mods.upgrades ? mods : undefined;
+}
+
+function migrateEntry(raw: InventoryEntry): InventoryEntry {
+  const entry: InventoryEntry = { ...raw };
+  delete entry.mods;
+  const mods = migrateCustomization(raw.mods);
+  if (mods) entry.mods = mods;
+  return entry;
+}
+
 /** Fill in fields added after a character was saved, so old saves keep working. */
-function migrate(c: Partial<Character>): Character {
+export function migrate(c: Partial<Character>): Character {
   const base = newCharacter();
   return {
     ...base,
@@ -64,7 +133,7 @@ function migrate(c: Partial<Character>): Character {
     selections: c.selections ?? [],
     trainedSkills: c.trainedSkills ?? [],
     languages: c.languages ?? [],
-    inventory: c.inventory ?? [],
+    inventory: (c.inventory ?? []).map(migrateEntry),
     customItems: c.customItems ?? [],
     powersSpent: c.powersSpent ?? {},
     id: c.id ?? base.id,

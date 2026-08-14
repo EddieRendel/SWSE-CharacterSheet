@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Character, EquipmentItem, Feature } from '../types';
+import type { Character, Feature, ResolvedItem } from '../types';
 import { BOOK_NAMES, CLASSES, specName, featureIcon, portraitUrl, classIcon } from '../data';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 import { useDismissLayer } from '../dismiss';
-import { descriptorsOf, itemStatRows } from './labels';
+import { descriptorsOf, itemStatRows, upgradeEffects } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -246,7 +246,7 @@ export function Descriptors({ feature, compact }: { feature: Feature; compact?: 
  * hover card clamps its description at six lines, which is short of half of what the
  * longest entries carry, so clicking gets you the rest.
  */
-export function ItemDetail({ item }: { item: EquipmentItem }) {
+export function ItemDetail({ item }: { item: ResolvedItem }) {
   const rows = itemStatRows(item);
   return (
     <div>
@@ -256,8 +256,10 @@ export function ItemDetail({ item }: { item: EquipmentItem }) {
           {item.category}
         </span>
         {item.twoHanded && <span className="badge">two-handed</span>}
+        {item.thrown && <span className="badge">thrown</span>}
         {item.stun && <span className="badge">stun setting</span>}
         {item.custom && <span className="badge green">custom</span>}
+        {item.modified && !item.custom && <span className="badge green">modified</span>}
         {item.book && item.book !== 'unknown' && (
           <span className="badge">{BOOK_NAMES[item.book] ?? item.book}</span>
         )}
@@ -276,6 +278,25 @@ export function ItemDetail({ item }: { item: EquipmentItem }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* What has been fitted to this one copy, above the printed entry it started as. */}
+      {!!item.upgrades?.length && (
+        <>
+          <div className="rules-section-label">Modifications</div>
+          <div className="rules-text">
+            {item.upgrades.map(u => {
+              const effects = upgradeEffects(u).join(', ');
+              return (
+                <p key={u.id}>
+                  <strong>{u.name}</strong>
+                  {effects && ` — ${effects}`}
+                  {u.notes && `. ${u.notes}`}
+                </p>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* The importer joins the compendium's paragraphs into one string, so there are no

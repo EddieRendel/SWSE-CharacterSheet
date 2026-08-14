@@ -1,8 +1,8 @@
 import type {
   AbilityId, AbilityScores, Character, CharacterClass, Feature, FeatureRef, EquipmentItem, Species,
-  DroidSystem,
+  DroidSystem, InventoryEntry, ItemUpgrade, ResolvedItem, UpgradeNumber,
 } from '../types';
-import { ABILITY_IDS } from '../types';
+import { ABILITY_IDS, ITEM_IDENTITY_KEYS } from '../types';
 import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TALENT_TREES, DROIDS, droidSize, droidDegree } from '../data';
 
 export const abilityMod = (score: number) => Math.floor((score - 10) / 2);
@@ -378,7 +378,8 @@ export interface Derived {
   forceTechniques: FeatureRef[];
   forceSecrets: FeatureRef[];
   starshipManeuvers: FeatureRef[];
-  equippedArmor: EquipmentItem | null;
+  /** The suit actually worn, as this character has it — upgrades and edits included. */
+  equippedArmor: ResolvedItem | null;
   armorProficient: boolean;
   armorPenalty: number;
   conditionPenalty: number;
@@ -393,8 +394,56 @@ export interface Derived {
   unfilledSlots: Slot[];
 }
 
+/** The catalogue entry behind an id: the item as the book has it, before anyone owned one. */
 export function getItem(char: Character, itemId: string): EquipmentItem | undefined {
   return EQUIPMENT[itemId] ?? char.customItems.find(i => i.id === itemId);
+}
+
+/** Kilograms and credits are worth two decimal places; nothing else is. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** One of the numbers an upgrade may carry, summed over everything fitted to the item. */
+export const upgradeTotal = (upgrades: ItemUpgrade[] | undefined, key: UpgradeNumber): number =>
+  (upgrades ?? []).reduce((n, u) => n + (u[key] ?? 0), 0);
+
+/**
+ * An item as this character carries it: the catalogue entry, the stats they rewrote on
+ * their own copy, and the weight and cost of everything fitted to it. The bonuses an
+ * upgrade grants are left on `upgrades` rather than folded away, so the attack and
+ * defense breakdowns can name each one instead of showing an unexplained total.
+ *
+ * An entry with no customization returns the catalogue object itself, so nothing is
+ * copied for the overwhelmingly common case.
+ */
+export function resolveItem(char: Character, entry: InventoryEntry): ResolvedItem | undefined {
+  const base = getItem(char, entry.itemId);
+  if (!base) return undefined;
+  const overrides = entry.mods?.overrides;
+  const upgrades = entry.mods?.upgrades?.length ? entry.mods.upgrades : undefined;
+  if (!upgrades && !overrides) return base;
+
+  const item: ResolvedItem = { ...base, entryUid: entry.uid, modified: true };
+  // Key by key rather than by spread: a stored `undefined` — which an imported character
+  // may well carry — would otherwise erase the catalogue value instead of inheriting it.
+  // What an item *is* is never overridden, whatever a hand-edited file may claim.
+  const identity = new Set<string>(ITEM_IDENTITY_KEYS);
+  Object.assign(item, Object.fromEntries(
+    Object.entries(overrides ?? {})
+      .filter(([key, value]) => value !== undefined && !identity.has(key)),
+  ));
+  if (upgrades) {
+    item.upgrades = upgrades;
+    item.weight = round2(item.weight + upgradeTotal(upgrades, 'weight'));
+    item.cost = round2(item.cost + upgradeTotal(upgrades, 'cost'));
+  }
+  return item;
+}
+
+/** Everything carried, resolved, paired with the entry that holds the quantity. */
+export function carriedItems(char: Character): { entry: InventoryEntry; item: ResolvedItem }[] {
+  return char.inventory
+    .map(entry => ({ entry, item: resolveItem(char, entry) }))
+    .filter((r): r is { entry: InventoryEntry; item: ResolvedItem } => !!r.item);
 }
 
 export function computeAbilities(char: Character): { scores: AbilityScores; speciesMods: Partial<Record<AbilityId, number>> } {
@@ -492,10 +541,11 @@ export function computeCharacter(char: Character): Derived {
   if (hasFeature(features, 'toughness')) maxHitPoints += level;
 
   // ---- equipment ----
-  const equippedArmor = char.inventory
-    .filter(e => e.equipped)
-    .map(e => getItem(char, e.itemId))
-    .find(i => i?.category === 'armor') ?? null;
+  // Resolved once: every reading below is of the item as this character has it, upgrades
+  // and hand-edited stats included, rather than of the catalogue entry it started as.
+  const carried = carriedItems(char);
+  const equipped = carried.filter(r => r.entry.equipped);
+  const equippedArmor = equipped.map(r => r.item).find(i => i.category === 'armor') ?? null;
 
   const armorProfFeat = equippedArmor
     ? `armor-proficiency-${equippedArmor.armorType}`
@@ -508,10 +558,24 @@ export function computeCharacter(char: Character): Derived {
   // Everything in the inventory counts, whether it is worn or stowed. Summed once here
   // and reported only as `carrying.weight`, so the sheet and the equipment list cannot
   // drift apart the way two separate reduces let them.
-  const carriedWeight = char.inventory.reduce((kg, entry) => {
-    const item = getItem(char, entry.itemId);
-    return kg + (item ? item.weight * entry.quantity : 0);
-  }, 0);
+  const carriedWeight = carried.reduce((kg, { entry, item }) => kg + item.weight * entry.quantity, 0);
+
+  // Upgrades fitted to what you are wearing — a talisman's blessing, an armor package —
+  // add to your defenses on top of whatever the armor itself grants. Each is listed under
+  // the item it came from rather than summed away, and the numbers are taken as entered:
+  // the app cannot know which of them are equipment bonuses that would not stack.
+  const itemDefenses: Record<'reflex' | 'fortitude' | 'will', DefensePart[]> = {
+    reflex: [], fortitude: [], will: [],
+  };
+  for (const { item } of equipped) {
+    for (const up of item.upgrades ?? []) {
+      const label = `${item.name}: ${up.name.trim() || 'modification'}`;
+      if (up.reflexDefense) itemDefenses.reflex.push({ label, value: up.reflexDefense });
+      if (up.fortitudeDefense) itemDefenses.fortitude.push({ label, value: up.fortitudeDefense });
+      if (up.willDefense) itemDefenses.will.push({ label, value: up.willDefense });
+    }
+  }
+  const sumParts = (parts: DefensePart[]) => parts.reduce((n, p) => n + p.value, 0);
 
   // ---- defenses ----
   const species = char.speciesId ? SPECIES[char.speciesId] : null;
@@ -559,17 +623,18 @@ export function computeCharacter(char: Character): Derived {
   // Defense." Standing, unlike every other Lightsaber Form — the rest turn on a swift action,
   // a reaction or a Force Point — so it is the one that belongs in the defenses rather than
   // in a note. Wielding is read the way the attack list reads it: a lightsaber equipped.
-  const wieldingLightsaber = char.inventory
-    .filter(e => e.equipped)
-    .map(e => getItem(char, e.itemId))
-    .some(i => i?.category === 'weapon' && i.group === 'lightsabers');
+  const wieldingLightsaber = equipped
+    .some(({ item }) => item.category === 'weapon' && item.group === 'lightsabers');
   const niman = wieldingLightsaber && hasFeature(features, 'niman') ? 1 : 0;
 
-  const reflex = 10 + reflexBase + classRef + dexToReflex + sizeRef + conditionPenalty + niman;
+  const reflex = 10 + reflexBase + classRef + dexToReflex + sizeRef + conditionPenalty + niman
+    + sumParts(itemDefenses.reflex);
   // Droids apply Strength to Fortitude Defense, since they have no Constitution.
   const fortAbility = droid ? 'str' as const : 'con' as const;
-  const fortitude = 10 + level + classFort + mods[fortAbility] + (equippedArmor?.fortitude ?? 0) + conditionPenalty;
-  const will = 10 + level + classWill + mods.wis + conditionPenalty + niman;
+  const fortitude = 10 + level + classFort + mods[fortAbility] + (equippedArmor?.fortitude ?? 0)
+    + conditionPenalty + sumParts(itemDefenses.fortitude);
+  const will = 10 + level + classWill + mods.wis + conditionPenalty + niman
+    + sumParts(itemDefenses.will);
   const flatFooted = reflex - Math.max(0, dexToReflex);
 
   const defenseBreakdown: Record<'reflex' | 'fortitude' | 'will', DefensePart[]> = {
@@ -583,6 +648,7 @@ export function computeCharacter(char: Character): Derived {
       },
       { label: 'size', value: sizeRef },
       { label: 'Niman (lightsaber)', value: niman },
+      ...itemDefenses.reflex,
       { label: 'condition track', value: conditionPenalty },
     ],
     fortitude: [
@@ -591,6 +657,7 @@ export function computeCharacter(char: Character): Derived {
       { label: 'class bonus', value: classFort },
       { label: droid ? 'Str (droid)' : 'Con', value: mods[fortAbility] },
       { label: 'armor', value: equippedArmor?.fortitude ?? 0 },
+      ...itemDefenses.fortitude,
       { label: 'condition track', value: conditionPenalty },
     ],
     will: [
@@ -599,6 +666,7 @@ export function computeCharacter(char: Character): Derived {
       { label: 'class bonus', value: classWill },
       { label: 'Wis', value: mods.wis },
       { label: 'Niman (lightsaber)', value: niman },
+      ...itemDefenses.will,
       { label: 'condition track', value: conditionPenalty },
     ],
   };

@@ -1,4 +1,4 @@
-import type { EquipmentItem, Feature } from '../types';
+import type { EquipmentItem, Feature, ItemUpgrade } from '../types';
 import type { ReqKind } from '../rules/prereqs';
 import { WEAPON_GROUPS, damageLabel, TALENT_TREES, CLASSES, FORCE_TALENT_TREES } from '../data';
 
@@ -91,6 +91,7 @@ export function itemStatRows(item: EquipmentItem): [string, string][] {
     ['Rate of fire', item.rateOfFire],
     ['Area', item.area],
     ['Delay', item.delay],
+    ['Thrown', item.thrown ? 'ranged attack, Strength on damage' : undefined],
     ['Reflex', item.reflex ? `+${item.reflex}` : undefined],
     ['Fortitude', item.fortitude ? `+${item.fortitude}` : undefined],
     ['Max Dex', item.maxDex !== undefined ? `+${item.maxDex}` : undefined],
@@ -100,4 +101,24 @@ export function itemStatRows(item: EquipmentItem): [string, string][] {
     ['Weight', item.weight ? `${item.weight} kg` : undefined],
   ];
   return stats.filter((s): s is [string, string] => Boolean(s[1]));
+}
+
+/**
+ * What one modification fitted to an item does, as short phrases. Shared by the hover
+ * card and the full entry so neither can describe an upgrade the other does not.
+ */
+export function upgradeEffects(u: ItemUpgrade): string[] {
+  const parts: string[] = [];
+  const add = (n: number | undefined, label: string) => {
+    if (n) parts.push(`${n > 0 ? '+' : ''}${n} ${label}`);
+  };
+  add(u.attack, 'attack');
+  add(u.damage, 'damage');
+  if (u.damageDice?.trim()) parts.push(`+${u.damageDice.trim()} damage`);
+  add(u.reflexDefense, 'Reflex');
+  add(u.fortitudeDefense, 'Fortitude');
+  add(u.willDefense, 'Will');
+  add(u.weight, 'kg');
+  add(u.cost, 'credits');
+  return parts;
 }

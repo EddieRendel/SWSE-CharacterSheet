@@ -2,7 +2,7 @@
  * Hand-verified checks of the rules engine.
  * Run with: npm run test:rules
  */
-import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses } from './engine';
+import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses, resolveItem, carriedItems } from './engine';
 import type { Derived } from './engine';
 import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
@@ -11,8 +11,8 @@ import {
   defaultAttackOptions, unarmedDamage, SITUATIONAL,
 } from './attacks';
 import { talentSources } from '../components/labels';
-import { newCharacter } from '../storage';
-import type { Character, AbilityId, Feature } from '../types';
+import { newCharacter, migrate } from '../storage';
+import type { Character, AbilityId, Feature, InventoryEntry } from '../types';
 import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -2149,6 +2149,227 @@ console.log('\n▸ What you can carry');
   check('a Small character carries three quarters as much',
     [small.size, Math.round(small.carrying.heavy * 100) / 100],
     ['Small', Math.round(49 * 0.75 * ((small.abilities.str / 14) ** 2) * 100) / 100]);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Equipment customized copy by copy');
+// ---------------------------------------------------------------------------
+{
+  // Str 16 (+3) and Dex 12 (+1) are deliberately different, so which modifier reached a
+  // roll can be read off the number rather than guessed at.
+  const trooper = (inventory: Character['inventory']) => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 16, dex: 12, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(4).fill(null).map((_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 }));
+    x.inventory = inventory;
+  });
+  const carrying = (itemId: string, mods?: InventoryEntry['mods'], uid = 'i0'): InventoryEntry =>
+    ({ uid, itemId, quantity: 1, equipped: true, ...(mods ? { mods } : {}) });
+  const opts = defaultAttackOptions();
+  const profileOf = (c: Character, name: string) => {
+    const d = computeCharacter(c);
+    return buildAttacks(c, d, opts).find(a => a.weapon.name === name)!;
+  };
+
+  // ---- an entry nobody has touched is still the compendium's own object ----
+  const plain = trooper([carrying('blaster-rifle')]);
+  check('an unaltered entry resolves to the catalogue item',
+    resolveItem(plain, plain.inventory[0]) === EQUIPMENT['blaster-rifle'], true);
+  check('and carries no modifications', resolveItem(plain, plain.inventory[0])?.modified, undefined);
+
+  // ---- the item's own stats, rewritten on one copy ----
+  const jumpsuit = EQUIPMENT['combat-jumpsuit'];
+  const worn = trooper([carrying('combat-jumpsuit')]);
+  const reinforced = trooper([carrying('combat-jumpsuit', { overrides: { reflex: (jumpsuit.reflex ?? 0) + 2 } })]);
+  check('a Reflex bonus rewritten on your own suit is the one that applies',
+    computeCharacter(reinforced).defenses.reflex - computeCharacter(worn).defenses.reflex, 2);
+  check('the compendium entry is left alone', EQUIPMENT['combat-jumpsuit'].reflex, jumpsuit.reflex);
+  check('a Dexterity cap can be rewritten too',
+    computeCharacter(trooper([carrying('combat-jumpsuit', { overrides: { maxDex: 0 } })])).defenses.reflex
+    - computeCharacter(worn).defenses.reflex, -1);
+
+  // ---- upgrades fitted to a weapon ----
+  const scoped = trooper([carrying('blaster-rifle', {
+    upgrades: [{ id: 'u1', name: 'Targeting scope', attack: 1, damage: 2, weight: 0.5, cost: 100 }],
+  })]);
+  const rifle = profileOf(scoped, 'Blaster Rifle');
+  const bare = profileOf(plain, 'Blaster Rifle');
+  check('an upgrade reaches the attack roll', rifle.attack - bare.attack, 1);
+  check('and the damage', rifle.damageBonus - bare.damageBonus, 2);
+  check('named in the breakdown rather than summed away',
+    rifle.attackParts.some(p => p.label === 'Targeting scope' && p.value === 1), true);
+  check('its weight is carried',
+    computeCharacter(scoped).carrying.weight, EQUIPMENT['blaster-rifle'].weight + 0.5);
+  check('and its cost is part of what the thing is worth',
+    resolveItem(scoped, scoped.inventory[0])?.cost, EQUIPMENT['blaster-rifle'].cost + 100);
+  check('weight counts once per copy in the stack',
+    computeCharacter(trooper([{ ...scoped.inventory[0], quantity: 3 }])).carrying.weight,
+    (EQUIPMENT['blaster-rifle'].weight + 0.5) * 3);
+
+  // Extra dice ride alongside the weapon's own, the way Rapid Shot's do.
+  const empowered = trooper([carrying('blaster-rifle', {
+    upgrades: [{ id: 'u2', name: 'Empowered', damageDice: '1d6' }],
+  })]);
+  check('an upgrade may add dice as well as a flat bonus',
+    profileOf(empowered, 'Blaster Rifle').damageDice, `${EQUIPMENT['blaster-rifle'].damage} + 1d6`);
+
+  // ---- upgrades that grant defenses, on a talisman rather than a suit ----
+  const talisman = (equipped: boolean): InventoryEntry => ({
+    uid: 't', itemId: 'sith-talismans', quantity: 1, equipped,
+    mods: { upgrades: [{ id: 'u3', name: 'Blessing', reflexDefense: 1, willDefense: 2 }] },
+  });
+  const blessed = computeCharacter(trooper([talisman(true)]));
+  const stowedTalisman = computeCharacter(trooper([talisman(false)]));
+  check('a worn item grants its defenses', blessed.defenses.will - stowedTalisman.defenses.will, 2);
+  check('and its Reflex bonus', blessed.defenses.reflex - stowedTalisman.defenses.reflex, 1);
+  check('stowed, it grants nothing',
+    [stowedTalisman.defenses.reflex, stowedTalisman.defenses.will],
+    [computeCharacter(trooper([])).defenses.reflex, computeCharacter(trooper([])).defenses.will]);
+  check('the breakdown names the item and the modification',
+    blessed.defenseBreakdown.will.some(p => p.label === 'Sith Talismans: Blessing' && p.value === 2), true);
+  for (const key of ['reflex', 'fortitude', 'will'] as const) {
+    check(`the ${key} breakdown still adds up`,
+      blessed.defenseBreakdown[key].reduce((n, p) => n + p.value, 0), blessed.defenses[key]);
+  }
+  // Not a Dexterity bonus, so it survives being caught flat-footed.
+  check('a defense bonus from gear is kept when flat-footed',
+    blessed.defenses.flatFooted - stowedTalisman.defenses.flatFooted, 1);
+
+  // ---- thrown ----
+  // The compendium keeps "Special: Can be Thrown" in prose, so the flag is set by hand.
+  const held = profileOf(trooper([carrying('spear')]), 'Spear');
+  const hurled = profileOf(trooper([carrying('spear', { overrides: { thrown: true } })]), 'Spear');
+  check('a spear in hand is a melee attack made with Strength', [held.melee, held.attack], [true, 4 + 3]);
+  check('thrown, it is a ranged attack made with Dexterity', [hurled.melee, hurled.attack], [false, 4 + 1]);
+  check('and the Strength modifier stays on the damage', hurled.damageBonus, held.damageBonus);
+  check('the profile says so rather than leaving it to be noticed',
+    hurled.notes.some(n => n.startsWith('Marked as thrown')), true);
+  const thrownTwoHanded = buildAttack(
+    trooper([]), computeCharacter(trooper([])),
+    { ...EQUIPMENT.spear, thrown: true }, { ...opts, twoHanded: true },
+  );
+  check('nothing is thrown two-handed, so the doubled Strength bonus does not apply',
+    thrownTwoHanded.damageBonus, hurled.damageBonus);
+
+  // Thrown is ranged for aiming and point-blank range, but not for the fire modes: Rapid
+  // Shot fires two shots and Burst Fire needs autofire, and a spear leaves your hand.
+  const thrower = trooper([carrying('spear', { overrides: { thrown: true } })]);
+  const dThrower = computeCharacter(thrower);
+  const spearWith = (o: Partial<typeof opts>) =>
+    buildAttacks(thrower, dThrower, { ...opts, ...o }).find(a => a.weapon.name === 'Spear')!;
+  const gunslinger = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'rapid-shot' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'burst-fire' },
+  ];
+  const armed = trooper([carrying('spear', { overrides: { thrown: true } })]);
+  armed.selections = gunslinger;
+  const dArmed = computeCharacter(armed);
+  const armedSpear = (o: Partial<typeof opts>) =>
+    buildAttacks(armed, dArmed, { ...opts, ...o }).find(a => a.weapon.name === 'Spear')!;
+  check('the character does hold both fire-mode feats',
+    [hasFeature(dArmed.features, 'rapid-shot'), hasFeature(dArmed.features, 'burst-fire')], [true, true]);
+  check('Rapid Shot adds no dice to a thrown weapon',
+    armedSpear({ rapidShot: true }).damageDice, spearWith({}).damageDice);
+  check('nor does it cost the attack roll',
+    armedSpear({ rapidShot: true }).attack, armedSpear({}).attack);
+  check('Burst Fire adds none either',
+    armedSpear({ burstFire: true }).damageDice, spearWith({}).damageDice);
+  check('and the profile says why rather than going quiet',
+    armedSpear({ burstFire: true }).notes.some(n => n.includes('weapon you throw')), true);
+  // The same feats still work on something that is actually fired.
+  const rifleman = trooper([carrying('blaster-rifle')]);
+  rifleman.selections = gunslinger;
+  const dRifleman = computeCharacter(rifleman);
+  check('a fired weapon still gets its extra dice',
+    buildAttacks(rifleman, dRifleman, { ...opts, rapidShot: true })
+      .find(a => a.weapon.id === 'blaster-rifle')!.damageDice,
+    '4d8');
+
+  // ---- unarmed, which is always on the list and must be there once ----
+  const fists = (mods?: InventoryEntry['mods']) => {
+    const c = trooper([{ uid: 'u', itemId: 'unarmed', quantity: 1, equipped: true, ...(mods ? { mods } : {}) }]);
+    return buildAttacks(c, computeCharacter(c), opts).filter(a => a.weapon.id === 'unarmed');
+  };
+  check('carrying the compendium entry does not list unarmed twice', fists().length, 1);
+  const gauntlets = fists({
+    overrides: { name: 'Armored gauntlets', damage: '2d6' },
+    upgrades: [{ id: 'g1', name: 'Spiked', damage: 1 }],
+  });
+  check('a customized unarmed strike is still one profile', gauntlets.length, 1);
+  check('and it is the customized one', gauntlets[0].weapon.name, 'Armored gauntlets');
+  check('its own dice are kept rather than snapped back to the ladder',
+    gauntlets[0].damageDice, '2d6');
+  check('and its modification applies',
+    gauntlets[0].damageBonus - fists()[0].damageBonus, 1);
+  check('Martial Arts still steps the default unarmed die',
+    unarmedDamage([{ id: 'martial-arts-i' }], EQUIPMENT.unarmed.damage), '1d6');
+  check('but leaves a die that is not on the ladder alone',
+    unarmedDamage([{ id: 'martial-arts-i' }], '2d6'), '2d6');
+
+  // ---- one weapon, two copies ----
+  const twoAlike = trooper([carrying('blaster-rifle', undefined, 'a'), carrying('blaster-rifle', undefined, 'b')]);
+  check('two identical rifles make one attack profile',
+    buildAttacks(twoAlike, computeCharacter(twoAlike), opts).length, 2);
+  const twoDifferent = trooper([
+    carrying('blaster-rifle', undefined, 'a'),
+    carrying('blaster-rifle', { upgrades: [{ id: 'u4', name: 'Ilum crystal', attack: 1 }] }, 'b'),
+  ]);
+  check('but a customized one is its own weapon',
+    buildAttacks(twoDifferent, computeCharacter(twoDifferent), opts).length, 3);
+  check('and only that copy carries the bonus',
+    buildAttacks(twoDifferent, computeCharacter(twoDifferent), opts)
+      .filter(a => a.weapon.id === 'blaster-rifle').map(a => a.attack).sort(),
+    [bare.attack, bare.attack + 1]);
+
+  // ---- saved characters ----
+  // Customizations live on the inventory entry, so a character saved before they existed
+  // loads with none and reads exactly as it did.
+  const old = structuredClone(plain);
+  for (const e of old.inventory) delete e.mods;
+  check('a save from before customizations still resolves its items',
+    carriedItems(old).map(r => r.item.name), ['Blaster Rifle']);
+  check('and computes the same numbers',
+    computeCharacter(old).defenses, computeCharacter(plain).defenses);
+  check('and gains no empty customization on the way through migration',
+    migrate(structuredClone(old)).inventory[0].mods, undefined);
+
+  const savedAndLoaded = migrate(JSON.parse(JSON.stringify(scoped)));
+  check('a customization survives being saved and read back',
+    savedAndLoaded.inventory[0].mods?.upgrades?.[0].name, 'Targeting scope');
+  check('with its numbers intact',
+    computeCharacter(savedAndLoaded).carrying.weight, computeCharacter(scoped).carrying.weight);
+
+  // A file can be hand-edited, and a future shape can write things this one does not
+  // understand. What comes back has to be something the rules can be pointed at.
+  const suspect = migrate({
+    ...structuredClone(plain),
+    inventory: [{
+      uid: 'x', itemId: 'blaster-rifle', quantity: 1, equipped: true,
+      mods: {
+        overrides: { id: 'lightsaber', category: 'armor', book: 'homebrew', damage: '4d8' },
+        upgrades: [
+          { name: 'Nameless id', attack: '3', damage: 2 },
+          { id: 'ok', name: 'Scope', attack: Infinity },
+          'not an upgrade at all',
+        ],
+      },
+    }],
+  } as unknown as Partial<Character>);
+  const suspectItem = resolveItem(suspect, suspect.inventory[0])!;
+  check('an override cannot change what the item is',
+    [suspectItem.id, suspectItem.category, suspectItem.book],
+    ['blaster-rifle', 'weapon', EQUIPMENT['blaster-rifle'].book]);
+  check('but a stat it may change is kept', suspectItem.damage, '4d8');
+  check('an upgrade with no id is given one', !!suspectItem.upgrades?.[0].id, true);
+  check('a number that is not one is dropped',
+    [suspectItem.upgrades?.[0].attack, suspectItem.upgrades?.[0].damage], [undefined, 2]);
+  check('as is one that is not finite', suspectItem.upgrades?.[1].attack, undefined);
+  check('and an entry that is not an upgrade at all goes', suspectItem.upgrades?.length, 2);
+  check('an empty customization is not stored at all',
+    migrate({
+      ...structuredClone(plain),
+      inventory: [{ uid: 'y', itemId: 'club', quantity: 1, equipped: false, mods: { upgrades: [] } }],
+    } as unknown as Partial<Character>).inventory[0].mods, undefined);
 }
 
 // ---------------------------------------------------------------------------
