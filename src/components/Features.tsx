@@ -3,8 +3,10 @@ import type { ReactNode } from 'react';
 import type { Character } from '../types';
 import { FEATURES, featureName } from '../data';
 import type { Derived, Slot } from '../rules/engine';
+import { lapsedSelections } from '../rules/prereqs';
 import { Panel, Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
 import { FeaturePicker } from './FeaturePicker';
+import { ReqList } from './Requirements';
 import { setForcedOpen, useCollapsePanel } from '../collapse';
 
 const levelKey = (level: number) => `edit:features:level:${level}`;
@@ -65,6 +67,9 @@ export function Features({
     [char.selections],
   );
 
+  // Picks whose prerequisites have since lapsed — see the notice at the top of the page.
+  const lapsed = useMemo(() => lapsedSelections(char, derived), [char, derived]);
+
   const pick = (slot: Slot, featureId: string, spec?: string) =>
     update(c => {
       const existing = c.selections.findIndex(s => s.key === slot.key);
@@ -88,8 +93,14 @@ export function Features({
   }, [derived.slots, hideAuto]);
 
   // Hold open every level that still owes a choice, so a folded one unfolds itself the
-  // moment a new level lands rather than hiding the thing you came here to do.
-  const owing = derived.unfilledSlots.map(s => levelKey(s.level)).join(',');
+  // moment a new level lands rather than hiding the thing you came here to do. A level
+  // holding a pick that has lost its prerequisites counts as owing one too — the notice at
+  // the top says to change or clear it, which is no help if it is folded out of sight.
+  const slotLevel = new Map(derived.slots.map(s => [s.key, s.level]));
+  const owing = [
+    ...derived.unfilledSlots.map(s => s.level),
+    ...lapsed.map(l => slotLevel.get(l.key)).filter((l): l is number => l !== undefined),
+  ].map(levelKey).join(',');
   useEffect(() => {
     setForcedOpen('feature-levels', owing ? owing.split(',') : []);
     return () => setForcedOpen('feature-levels', []);
@@ -101,6 +112,26 @@ export function Features({
 
   return (
     <>
+      {lapsed.length > 0 && (
+        <div className="notice conflict" style={{ marginBottom: 16 }}>
+          <strong>
+            {lapsed.length} {lapsed.length === 1 ? 'choice no longer meets' : 'choices no longer meet'}
+            {' '}its prerequisites.
+          </strong>{' '}
+          Changing an earlier pick can pull the ground out from under a later one. Nothing has
+          been removed — change or clear {lapsed.length === 1 ? 'it' : 'them'} below, or put back
+          what {lapsed.length === 1 ? 'it' : 'they'} rested on.
+          <div className="col" style={{ gap: 8, marginTop: 8 }}>
+            {lapsed.map(l => (
+              <div key={l.key}>
+                <div className="name">{l.name}</div>
+                <ReqList checks={l.missing} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {derived.unfilledSlots.length > 0 && (
         <div className="notice warn" style={{ marginBottom: 16 }}>
           <strong>{derived.unfilledSlots.length}</strong> unfilled{' '}
@@ -132,8 +163,9 @@ export function Features({
                   const ref = slot.auto ? slot.granted : (sel ? { id: sel.featureId, spec: sel.spec } : undefined);
                   const feature = ref ? FEATURES[ref.id] : undefined;
                   const state = slot.auto ? 'auto' : ref ? 'filled' : 'unfilled';
+                  const lost = lapsed.find(l => l.key === slot.key);
                   return (
-                    <div key={slot.key} className={`item slot ${state}`}>
+                    <div key={slot.key} className={`item slot ${state}${lost ? ' conflict' : ''}`}>
                       {ref && <FeatureIcon id={ref.id} spec={ref.spec} size={26} />}
                       <div className="grow">
                         {feature ? (
@@ -156,6 +188,12 @@ export function Features({
                           </>
                         )}
                       </div>
+
+                      {lost && (
+                        <span className="badge red" title={`Needs ${lost.missing.map(m => m.text).join(', ')}`}>
+                          prerequisite lost
+                        </span>
+                      )}
 
                       {slot.auto ? (
                         <span className="badge blue">granted</span>

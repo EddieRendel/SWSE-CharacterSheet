@@ -9,6 +9,11 @@ export interface FeatureRef {
   id: string;
   spec?: string;
   /**
+   * Set on a feature the character has only through another one — the talent Stolen Form
+   * stole. Display only: it is a real holding for every rules purpose.
+   */
+  via?: string;
+  /**
    * Only meaningful inside a requirements block: the prerequisite must be held with the
    * *same* specialization currently being chosen. Greater Weapon Focus (rifles) requires
    * Weapon Focus (rifles) specifically, not Weapon Focus with any group.
@@ -69,6 +74,13 @@ export interface Feature {
   allowedSpecs?: string[];
   /** For a talent choice: the trees it may come from. */
   specTrees?: string[];
+  /**
+   * The chosen option is gained outright, not merely referred to. Stolen Form says "you gain
+   * the benefits of this Talent and are considered to have this Talent for the purpose of
+   * satisfying prerequisites"; Share Talent and Force Power Mastery, which also choose a
+   * feature, only qualify one you already hold and must not carry this.
+   */
+  specGrants?: boolean;
   /** "…that you already possess": only offer what the character already has. */
   specHeld?: boolean;
   /** "…one Trained Skill": only offer skills the character is trained in. */

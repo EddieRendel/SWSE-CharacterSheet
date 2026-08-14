@@ -58,6 +58,14 @@ export function specOptionsFor(feature: Feature | undefined, derived: Derived): 
   }
 }
 
+/**
+ * Spec kinds whose options are features in their own right, with their own rules text and
+ * their own prerequisites. A weapon group or a skill is just a name; the talent behind
+ * Stolen Form is a whole entry, and both the prerequisite check and the picker have to go
+ * one level down to it.
+ */
+export const PICKS_A_FEATURE = new Set<string>(['talent', 'force-power', 'force-technique', 'force-secret']);
+
 /** What to call the choice in the picker. */
 export const SPEC_LABELS: Record<NonNullable<Feature['specType']>, string> = {
   'weapon-group': 'Weapon group',

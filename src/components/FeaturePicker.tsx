@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import type { Character, Feature, FeatureRef } from '../types';
 import type { Derived, Slot } from '../rules/engine';
 import { canSelect } from '../rules/prereqs';
-import { specOptionsFor, SPEC_LABELS } from '../rules/specs';
-import { featureAvailable } from '../rules/engine';
+import { specOptionsFor, SPEC_LABELS, PICKS_A_FEATURE } from '../rules/specs';
+import { computeCharacter, featureAvailable } from '../rules/engine';
 import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
 import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
+import { ReqList } from './Requirements';
 import { descriptorsOf } from './labels';
 
 /** Which feature type a slot draws from when it has no explicit pool. */
@@ -21,7 +22,7 @@ const TYPE_FOR_KIND: Record<string, Feature['type']> = {
 };
 
 export function FeaturePicker({
-  slot, char, derived, onPick, onClose,
+  slot, char: fullChar, derived: fullDerived, onPick, onClose,
 }: {
   slot: Slot;
   char: Character;
@@ -36,6 +37,19 @@ export function FeaturePicker({
   // Folded trees are deliberately not remembered: the picker is a fresh mount each time it
   // opens, so every tree starts expanded and you always see what is on offer.
   const [closedTrees, setClosedTrees] = useState<Set<string>>(() => new Set());
+
+  /**
+   * Changing a filled slot is judged against the character *without* the pick being replaced,
+   * because that pick is on its way out. Left in place it counts towards its own
+   * replacement's prerequisites: Critical Strike is offered as a swap for the very Weapon
+   * Focus it requires, and confirming it leaves it standing on a prerequisite that no longer
+   * exists. Everything below reads `char` and `derived` as "with this slot empty".
+   */
+  const [char, derived] = useMemo(() => {
+    if (!fullChar.selections.some(s => s.key === slot.key)) return [fullChar, fullDerived] as const;
+    const without = { ...fullChar, selections: fullChar.selections.filter(s => s.key !== slot.key) };
+    return [without, computeCharacter(without)] as const;
+  }, [fullChar, fullDerived, slot.key]);
 
   // Options come from the slot's explicit pool, or from every feature of the matching type.
   const options = useMemo(() => {
@@ -120,6 +134,11 @@ export function FeaturePicker({
   const specs = selected ? specOptionsFor(selected, derived) : [];
   const needsSpec = specs.length > 0 && !presetSpec;
   const effectiveSpec = presetSpec ?? spec;
+
+  // Talents and Force powers offered as a choice are features in their own right, so the
+  // one being considered has rules worth reading before committing to it.
+  const optionPicksAFeature = PICKS_A_FEATURE.has(selected?.specType ?? '');
+  const optionFeature = optionPicksAFeature && effectiveSpec ? FEATURES[effectiveSpec] : undefined;
 
   // Evaluated with no specialization, this reports which ones would actually qualify.
   const openResult = selected && needsSpec ? canSelect(selected.id, char, derived) : null;
@@ -288,6 +307,24 @@ export function FeaturePicker({
                       </p>
                     )}
                   </div>
+
+                  {/* A weapon group or a skill is its own explanation. A talent or a Force
+                      power is a real decision with rules of its own, and they are a level
+                      down from the feature offering them — so they are shown here, and
+                      switching the choice above swaps them. */}
+                  {optionPicksAFeature && selectableSpecs.length > 0 && (
+                    optionFeature
+                      ? (
+                        <div className="option-rules">
+                          <FeatureDetail feature={optionFeature} />
+                        </div>
+                      )
+                      : (
+                        <p className="hint" style={{ marginTop: 10 }}>
+                          Choose one to read what it does.
+                        </p>
+                      )
+                  )}
                 </div>
               )}
 
@@ -307,14 +344,7 @@ export function FeaturePicker({
                       {selectableSpecs.length} of {specs.length} qualify.
                     </p>
                   )}
-                  <div className="list">
-                    {finalResult.checks.map((c, i) => (
-                      <div key={i} className="row" style={{ gap: 8 }}>
-                        <span className={c.met ? 'ok' : 'err'}>{c.met ? '✓' : '✕'}</span>
-                        <span className={c.met ? 'dim' : 'err'}>{c.text}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ReqList checks={finalResult.checks} />
                 </div>
               )}
 

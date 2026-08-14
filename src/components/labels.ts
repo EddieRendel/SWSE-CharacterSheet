@@ -1,5 +1,6 @@
 import type { EquipmentItem, Feature } from '../types';
-import { WEAPON_GROUPS, damageLabel } from '../data';
+import type { ReqKind } from '../rules/prereqs';
+import { WEAPON_GROUPS, damageLabel, TALENT_TREES, CLASSES, FORCE_TALENT_TREES } from '../data';
 
 /**
  * The parts of the UI that are values rather than components.
@@ -23,6 +24,57 @@ export const DESCRIPTORS: { key: keyof Feature; label: string; cls: string }[] =
 ];
 
 export const descriptorsOf = (feature: Feature) => DESCRIPTORS.filter(d => feature[d.key]);
+
+/**
+ * The tag shown against a prerequisite. "Armor Specialist" alone does not tell you whether to
+ * look in the feats list or in a talent tree, and the two are obtained in entirely different
+ * ways, so each line says which. Colours follow the rest of the sheet: talents purple, feats
+ * blue, anything Force-related green.
+ */
+export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = {
+  feat: { label: 'feat', cls: 'blue' },
+  talent: { label: 'talent', cls: 'purple' },
+  trait: { label: 'species trait', cls: '' },
+  'force-power': { label: 'Force power', cls: 'green' },
+  'force-technique': { label: 'Force technique', cls: 'green' },
+  'force-secret': { label: 'Force secret', cls: 'green' },
+  'starship-maneuver': { label: 'maneuver', cls: 'blue' },
+  ability: { label: 'ability score', cls: 'accent' },
+  skill: { label: 'skill', cls: 'accent' },
+  species: { label: 'species', cls: '' },
+  size: { label: 'size', cls: '' },
+  'dark-side': { label: 'dark side', cls: 'red' },
+  choice: { label: 'any of', cls: '' },
+  // Nothing worth adding — "Base attack bonus +9" and "Character level 7" already name
+  // themselves, and there is no question of where to go and get either.
+  attack: null,
+  level: null,
+  other: null,
+};
+
+/**
+ * Where a talent can be picked up: the tree it sits in, and the classes that draw on that
+ * tree. A prerequisite naming a talent is otherwise a dead end — the tree is the only route
+ * to it, and which class offers the tree decides whether it is open to you at all.
+ *
+ * `universal` means one of the six trees Force Sensitivity opens to anybody, which is a
+ * narrower thing than the tree's own `force` flag: the Force-tradition trees carry that flag
+ * too, and those are hidden, so a talent listed in Dathomiri Witch is not a talent this app
+ * can offer you. Such a route is reported as unsupported rather than as a way in.
+ */
+export function talentSources(featureId: string) {
+  return Object.values(TALENT_TREES)
+    .filter(t => t.features?.some(f => f.id === featureId))
+    .map(t => ({
+      tree: t.name,
+      universal: FORCE_TALENT_TREES.includes(t.id),
+      unsupported: !!t.hidden,
+      reason: t.hiddenReason,
+      classes: Object.values(CLASSES)
+        .filter(c => c.trees?.talent?.includes(t.id))
+        .map(c => c.name),
+    }));
+}
 
 /**
  * The item's line from the equipment tables, as label/value pairs. Shared so the hover

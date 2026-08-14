@@ -79,6 +79,21 @@
     "The rest of each requirements block is repeated here because the supplement merge is a",
     "shallow spread — naming `requirements` replaces the whole block, not just the one entry."
   ],
+  "_comment_stolen_form": [
+    "Stolen Form hands over the talent it names, and nothing in the data said so. The talent",
+    "reads: 'Choose one Talent from the Lightsaber Forms Talent Tree; you gain the benefits of",
+    "this Talent and are considered to have this Talent for the purpose of satisfying",
+    "prerequisites.' Held only as stolen-form(ataru), no rule keyed on the form's own id could",
+    "fire — Ataru's Dexterity-for-Strength damage silently did nothing, and a later talent",
+    "wanting Juyo did not see it either.",
+    "",
+    "`specGrants` says the chosen option is gained in its own right, and the engine adds it to",
+    "the resolved feature list. It is deliberately not set on the other ten features that",
+    "choose a feature: Force Power Mastery, Force Power Adept, Force Exertion, Focused Force",
+    "Talisman, Many Shades of the Force, Share Talent, Share Force Secret, Share Force",
+    "Technique, Coordinated Leadership and Squadron Maneuvers all qualify a power or talent you",
+    "already possess rather than granting one, and expanding those would hand out a second copy."
+  ],
   "features": {
     "critical-strike": {
       "requirements": {
@@ -179,6 +194,9 @@
           }
         ]
       }
+    },
+    "stolen-form": {
+      "specGrants": true
     }
   },
   "_comment_mortar": [

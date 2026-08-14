@@ -11,6 +11,7 @@ import { outstandingCount, hasConflicts } from './components/outstanding';
 import { Sheet } from './components/Sheet';
 import { FeatureBrowser } from './components/FeaturePicker';
 import { Panel, Portrait } from './components/ui';
+import { useDismissLayer } from './dismiss';
 
 type Tab = 'overview' | 'edit' | 'sheet';
 
@@ -59,18 +60,19 @@ export default function App() {
 
   // Same dismissal rules as the hover cards: Escape, a press elsewhere, or a
   // resize — the last because the burger itself disappears above the breakpoint.
+  // Escape goes through the shared stack rather than a handler of its own, so a dialog
+  // opened while the menu is still up closes alone.
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  useDismissLayer(menuOpen, closeMenu);
   useEffect(() => {
     if (!menuOpen) return;
     const close = () => setMenuOpen(false);
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     const onDown = (e: Event) => {
       if (!menuRef.current?.contains(e.target as Node)) close();
     };
-    window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', onDown);
     window.addEventListener('resize', close);
     return () => {
-      window.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('resize', close);
     };

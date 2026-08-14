@@ -1,10 +1,11 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { EquipmentItem, Feature } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
-import { descriptorsOf, itemStatRows } from './labels';
+import { useDismissLayer } from '../dismiss';
+import { descriptorsOf, itemStatRows, talentSources } from './labels';
 
 const GAP = 8;
 
@@ -87,16 +88,19 @@ export function Tip({
   useLayoutEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('scroll', close, true);
     window.addEventListener('resize', close);
-    window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('scroll', close, true);
       window.removeEventListener('resize', close);
-      window.removeEventListener('keydown', onKey);
     };
   }, [open]);
+
+  // Escape closes the card and nothing else. A card hovered over a picker is the newer
+  // layer, so it goes first and the picker underneath stays open — which it would not if
+  // this listened for Escape on its own, alongside the dialog's listener.
+  const close = useCallback(() => setOpen(false), []);
+  useDismissLayer(open, close);
 
   if (!content) return <>{children}</>;
 
@@ -140,6 +144,42 @@ function Prose({ lines, limit }: { lines?: string[]; limit?: number }) {
   );
 }
 
+/**
+ * Which trees a talent comes from, and who can reach them. Only shown for talents: it is the
+ * one thing you cannot work out from the talent's own name, and a prerequisite that names a
+ * talent is unanswerable without it.
+ */
+function TalentTrees({ id }: { id: string }) {
+  const sources = talentSources(id);
+  if (!sources.length) return null;
+  // Routes you can actually take first, so the cap never trims a real one in favour of a
+  // tradition tree the app does not implement.
+  const shown = [...sources].sort((a, b) => Number(a.unsupported) - Number(b.unsupported)).slice(0, 4);
+  return (
+    <>
+      <div className="tip-label">Talent tree{sources.length > 1 ? 's' : ''}</div>
+      <table className="tip-rows">
+        <tbody>
+          {shown.map(s => (
+            <tr key={s.tree}>
+              <td className={s.unsupported ? 'faint' : undefined}>{s.tree}</td>
+              <td className="faint">
+                {s.unsupported ? (s.reason ?? 'not supported')
+                  : s.classes.length ? s.classes.join(', ')
+                    : s.universal ? 'any Force-sensitive character'
+                      : '—'}
+              </td>
+            </tr>
+          ))}
+          {shown.length < sources.length && (
+            <tr><td className="faint">…</td><td className="faint">{sources.length - shown.length} more</td></tr>
+          )}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
 function Section({ title, lines }: { title: string; lines?: string[] }) {
   if (!lines?.length) return null;
   return (
@@ -167,6 +207,7 @@ export function FeatureTipBody({ feature, spec, note }: { feature: Feature; spec
         {BOOK_NAMES[feature.book] ?? feature.book}{feature.page ? ` p.${feature.page}` : ''}
       </div>
       {note && <div className="tip-note">{note}</div>}
+      {feature.type === 'talent' && <TalentTrees id={feature.id} />}
       <Prose lines={feature.description} limit={4} />
       <Section title="Benefit" lines={feature.benefit} />
       <Section title="Special" lines={feature.special} />

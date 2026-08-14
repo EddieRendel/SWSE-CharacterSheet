@@ -4,12 +4,13 @@
  */
 import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses } from './engine';
 import type { Derived } from './engine';
-import { checkClassRequirements, canSelect, checkRequirements } from './prereqs';
+import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
 import {
   buildAttack, buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
   defaultAttackOptions, unarmedDamage, SITUATIONAL,
 } from './attacks';
+import { talentSources } from '../components/labels';
 import { newCharacter } from '../storage';
 import type { Character, AbilityId, Feature } from '../types';
 import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
@@ -436,8 +437,8 @@ console.log('\n▸ Force power descriptors');
   const KNOWN_FIELDS = new Set([
     'id', 'name', 'book', 'type', 'description', 'prerequisites', 'benefit', 'special', 'normal',
     'requirements', 'grants', 'multiple', 'maxCount', 'specType', 'allowedSpecs', 'incomplete',
-    // how a feature's post-selection choice is offered
-    'specTrees', 'specHeld', 'specTrained', 'specOptions',
+    // how a feature's post-selection choice is offered, and whether it is gained outright
+    'specTrees', 'specHeld', 'specTrained', 'specOptions', 'specGrants',
     'page', 'summaryOnly', 'unparsedPrerequisites', 'hidden', 'hiddenReason',
     // presentational fields the data carries that are not descriptors
     'matchWeaponIcon', 'customSpecIcon', 'additional', 'dogfight',
@@ -598,6 +599,17 @@ console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats need Focus in anything')
   check('and asks for no weapon group', cs.needsSpec, false);
   check('the requirement reads as plain Weapon Focus',
     cs.checks.map(c => c.text), ['Weapon Focus', 'Base attack bonus +9']);
+  check('each check says what kind of thing it wants',
+    cs.checks.map(c => c.kind), ['feat', 'attack']);
+  check('and the feat one points at the feature behind it',
+    cs.checks[0].ref, { id: 'weapon-focus', spec: undefined });
+
+  // Changing an existing pick is judged with that slot emptied, which is what stops the
+  // picker offering Critical Strike as a replacement for the Weapon Focus it stands on.
+  const emptied = structuredClone(soldier);
+  emptied.selections = emptied.selections.filter(s => s.key !== 'feat:1');
+  check('replacing the Weapon Focus itself is not a legal swap',
+    canSelect('critical-strike', emptied, computeCharacter(emptied)).met, false);
 
   // Halt has the same prerequisite plus Trip.
   check('Halt is available too', canSelect('halt', soldier, d).met, true);
@@ -650,6 +662,191 @@ console.log('\n▸ every matchingSpec requirement has a specialization to match'
     .filter(f => wantsMatch(f.requirements) && !f.specType && !f.allowedSpecs?.length)
     .map(f => f.id);
   check('no feature needs a matching spec it cannot choose', stranded, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ every prerequisite is tagged with the kind of thing it wants');
+// ---------------------------------------------------------------------------
+{
+  // "Armored Defense" tells you nothing about where to get it until you know it is a talent
+  // rather than a feat — the two are obtained in completely different ways. Every check
+  // carries its kind, and the ones naming a single feature carry its id so the UI can show
+  // the rules text (and, for a talent, its tree).
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(7).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+  });
+  const d = computeCharacter(soldier);
+
+  check('a talent prerequisite is tagged as a talent',
+    checkRequirementsFor('armor-mastery', soldier, d).checks
+      .map(c => [c.text, c.kind, c.ref?.id]),
+    [['Armored Defense', 'talent', 'armored-defense']]);
+
+  check('an ability score is not tagged as a feat',
+    checkRequirementsFor('power-attack', soldier, d).checks.map(c => c.kind), ['ability']);
+  check('a trained skill is tagged as a skill',
+    canSelect('skill-focus', soldier, d, 'perception').checks.map(c => c.kind), ['skill']);
+  check('a matching weapon proficiency resolves to the feat and group',
+    canSelect('weapon-focus', soldier, d, 'rifles').checks.map(c => [c.kind, c.ref]),
+    [['feat', { id: 'weapon-proficiency', spec: 'rifles' }]]);
+
+  // A prestige class asks for a number of talents from named trees; that is a talent
+  // requirement even though it names no single one, so it gets no ref to hover.
+  const elite = checkClassRequirements('elite-trooper', soldier, d).checks;
+  check('the Elite Trooper talent count is tagged as a talent',
+    elite.filter(c => c.text.startsWith('1 talent')).map(c => [c.kind, c.ref]), [['talent', undefined]]);
+  check('and its base attack bonus is tagged as one',
+    elite.filter(c => c.text.startsWith('Base attack')).map(c => c.kind), ['attack']);
+
+  // An either/or keeps the kind when both sides are the same sort of thing — "Double Attack
+  // or Dual Weapon Mastery I" is still a feat requirement.
+  check('an either/or between two feats stays a feat',
+    checkRequirementsFor('assault', soldier, d).checks.map(c => c.kind), ['feat', 'attack']);
+  check('and between two skills stays a skill',
+    checkRequirementsFor('risk-taker', soldier, d).checks.map(c => c.kind), ['skill']);
+  // Only a genuinely mixed alternative falls back to the neutral tag. No entry in the data
+  // has one today, so it is asserted against a requirements block written here.
+  check('a mixed either/or falls back to "any of"',
+    checkRequirements(
+      { anyOf: [[{ features: [{ id: 'point-blank-shot' }] }, { abilities: { str: 13 } }]] },
+      soldier, d,
+    ).checks.map(c => c.kind), ['choice']);
+
+  // The tree behind a talent, which is the hover card's answer to "and where do I get it?".
+  check('a talent knows the tree it comes from and who draws on it',
+    talentSources('armored-defense').map(s => [s.tree, s.classes.includes('Soldier')]),
+    [['Armor Specialist', true]]);
+
+  // `force` is set on the Force-tradition trees as well as the six Force Sensitivity opens,
+  // and the tradition ones are hidden — so a talent listed in Dathomiri Witch must not be
+  // reported as open to any Force-sensitive character. Only FORCE_TALENT_TREES means that.
+  check('a hidden tradition tree is not a route anyone can take',
+    talentSources('charm-beast').map(s => [s.tree, s.universal, s.unsupported]),
+    [['Beastwarden', false, false],
+      ['Dathomiri Witch', false, true],
+      ['Felucian Shaman', false, true]]);
+  check('while a Force tree Force Sensitivity opens is universal',
+    talentSources(TALENT_TREES['alter'].features[0].id)
+      .filter(s => s.tree === 'Alter').map(s => [s.universal, s.unsupported]),
+    [[true, false]]);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A pick whose prerequisites lapse is reported, not silently dropped');
+// ---------------------------------------------------------------------------
+{
+  // Changing an earlier feat can pull the ground out from under a later one. The rules are
+  // the player's to bend, so nothing is removed — but it is said out loud, the way an
+  // Intelligence drop says the skills already trained are now too many.
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 12, wis: 12, cha: 10 });
+    x.levels = Array(12).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
+      { key: 'feat:9', choiceId: 'feat', featureId: 'critical-strike' },
+    ];
+  });
+  check('a character holding both is settled', lapsedSelections(soldier, computeCharacter(soldier)), []);
+
+  // Swap the Weapon Focus at 1st level for something with no bearing on Critical Strike.
+  const swapped = structuredClone(soldier);
+  swapped.selections[0] = { key: 'feat:1', choiceId: 'feat', featureId: 'toughness' };
+  const ds = computeCharacter(swapped);
+  const lapsed = lapsedSelections(swapped, ds);
+  check('the later feat is reported against the slot holding it',
+    lapsed.map(l => [l.key, l.name, l.missing.map(m => m.text)]),
+    [['feat:9', 'Critical Strike', ['Weapon Focus']]]);
+  check('and the tag says what to go and get', lapsed[0].missing.map(m => m.kind), ['feat']);
+  check('the swapped-in feat is itself fine', lapsed.some(l => l.key === 'feat:1'), false);
+  check('nothing is removed on the character\'s behalf', swapped.selections.length, 2);
+
+  // Requirements describing the state at the moment of choosing are not standing conditions:
+  // Skill Training wants an untrained skill, which taking it makes false at once. Re-checking
+  // must not report every Skill Training a character holds.
+  const trainer = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 12, con: 12, int: 14, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+    x.trainedSkills = ['perception'];
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'skill-training', spec: 'perception' }];
+  });
+  const dt = computeCharacter(trainer);
+  check('Skill Training reads as satisfied once taken', lapsedSelections(trainer, dt), []);
+
+  // The class-skill half is choice-time too. Force Sensitivity makes Use the Force a class
+  // skill; spend a Skill Training on it, then drop the feat, and the training stays — it was
+  // already spent, and "choose one untrained skill from your list of class skills" described
+  // the moment of choosing. What it must not do is stop the gate applying on the way in.
+  const soldierOne = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 12, con: 12, int: 14, wis: 14, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const featSlots = computeCharacter(soldierOne).slots
+    .filter(s => !s.auto && (s.kind === 'feat' || s.kind === 'species-feat')).map(s => s.key);
+
+  // With the feat, before spending the training: Use the Force is a class skill and untrained.
+  const offered = structuredClone(soldierOne);
+  offered.selections = [{ key: featSlots[0], choiceId: 'feat', featureId: 'force-sensitivity' }];
+  const doffered = computeCharacter(offered);
+  check('Force Sensitivity makes Use the Force a class skill',
+    doffered.classSkills.has('use-the-force'), true);
+  check('so Skill Training may be spent on it',
+    canSelect('skill-training', offered, doffered, 'use-the-force').met, true);
+
+  // Spent, then the feat behind the class skill is dropped.
+  const spent = structuredClone(offered);
+  spent.trainedSkills = ['use-the-force'];
+  spent.selections.push(
+    { key: featSlots[1], choiceId: 'feat', featureId: 'skill-training', spec: 'use-the-force' });
+  check('and once spent it is settled', lapsedSelections(spent, computeCharacter(spent)), []);
+
+  const lapsedGrant = structuredClone(spent);
+  lapsedGrant.selections = lapsedGrant.selections.filter(s => s.featureId !== 'force-sensitivity');
+  const dlapsed = computeCharacter(lapsedGrant);
+  check('dropping the feat takes the class skill with it',
+    dlapsed.classSkills.has('use-the-force'), false);
+  check('but the training already spent is not a conflict',
+    lapsedSelections(lapsedGrant, dlapsed), []);
+  check('while spending a fresh one on it would still be refused',
+    canSelect('skill-training', lapsedGrant, dlapsed, 'use-the-force').checks
+      .filter(c => !c.met).map(c => c.text),
+    ['Not already trained in Use the Force', 'Use the Force must be a class skill']);
+
+  // Stolen Form has no prerequisites of its own — it takes a Lightsaber Form talent, and
+  // "you must meet all the prerequisites as normal for the chosen Talent". Losing the Juyo
+  // that Vaapad stands on has to surface against the Stolen Form holding it, or a feature
+  // that delegates is a hole in the check.
+  const jedi = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 16, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(14).fill(null).map(() => ({ classId: 'jedi', hitPoints: 6 }));
+  });
+  const talentKeys = computeCharacter(jedi).slots.filter(s => s.kind === 'talent').map(s => s.key);
+  const thief = structuredClone(jedi);
+  thief.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'lightsabers' },
+    // The Jedi chain has its own lightsaber-only ids — see the block above.
+    { key: talentKeys[0], choiceId: 'talent', featureId: 'weapon-specialization-lightsabers' },
+    { key: talentKeys[1], choiceId: 'talent', featureId: 'juyo' },
+    { key: talentKeys[2], choiceId: 'talent', featureId: 'stolen-form', spec: 'vaapad' },
+  ];
+  check('holding the whole chain, the stolen form is settled',
+    lapsedSelections(thief, computeCharacter(thief)), []);
+
+  const stolen = structuredClone(thief);
+  stolen.selections = stolen.selections.filter(s => s.featureId !== 'juyo');
+  check('and dropping Juyo surfaces against the Stolen Form that borrowed Vaapad',
+    lapsedSelections(stolen, computeCharacter(stolen))
+      .map(l => [l.name, l.missing.map(m => m.text)]),
+    [['Stolen Form (Vaapad)', ['Juyo']]]);
+  check('though the untrained check itself now fails',
+    checkRequirements(FEATURES['skill-training'].requirements, trainer, dt, 'perception')
+      .checks.filter(c => !c.met).map(c => [c.text, c.atSelection === true]),
+    [['Not already trained in Perception', true]]);
 }
 
 // ---------------------------------------------------------------------------
@@ -1611,6 +1808,26 @@ console.log('\n▸ Attacks');
     .damageParts.some(p => p.label.includes('Dexterity ×2') && p.label.includes('Ataru')), true);
   check('Ataru does nothing for a club', buildAttack(ata, data_, EQUIPMENT['club'], opts).damageBonus, 4 + 0);
 
+  // The same form stolen rather than learned. "Choose one Talent from the Lightsaber Forms
+  // Talent Tree; you gain the benefits of this Talent and are considered to have this Talent
+  // for the purpose of satisfying prerequisites." Held only as stolen-form(ataru) nothing
+  // keyed on the form's own id fired, and the Dexterity swap silently did nothing.
+  const stole = nimble([...finesseSel,
+    { key: ataruSlot, choiceId: 'talent', featureId: 'stolen-form', spec: 'ataru' }]);
+  const dstolen = computeCharacter(stole);
+  check('a stolen Ataru counts as held', hasFeature(dstolen.features, 'ataru'), true);
+  check('and is marked with where it came from',
+    dstolen.features.filter(r => r.id === 'ataru').map(r => r.via), ['stolen-form']);
+  check('so it puts Dexterity on lightsaber damage too', saberOf(stole, dstolen).damageBonus, 4 + 4);
+  check('costing no second talent slot',
+    stole.selections.filter(s => s.choiceId === 'talent').length, 1);
+
+  // Every other feature that chooses a feature — Force Power Mastery, Share Talent and the
+  // rest — only qualifies one you already hold, and expanding those would hand out a second
+  // copy. Stolen Form is deliberately the only entry carrying the flag.
+  check('only Stolen Form grants what it chose',
+    Object.values(FEATURES).filter(f => f.specGrants).map(f => f.id), ['stolen-form']);
+
   // Both are "may", so a stronger character keeps Strength and is told why.
   const brawn = make(x => {
     x.speciesId = 'human';
@@ -1837,6 +2054,47 @@ console.log('\n▸ Attacks');
   const boosted = buildPowers(computeCharacter(caster));
   check('weapon toggles do not change a power',
     boosted.find(p => p.id === 'force-lightning')!.damage, '8d6');
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Niman, the one Lightsaber Form that moves a number on the sheet');
+// ---------------------------------------------------------------------------
+{
+  // "When wielding a lightsaber, you gain a +1 bonus to your Reflex Defense and Will
+  // Defense." Every other form in the tree turns on a swift action, a reaction or a Force
+  // Point and stays a note; this one simply applies, and only while a lightsaber is in hand.
+  const jedi = (sel: Character['selections'] = [], gear = 'lightsaber') => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 14, con: 12, int: 12, wis: 14, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'jedi', hitPoints: i === 0 ? undefined : 6 }));
+    x.inventory = [{ uid: 'i0', itemId: gear, quantity: 1, equipped: true }];
+    x.selections = sel;
+  });
+  const nimanSlot = computeCharacter(jedi()).slots.filter(s => s.kind === 'talent')[0].key;
+  const sel: Character['selections'] = [{ key: nimanSlot, choiceId: 'talent', featureId: 'niman' }];
+
+  const bare = computeCharacter(jedi());
+  const held = computeCharacter(jedi(sel));
+  check('Niman adds 1 to Reflex Defense', held.defenses.reflex - bare.defenses.reflex, 1);
+  check('and 1 to Will Defense', held.defenses.will - bare.defenses.will, 1);
+  check('the breakdown names it',
+    held.defenseBreakdown.reflex.find(p => p.label.startsWith('Niman'))?.value, 1);
+  check('and still adds up',
+    held.defenseBreakdown.reflex.reduce((n, p) => n + p.value, 0), held.defenses.reflex);
+  check('as does Will',
+    held.defenseBreakdown.will.reduce((n, p) => n + p.value, 0), held.defenses.will);
+  // Not a Dexterity bonus, so being caught flat-footed does not cost it.
+  check('flat-footed keeps it', held.defenses.flatFooted - bare.defenses.flatFooted, 1);
+  // Fortitude is not named in the talent, so the damage threshold does not move either.
+  check('Fortitude is untouched', held.defenses.fortitude, bare.defenses.fortitude);
+  check('and so is the damage threshold', held.damageThreshold, bare.damageThreshold);
+
+  check('another weapon is not a lightsaber',
+    computeCharacter(jedi(sel, 'club')).defenses.reflex, bare.defenses.reflex);
+  const stowed = jedi(sel);
+  stowed.inventory[0].equipped = false;
+  check('and carrying one is not wielding it',
+    computeCharacter(stowed).defenses.will, bare.defenses.will);
 }
 
 // ---------------------------------------------------------------------------
