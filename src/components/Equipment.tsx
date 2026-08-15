@@ -61,9 +61,15 @@ export function Equipment({
 
   const add = (itemId: string) =>
     update(c => {
-      // Stacks only with an untouched row: adding a second blaster is how you get one the
-      // crystal in the first is not fitted to, so it must not join that stack.
-      const existing = c.inventory.find(e => e.itemId === itemId && !e.mods);
+      // Only gear stacks. A weapon or a suit of armor is one entry per copy, because each
+      // copy has its own drawn or worn state — a matched pair of blaster pistols has to be
+      // wieldable together, or holsterable one at a time.
+      //
+      // And then only onto an untouched row: adding a second blaster is how you get one
+      // that the crystal in the first is not fitted to, so it must not join that stack.
+      const existing = getItem(c, itemId)?.category === 'gear'
+        ? c.inventory.find(e => e.itemId === itemId && !e.mods)
+        : undefined;
       if (existing) existing.quantity += 1;
       else c.inventory.push({ uid: uid(), itemId, quantity: 1, equipped: false });
     });
@@ -219,30 +225,31 @@ export function Equipment({
         {rows.length === 0 ? (
           <div className="empty">Nothing carried yet.</div>
         ) : (
-          CATEGORIES.map(cat => {
-            const list = byCategory(cat);
-            if (!list.length) return null;
-            return (
-              <div key={cat} style={{ marginBottom: 14 }}>
-                <h3 style={{ marginBottom: 6 }}>{CATEGORY_LABELS[cat]}</h3>
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th style={{ width: 44 }}>Worn</th>
-                        <th>Item</th>
-                        {!compact && (
-                          <th>{cat === 'weapon' ? 'Damage' : cat === 'armor' ? 'Ref / Fort / Max Dex' : 'Notes'}</th>
-                        )}
-                        <th className="num">Qty</th>
-                        <th className="num">Weight</th>
-                        {!compact && <th className="num">Cost</th>}
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
+          // One table for the whole kit, with each category as a rule across it. Three
+          // tables each repeating Worn / Item / Qty / Weight was more chrome than cargo.
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}>Worn</th>
+                  <th>Item</th>
+                  {!compact && <th>Detail</th>}
+                  <th className="num">Qty</th>
+                  <th className="num">Weight</th>
+                  {!compact && <th className="num">Cost</th>}
+                  <th />
+                </tr>
+              </thead>
+              {CATEGORIES.map(cat => {
+                const list = byCategory(cat);
+                if (!list.length) return null;
+                return (
+                  <tbody key={cat}>
+                    <tr className="kit-head">
+                      <td colSpan={compact ? 5 : 7}>{CATEGORY_LABELS[cat]}</td>
+                    </tr>
                       {list.map(({ entry, item }) => (
-                        <tr key={entry.uid}>
+                        <tr key={entry.uid} className={`kit-row${entry.equipped ? ' worn' : ''}`}>
                           <td>
                             <input type="checkbox" checked={entry.equipped} onChange={() => toggleEquip(entry.uid)} />
                           </td>
@@ -282,18 +289,23 @@ export function Equipment({
                               {cat === 'gear' && (item.notes ?? '—')}
                             </td>
                           )}
+                          {/* Only gear has a count. A weapon or a suit of armor is one row
+                              per copy, so a quantity box there would be offering to stack
+                              things that each need their own worn tick. */}
                           <td className="num">
-                            <input
-                              className="mono center"
-                              style={{ width: 50, padding: '2px 4px' }}
-                              value={entry.quantity}
-                              onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
-                            />
+                            {cat === 'gear' && (
+                              <input
+                                className="mono center"
+                                style={{ width: 50, padding: '2px 4px' }}
+                                value={entry.quantity}
+                                onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
+                              />
+                            )}
                           </td>
                           <td className="num faint">{(item.weight * entry.quantity).toFixed(1)}</td>
                           {!compact && <td className="num faint">{(item.cost * entry.quantity).toLocaleString()}</td>}
                           <td>
-                            <div className="row">
+                            <div className="kit-actions">
                               <button
                                 className="sm ghost"
                                 title={item.custom ? 'Edit this item' : 'Customize this copy'}
@@ -306,12 +318,11 @@ export function Equipment({
                           </td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })
+                  </tbody>
+                );
+              })}
+            </table>
+          </div>
         )}
 
       {browsing && (

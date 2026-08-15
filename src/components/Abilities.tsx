@@ -39,6 +39,7 @@ export function Abilities({
     <>
       <Panel
         collapseId="edit:abilities"
+        className="framed tint-accent"
         title="Ability scores"
         actions={
           <div className="row">
@@ -97,7 +98,7 @@ export function Abilities({
         </div>
       </Panel>
 
-      <Panel collapseId="edit:ability-increases" title="Level-based increases">
+      <Panel collapseId="edit:ability-increases" title="Level-based increases" className="framed tint-accent">
         {increaseLevels.length === 0 ? (
           <div className="empty">
             At 4th level and every four levels after, you raise two different ability scores by 1.

@@ -22,14 +22,19 @@ export function Field({ label, children }: { label: string; children: ReactNode 
  * changes every level.
  */
 export function Panel({
-  title, actions, children, collapseId,
-}: { title?: string; actions?: ReactNode; children: ReactNode; collapseId?: string }) {
+  title, actions, children, collapseId, className,
+}: {
+  title?: string; actions?: ReactNode; children: ReactNode;
+  collapseId?: string;
+  /** `reference` sits the panel flatter than the live surfaces on the sheet. */
+  className?: string;
+}) {
   const [openPref, toggle] = useCollapsePanel(collapseId ?? '');
   const foldable = !!collapseId && !!title;
   const open = !foldable || openPref;
 
   return (
-    <section className={`panel${foldable && !open ? ' collapsed' : ''}`}>
+    <section className={`panel${foldable && !open ? ' collapsed' : ''}${className ? ` ${className}` : ''}`}>
       {title && (
         <header>
           {foldable ? (

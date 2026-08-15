@@ -142,6 +142,7 @@ export function Features({
 
       <Panel
         collapseId="edit:features"
+        className="framed tint-blue"
         title="Feats, talents & features by level"
         actions={
           <label className="row nowrap hint" style={{ gap: 6 }}>

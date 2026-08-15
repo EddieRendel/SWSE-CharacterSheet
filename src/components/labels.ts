@@ -29,7 +29,9 @@ export const descriptorsOf = (feature: Feature) => DESCRIPTORS.filter(d => featu
  * The tag shown against a prerequisite. "Armor Specialist" alone does not tell you whether to
  * look in the feats list or in a talent tree, and the two are obtained in entirely different
  * ways, so each line says which. Colours follow the rest of the sheet: talents purple, feats
- * blue, anything Force-related green.
+ * blue, anything Force-related green, maneuvers accent — `FEATURE_TONES` in Sheet.tsx draws
+ * the same kinds the same way. Maneuvers were blue too, which put them and feats in the same
+ * colour in the one place both appear at once, the sheet's Feats & powers tab.
  */
 export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = {
   feat: { label: 'feat', cls: 'blue' },
@@ -38,7 +40,7 @@ export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = 
   'force-power': { label: 'Force power', cls: 'green' },
   'force-technique': { label: 'Force technique', cls: 'green' },
   'force-secret': { label: 'Force secret', cls: 'green' },
-  'starship-maneuver': { label: 'maneuver', cls: 'blue' },
+  'starship-maneuver': { label: 'maneuver', cls: 'accent' },
   ability: { label: 'ability score', cls: 'accent' },
   skill: { label: 'skill', cls: 'accent' },
   species: { label: 'species', cls: '' },

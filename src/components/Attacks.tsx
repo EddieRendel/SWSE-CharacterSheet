@@ -4,7 +4,7 @@ import type { Character } from '../types';
 import { signed, hasFeature, countFeature, forcePowerUses } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import {
-  buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
+  buildAttacks, buildPowers, buildForcePointAbilities,
   defaultAttackOptions, SITUATIONAL, twoWeaponPenalty, dualWeaponMasteryId,
 } from '../rules/attacks';
 import type { AttackOptions, AttackProfile } from '../rules/attacks';
@@ -31,7 +31,7 @@ function toggleTip(id: string, hint: string) {
     : <div className="tip-body"><p>{hint}</p></div>;
 }
 
-const NUM = { fontWeight: 700, color: 'var(--accent)' } as const;
+const NUM = { fontWeight: 700, color: 'var(--sheet-accent)' } as const;
 
 /** The total, with its working shown on hover rather than cluttering the sheet. */
 function Breakdown({
@@ -60,7 +60,14 @@ function AttackRow({ a }: { a: AttackProfile }) {
   // description rather than its stat line, so the name opens the full entry.
   const [viewing, setViewing] = useState(false);
   return (
-    <div className="attack-row">
+    <div className={`attack-row ${a.melee ? 'melee' : 'ranged'}`}>
+      {/* The roll comes first and largest: it is what you reach for, and the damage only
+          matters once it has landed. */}
+      <div className="attack-roll">
+        <Breakdown title="Attack roll" rows={a.attackParts} total={signed(a.attack)} />
+        <span className="k">hit</span>
+      </div>
+      <div className="grow">
       <div className="attack-name">
         <Tip content={<ItemTipBody item={a.weapon} note={a.proficient ? undefined : 'You are not proficient — attacks take −5.'} />}>
           <button type="button" className="linklike" onClick={() => setViewing(true)}>
@@ -91,8 +98,6 @@ function AttackRow({ a }: { a: AttackProfile }) {
         )}
       </div>
       <div className="attack-nums">
-        <Breakdown title="Attack roll" rows={a.attackParts} total={signed(a.attack)} />
-        <span className="faint">hit</span>
         {/* Both halves of the damage: where the dice come from, and every flat modifier. */}
         <Breakdown
           title="Damage"
@@ -104,6 +109,7 @@ function AttackRow({ a }: { a: AttackProfile }) {
           footer={`Rolled as ${damage} ${a.weapon.damageType ?? ''}`.trim()}
         />
         <span className="faint">{a.weapon.damageType}</span>
+      </div>
       </div>
       {viewing && (
         <Modal title="Equipment" onClose={() => setViewing(false)}>
@@ -161,52 +167,17 @@ export function Attacks({
     stun: attacks.some(a => a.weapon.stun),
   };
 
-  // Force Points are a per-level pool, spent to add a die to a roll or to fuel abilities.
+  // What a Force Point can be spent on beyond adding a die. The pool itself is read and
+  // spent in the vitals band at the top of the sheet, not here.
   const fpAbilities = buildForcePointAbilities(derived);
-  const fpLeft = Math.max(0, derived.forcePoints - char.forcePointsSpent);
-  const spendFP = (n: number) =>
-    update(c => {
-      c.forcePointsSpent = Math.max(0, Math.min(derived.forcePoints, c.forcePointsSpent + n));
-    });
 
   const content = (
     <>
-      {derived.forcePoints > 0 && (
-        <div className="fp-bar">
-          <span className="attack-name" style={{ margin: 0 }}>Force Points</span>
-          <span className="uses" title={`${fpLeft} of ${derived.forcePoints} left`}>
-            {Array.from({ length: Math.min(derived.forcePoints, 12) }, (_, i) => (
-              <span key={i} className={`pip ${i < fpLeft ? 'full' : ''}`} />
-            ))}
-          </span>
-          <span className="mono" style={{ fontWeight: 700, color: 'var(--accent)' }}>
-            {fpLeft}<span className="faint">/{derived.forcePoints}</span>
-          </span>
-          <button className="sm ghost" disabled={fpLeft <= 0} title="Spend a Force Point"
-            onClick={() => spendFP(1)}>Spend</button>
-          <button className="sm ghost" disabled={char.forcePointsSpent <= 0} title="Take one back"
-            onClick={() => spendFP(-1)}>↺</button>
-          <div className="spacer" />
-          <Tip content={
-            <div className="tip-body">
-              <div className="tip-head"><strong>Spending a Force Point</strong></div>
-              <p>
-                A reaction, once per round: add {forcePointDice(derived.level)} to a single attack roll,
-                skill check or ability check — before or after you know whether it succeeded.
-              </p>
-              <p>
-                The die grows with your level: 1d6, 2d6 from 8th, 3d6 from 15th. Some feats,
-                talents and powers spend one for a specific effect instead; those are listed below.
-              </p>
-              <p className="faint">The pool refreshes each time you gain a level.</p>
-            </div>
-          }>
-            <span className="hint nowrap breakdown">adds {forcePointDice(derived.level)} to a roll</span>
-          </Tip>
-        </div>
-      )}
-
-      <div className="row" style={{ flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+      {/* Switches, ruled off from the numbers they change — they used to run straight into
+          the attack list as one undifferentiated block of buttons and rows. */}
+      <div className="modifiers">
+        <div className="modifiers-label">Modifiers</div>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 5 }}>
         {/* Two hands on one weapon and a weapon in each hand are mutually exclusive, so
             each toggle switches the other off rather than letting both look active. */}
         <Toggle
@@ -287,6 +258,7 @@ export function Attacks({
               onClick={() => set('powerAttack', opts.powerAttack + 1)}>+</button>
           </span>
         )}
+        </div>
       </div>
 
       <div className="list">
@@ -313,7 +285,13 @@ export function Attacks({
               const left = total - spentOf(p.id);
               const exhausted = left <= 0;
               return (
-                <div key={p.id} className={`attack-row ${exhausted ? 'exhausted' : ''}`}>
+                <div key={p.id} className={`attack-row power ${exhausted ? 'exhausted' : ''}`}>
+                  <div className="attack-roll">
+                    <Breakdown title="Use the Force" rows={p.checkParts ?? []} total={signed(p.useTheForce)}
+                      footer={`Rolled against the target's ${p.versus ?? 'defense'}.`} />
+                    <span className="k">use</span>
+                  </div>
+                  <div className="grow">
                   <div className="attack-name">
                     <FeatureTip id={p.id} note={`${left} of ${total} uses left this encounter.`}>
                       <span className="breakdown">{p.name}</span>
@@ -341,12 +319,11 @@ export function Attacks({
                       onClick={() => spend(p.id, -1)}>↺</button>
                   </div>
                   <div className="attack-nums">
-                    <Breakdown title="Use the Force" rows={p.checkParts ?? []} total={signed(p.useTheForce)}
-                      footer={`Rolled against the target's ${p.versus ?? 'defense'}.`} />
                     <span className="faint">vs {p.versus?.replace(' Defense', '') ?? '—'}</span>
-                    <span className="mono" style={{ fontWeight: 700, color: 'var(--accent)' }}>{p.damage}</span>
+                    <span className="mono" style={{ fontWeight: 700, color: 'var(--sheet-accent)' }}>{p.damage}</span>
                     <span className="faint">{p.damageType ?? ''}</span>
                     {exhausted && <span className="badge red">spent</span>}
+                  </div>
                   </div>
                 </div>
               );

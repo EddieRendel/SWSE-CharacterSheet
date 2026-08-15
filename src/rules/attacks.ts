@@ -479,21 +479,18 @@ export function buildAttack(
  */
 export function buildAttacks(char: Character, derived: Derived, opts: AttackOptions): AttackProfile[] {
   const inventory = carriedItems(char);
-  const seen = new Set<string>(['unarmed']);
+  // One profile per drawn copy. Two identical blasters used to collapse into a single line,
+  // which made a matched pair impossible to wield — the whole point of carrying two. Each
+  // inventory entry is one weapon now, with its own drawn state.
+  //
+  // Unarmed is the exception, and is excluded here: it is always available and appended
+  // once below, so an entry for it would put your fists on the list twice.
   const carried = inventory
-    .filter(r => r.entry.equipped)
-    .map(r => r.item)
-    .filter((w): w is ResolvedItem => {
-      if (w.category !== 'weapon') return false;
-      // Two identical blasters make one profile, but two copies customized differently
-      // are different weapons and each earns its own line. Unarmed is keyed by its id
-      // alone however it was customized, because the profile below is the one it gets —
-      // a second entry for it would put your fists on the list twice.
-      const key = w.modified && w.id !== 'unarmed' ? `${w.id}:${w.entryUid}` : w.id;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    .filter(r => r.entry.equipped && r.item.category === 'weapon' && r.item.id !== 'unarmed')
+    // resolveItem hands back the catalogue object itself when nothing was customized, so
+    // two untouched blasters are literally the same object. Copy, and stamp the entry on,
+    // or the two lines would be indistinguishable to anything downstream.
+    .map((r): ResolvedItem => ({ ...r.item, entryUid: r.entry.uid }));
 
   // Your fists are always to hand, so unarmed never waits on the "worn" tick. A copy of it
   // the player has made their own — armored gauntlets, a species' natural weapon — stands

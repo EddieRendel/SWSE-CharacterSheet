@@ -17,64 +17,91 @@ export function Overview({
   const setTrait = (k: keyof Character['traits'], v: string) =>
     update(c => { c.traits[k] = v; });
 
+  const classLine = derived.classLevels.map(c => `${c.cls.name} ${c.levels}`).join(' / ');
+
   return (
-    <>
-      <Panel title="Identity">
-        <div className="row" style={{ alignItems: 'flex-start', gap: 16 }}>
+    <div className="character">
+      <Panel title="Identity" className="framed tint-accent">
+        <div className="identity-edit">
           <PortraitButton char={char} update={update} size={96} />
-          <div className="grow" style={{ flex: 1 }}>
+          <div className="grow">
             <div className="grid g2">
-              <Field label="Character name">
-                <input value={char.name} onChange={e => update(c => { c.name = e.target.value; })} />
-              </Field>
+              <div className="field name-field">
+                <label htmlFor="character-name">Character name</label>
+                <input id="character-name" value={char.name}
+                  onChange={e => update(c => { c.name = e.target.value; })} />
+              </div>
               <Field label="Player name">
                 <input value={char.playerName} onChange={e => update(c => { c.playerName = e.target.value; })} />
               </Field>
             </div>
+            {/* The same standing line the sheet leads with, so what you are editing and
+                what you will read at the table say the same thing. */}
+            <div className="identity-summary">
+              <span>{species?.name ?? 'No species'}</span>
+              <span className="sep">·</span>
+              <span>{classLine || 'No levels'}</span>
+              <span className="sep">·</span>
+              <span>Level <strong>{derived.level}</strong></span>
+            </div>
           </div>
         </div>
+      </Panel>
 
-        <div style={{ marginTop: 12 }}>
-          <Field label="Species">
-            <div className="row">
-              <button className="clickable item grow" onClick={() => setPickingSpecies(true)}>
-                {species ? (
-                  <>
-                    <span className="name">{species.name}</span>
-                    <span className="meta" style={{ marginLeft: 8 }}>
-                      {species.size} · speed {species.speed} squares
-                      {species.abilities && ' · ' + Object.entries(species.abilities).map(([a, v]) => `${signed(v)} ${a.toUpperCase()}`).join(', ')}
-                    </span>
-                  </>
-                ) : <span className="warn">Choose a species…</span>}
-              </button>
-              {species && (
-                <button className="ghost" onClick={() => update(c => { c.speciesId = null; })}>Clear</button>
-              )}
-            </div>
-          </Field>
-        </div>
-
-        {species && (
-          <div style={{ marginTop: 12 }}>
-            <div className="row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+      {/* Species was a grey row inside Identity with its ability modifiers as dim 12px meta
+          text — the single most consequential choice on the page, drawn like a list item. */}
+      <Panel
+        title="Species"
+        className="framed tint-green"
+        actions={species && (
+          <div className="row">
+            <button className="sm" onClick={() => setPickingSpecies(true)}>Change</button>
+            <button className="sm ghost" onClick={() => update(c => { c.speciesId = null; })}>Clear</button>
+          </div>
+        )}
+      >
+        {!species ? (
+          <button className="species-empty" onClick={() => setPickingSpecies(true)}>
+            Choose a species…
+          </button>
+        ) : (
+          <>
+            <div className="species-head">
+              <span className="species-name">{species.name}</span>
               {species.bonusFeat && <span className="badge green">bonus feat</span>}
               {species.bonusSkill && <span className="badge green">bonus trained skill</span>}
               {(species.languages ?? []).map(l => <span key={l} className="badge">{l}</span>)}
             </div>
+
+            {species.abilities && (
+              <div className="species-mods">
+                {Object.entries(species.abilities).map(([a, v]) => (
+                  <span key={a} className="species-mod">
+                    <span className="k">{a.toUpperCase()}</span>
+                    <span className={`v ${v > 0 ? 'up' : 'down'}`}>{signed(v)}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="species-facts">
+              <span><span className="k">Size</span><span className="v">{species.size}</span></span>
+              <span><span className="k">Speed</span><span className="v">{species.speed} sq</span></span>
+            </div>
+
             {(species.features ?? []).length > 0 && (
               <>
-                <h3 style={{ marginBottom: 6 }}>Species traits</h3>
+                <div className="group-rule">Traits</div>
                 <div className="chips">
                   {(species.features ?? []).map((f, i) => (
-                    <button key={i} className="chip clickable" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
+                    <button key={i} className="chip tone-green" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
                       {featureName(f.id, f.spec)}
                     </button>
                   ))}
                 </div>
               </>
             )}
-          </div>
+          </>
         )}
       </Panel>
 
@@ -91,7 +118,8 @@ export function Overview({
       {/* Condition, damage, Force points, destiny and Dark Side score live on the sheet —
           they change during play, not while building the character. */}
 
-      <Panel collapseId="character:description" title="Description">
+      <Panel collapseId="character:description" title="Description" className="framed">
+        <div className="group-rule">Physical</div>
         <div className="grid g4">
           <Field label="Age"><input value={t.age} onChange={e => setTrait('age', e.target.value)} /></Field>
           <Field label="Gender"><input value={t.gender} onChange={e => setTrait('gender', e.target.value)} /></Field>
@@ -100,12 +128,16 @@ export function Overview({
           <Field label="Eyes"><input value={t.eyes} onChange={e => setTrait('eyes', e.target.value)} /></Field>
           <Field label="Hair"><input value={t.hair} onChange={e => setTrait('hair', e.target.value)} /></Field>
           <Field label="Skin"><input value={t.skin} onChange={e => setTrait('skin', e.target.value)} /></Field>
-          <Field label="Homeworld"><input value={t.homeworld} onChange={e => setTrait('homeworld', e.target.value)} /></Field>
         </div>
-        <div style={{ marginTop: 12 }}>
+
+        <div className="group-rule">Origin</div>
+        <div className="grid g2">
+          <Field label="Homeworld"><input value={t.homeworld} onChange={e => setTrait('homeworld', e.target.value)} /></Field>
           <Field label="Affiliation"><input value={t.affiliation} onChange={e => setTrait('affiliation', e.target.value)} /></Field>
         </div>
-        <div className="grid g2" style={{ marginTop: 12 }}>
+
+        <div className="group-rule">In their own words</div>
+        <div className="grid g2">
           <Field label="Appearance"><textarea value={t.appearance} onChange={e => setTrait('appearance', e.target.value)} /></Field>
           <Field label="Personality"><textarea value={t.personality} onChange={e => setTrait('personality', e.target.value)} /></Field>
         </div>
@@ -130,7 +162,7 @@ export function Overview({
           <FeatureDetail feature={FEATURES[viewing]} />
         </Modal>
       )}
-    </>
+    </div>
   );
 }
 
@@ -305,6 +337,7 @@ function Sources({
     <Panel
       collapseId="character:sourcebooks"
       title="Sourcebooks"
+      className="framed"
       actions={
         <div className="row">
           <button className="sm" onClick={() => setBooks(['core'])}>Core only</button>
@@ -321,12 +354,19 @@ function Sources({
           : <>All {ALL_BOOKS.length} books are in play.</>}
       </p>
 
-      <div className="grid g3">
+      {/* Toggles rather than a grid of checkbox rows. Fourteen ticked boxes were the
+          brightest thing on a page about who the character is, and this panel is
+          configuration — it should take the least room, not the most. */}
+      <div className="book-toggles">
         {ALL_BOOKS.map(b => (
-          <label key={b} className="row" style={{ gap: 8, cursor: 'pointer' }}>
-            <input type="checkbox" checked={isOn(b)} onChange={() => toggle(b)} />
-            <span className={isOn(b) ? '' : 'faint'}>{BOOK_NAMES[b] ?? b}</span>
-          </label>
+          <button
+            key={b}
+            className={`sm ${isOn(b) ? '' : 'off'}`}
+            aria-pressed={isOn(b)}
+            onClick={() => toggle(b)}
+          >
+            {BOOK_NAMES[b] ?? b}
+          </button>
         ))}
       </div>
 
@@ -361,7 +401,7 @@ function NearHuman({
   const incomplete = !nh.trait || !nh.sacrifice;
 
   return (
-    <Panel title="Near-Human">
+    <Panel title="Near-Human" className="framed tint-green">
       <p className="hint" style={{ marginBottom: 12 }}>
         A Near-Human uses the Human stat block and trades <strong>either</strong> its bonus feat{' '}
         <strong>or</strong> its bonus trained skill for a single Near-Human trait, plus up to{' '}
