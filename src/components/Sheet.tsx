@@ -277,7 +277,8 @@ export function Sheet({
                     { label: 'left to spend', text: String(fpLeft) },
                     { label: 'this level', text: String(derived.forcePoints) },
                   ]}
-                  footer={`Each one spent adds ${forcePointDice(derived.level)} to a roll. Spend them from the Actions tab.`}
+                  footer={`A reaction, once per round, on a single attack roll, skill check or `
+                    + `ability check. Spend one with the button below.`}
                 >
                   <div>
                     <div className="vital-value">
@@ -295,7 +296,30 @@ export function Sheet({
                     onClick={() => spendFP(1)}>Spend</button>
                   <button className="sm ghost" disabled={char.forcePointsSpent <= 0}
                     title="Take one back" onClick={() => spendFP(-1)}>↺</button>
-                  <span className="hint nowrap">adds {forcePointDice(derived.level)} to a roll</span>
+                  {/* The rules for spending one used to hang off the Force Point bar in the
+                      Actions tab. That bar was a second copy of this pool and went, so the
+                      explanation moves here, next to the button that does it — and says which
+                      rolls qualify rather than "a roll", which reads as any of them. */}
+                  <Tip content={
+                    <div className="tip-body">
+                      <div className="tip-head"><strong>Spending a Force Point</strong></div>
+                      <p>
+                        A reaction, once per round: add {forcePointDice(derived.level)} to a single
+                        attack roll, skill check or ability check — before or after you know
+                        whether it succeeded.
+                      </p>
+                      <p>
+                        The die grows with your level: 1d6, 2d6 from 8th, 3d6 from 15th. Some
+                        feats, talents and powers spend one for a specific effect instead; those
+                        are listed under Actions.
+                      </p>
+                      <p className="faint">The pool refreshes each time you gain a level.</p>
+                    </div>
+                  }>
+                    <span className="hint breakdown">
+                      adds {forcePointDice(derived.level)} to one attack, skill or ability check
+                    </span>
+                  </Tip>
                 </div>
               </>
             )}
