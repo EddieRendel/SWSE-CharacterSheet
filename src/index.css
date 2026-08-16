@@ -257,7 +257,6 @@ button {
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
-button:hover:not(:disabled) { background: var(--hover-bg); border-color: var(--hover-border); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 button.primary {
@@ -266,13 +265,24 @@ button.primary {
   color: var(--accent-ink);
   font-weight: 600;
 }
-button.primary:hover:not(:disabled) { background: var(--accent-bright); border-color: var(--accent-bright); }
 
 button.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
-button.ghost:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 
 button.danger { border-color: var(--red-edge); color: var(--red-soft); }
-button.danger:hover:not(:disabled) { background: var(--red-deep); border-color: var(--red); }
+
+/* The lift a button takes under the pointer, and only where there is a pointer to take it.
+   A touch screen has no way to move a hover off something: it latches onto whatever was
+   tapped last and stays until something else is tapped. On the option rows that is worse
+   than untidy — `button:hover` carries more specificity than `.opt.selected` does, so a
+   stuck hover repaints the very row the dialog is trying to mark as chosen, in a colour
+   that is not the one that means "chosen". A phone is left with the resting style, which
+   is what it can actually keep truthful. */
+@media (hover: hover) {
+  button:hover:not(:disabled) { background: var(--hover-bg); border-color: var(--hover-border); }
+  button.primary:hover:not(:disabled) { background: var(--accent-bright); border-color: var(--accent-bright); }
+  button.ghost:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+  button.danger:hover:not(:disabled) { background: var(--red-deep); border-color: var(--red); }
+}
 
 button.sm { padding: 3px 8px; font-size: 12px; }
 
@@ -294,8 +304,20 @@ textarea { resize: vertical; min-height: 70px; font-family: inherit; }
 select { cursor: pointer; }
 input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accent); }
 
+/* iOS zooms the page in whenever it focuses a field whose text is under 16px, and it does not
+   zoom back out when the field is done with. Everything after that is judged at the wrong
+   scale: the dialog is wider than the screen, and rows are tapped by where they used to be.
+   Inheriting the 14px body size was enough to trigger it, so on a touch screen the fields
+   state their own. */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px; }
+}
+
 /* ---------- layout ---------- */
-.app { display: flex; flex-direction: column; height: 100%; }
+/* `dvh` rather than a bare percentage of the viewport: a phone browser draws its URL bar and
+   its toolbar over the box the page is laid out in, so a full-height column ends with its last
+   rows behind them. `height: 100%` stays as the fallback for engines without `dvh`. */
+.app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
 
 .topbar {
   display: flex; align-items: center; gap: 14px;
@@ -526,17 +548,29 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
   backdrop-filter: blur(2px);
 }
+/* Two things had the footer — Cancel, and the button that commits the choice — off the bottom
+   of a phone screen, at every scroll position, because the overlay holding it does not scroll.
+   The gutter is part of the height budget and was not being counted: 88vh plus the overlay's
+   own 20px top and bottom is taller than the window it has to fit in. And `vh` is measured
+   against the viewport a phone browser would have with its toolbars retracted, which is around
+   100px taller than what you can actually see and touch — so the dialog is sized to a screen
+   larger than the one in your hand. `dvh` is that same measure taken live, toolbars included;
+   the `vh` line above it is the fallback for engines that predate it. */
 .modal {
   background: var(--panel); border: 1px solid var(--border-2);
   border-radius: 10px; width: 100%; max-width: 860px;
-  max-height: 88vh; display: flex; flex-direction: column;
+  max-height: min(88vh, 100vh - 40px);
+  max-height: min(88dvh, 100dvh - 40px);
+  display: flex; flex-direction: column;
   box-shadow: 0 20px 60px rgba(var(--shadow-rgb), 0.55);
 }
 .modal > header {
   display: flex; align-items: center; gap: 10px;
   padding: 13px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
-.modal > .body { padding: 16px; overflow-y: auto; flex: 1; }
+/* `contain` so that flicking past the end of the dialog does not carry on into the page
+   underneath it, which then has to be scrolled back when the dialog closes. */
+.modal > .body { padding: 16px; overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .modal > footer {
   padding: 12px 16px; border-top: 1px solid var(--border);
   display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0;
@@ -546,22 +580,29 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
    the modal use the height too, since there is no room to centre it in. */
 @media (max-width: 520px) {
   .overlay { padding: 8px; align-items: flex-start; }
-  .modal { max-height: 96vh; margin-top: 6px; }
+  /* 8px of overlay padding at each end and the 6px it is nudged down by — the same budget as
+     above, counted for this gutter. */
+  .modal { max-height: min(96vh, 100vh - 22px); max-height: min(96dvh, 100dvh - 22px); margin-top: 6px; }
   .modal > header, .modal > footer { padding: 11px 12px; }
   .modal > .body { padding: 12px; }
   .modal > footer { flex-wrap: wrap; }
 }
 
 .split { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; min-height: 0; }
-.split .options { max-height: 56vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px; }
-.split .detail { max-height: 56vh; overflow-y: auto; }
+/* Both panes take their share of the viewport the same way the dialog around them does — see
+   `.modal` — or they claim more of the screen than there is and push the footer off it. */
+.split .options {
+  max-height: 56vh; max-height: 56dvh;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;
+}
+.split .detail { max-height: 56vh; max-height: 56dvh; overflow-y: auto; }
 
 /* Stacked, the two panes' own 56vh scrollers sat inside the modal body's scroller —
    three competing scroll areas under one thumb. Let the body be the only one that
    scrolls, and cap the option list so the detail below it stays reachable. */
 @media (max-width: 760px) {
   .split { grid-template-columns: minmax(0, 1fr); }
-  .split .options { max-height: 42vh; }
+  .split .options { max-height: 42vh; max-height: 42dvh; }
   .split .detail { max-height: none; overflow-y: visible; }
 }
 
@@ -576,10 +617,23 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   padding: 7px 10px; border-radius: 6px; text-align: left;
   background: transparent; border: 1px solid transparent; color: var(--text-dim);
 }
-.opt:hover { background: var(--bg-3); }
+/* Guarded, because a touch screen has no pointer to take the hover away again: the style stays
+   on the row a tap landed on until some other row is tapped, and it paints the same --bg-3 as
+   .opt.selected — so a row brushed on the way past a 134-entry list goes on looking exactly
+   like the one that was actually chosen. Everything below that stands in for "selected" or
+   "on" is held behind the same guard. */
+@media (hover: hover) {
+  .opt:hover { background: var(--bg-3); }
+}
 .opt.selected { background: var(--bg-3); border-color: var(--accent-dim); color: var(--text); }
 .opt.ineligible { color: var(--text-faint); }
 .opt .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A fingertip covers rather more than the 37px these rows came to. 44px is the point below
+   which the tap lands on a neighbour often enough to notice. */
+@media (pointer: coarse) {
+  .opt { min-height: 44px; }
+}
 
 .tree-category {
   position: sticky; top: 0; z-index: 1;
@@ -710,7 +764,10 @@ button.chip:disabled { cursor: default; }
   padding: 4px; border-radius: 8px; background: var(--bg-2);
   border: 1px solid var(--border); cursor: pointer; line-height: 0;
 }
-.portrait-choice:hover { border-color: var(--border-2); background: var(--bg-3); }
+/* Guarded, as with every hover that stands in for a selection. */
+@media (hover: hover) {
+  .portrait-choice:hover { border-color: var(--border-2); background: var(--bg-3); }
+}
 .portrait-choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15); }
 .portrait-choice img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
 
@@ -1157,7 +1214,11 @@ button.linklike.block { display: block; width: 100%; }
   padding: 9px 11px; border-radius: 6px;
   background: var(--bg-2); border: 1px solid var(--border);
 }
-.theme-option:hover:not(:disabled) { border-color: var(--border-2); background: var(--bg-3); }
+/* Guarded: .selected below fills with the same --bg-3, and a palette you merely tapped past
+   should not go on looking like the one you are wearing. */
+@media (hover: hover) {
+  .theme-option:hover:not(:disabled) { border-color: var(--border-2); background: var(--bg-3); }
+}
 .theme-option.selected { border-color: var(--accent-dim); background: var(--bg-3); }
 .theme-option .grow { flex: 1; min-width: 0; display: block; }
 .theme-name { display: block; font-weight: 600; }
@@ -1246,7 +1307,10 @@ button.linklike.block { display: block; width: 100%; }
   background: none; border-style: dashed; color: var(--text-faint);
   text-decoration: line-through; text-decoration-color: var(--border-2);
 }
-.book-toggles button.off:hover:not(:disabled) { color: var(--text-dim); background: var(--bg-3); }
+/* Guarded: a filled, un-struck-through toggle is what "on" looks like. */
+@media (hover: hover) {
+  .book-toggles button.off:hover:not(:disabled) { color: var(--text-dim); background: var(--bg-3); }
+}
 
 /* ---------- the lower column ---------- */
 /* One switcher, not three loose buttons that happened to sit in a panel header. */
@@ -1282,7 +1346,11 @@ button.linklike.block { display: block; width: 100%; }
   padding: 4px 8px; border-radius: 4px;
   min-width: 0;
 }
-.skill:hover { background: var(--bg-3); }
+/* Guarded: this is the same --bg-3 as .skill.trained on the line below, so a hover left
+   behind by a tap reads as a skill the character is trained in. */
+@media (hover: hover) {
+  .skill:hover { background: var(--bg-3); }
+}
 .skill.trained { background: var(--bg-3); }
 /* Trained or not is the ● / ○ it always was; the brighter row is what carries it now that
    the modifier beside it is the thing you actually read. */

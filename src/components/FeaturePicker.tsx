@@ -6,6 +6,7 @@ import { specOptionsFor, SPEC_LABELS, PICKS_A_FEATURE } from '../rules/specs';
 import { computeCharacter, featureAvailable } from '../rules/engine';
 import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
 import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
+import { autoFocusSearch } from '../pointer';
 import { ReqList } from './Requirements';
 import { descriptorsOf } from './labels';
 
@@ -207,7 +208,7 @@ export function FeaturePicker({
 
       <div className="row" style={{ marginBottom: 12 }}>
         <input
-          autoFocus
+          autoFocus={autoFocusSearch}
           placeholder="Search by name or rules text…"
           value={query}
           onChange={e => setQuery(e.target.value)}

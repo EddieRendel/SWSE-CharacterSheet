@@ -87,6 +87,19 @@ the wording it relies on, so the next person can check it without the book.
 320px wide with no horizontal page scroll — wide content scrolls inside its own container. Flag
 fixed pixel widths on anything in a grid or table row.
 
+**A phone is not a small desktop, and three of its rules are invisible in a desktop run.**
+*Height comes from `dvh`, never `vh`* — a mobile browser draws its toolbars over the viewport
+`vh` measures, so a `vh`-sized dialog hangs about 100px below what can be seen or touched, and
+the overlay behind it does not scroll: the footer, and the button that commits the choice, are
+simply unreachable. *Fields are 16px on a touch screen* — below that iOS zooms the page on focus
+and does not zoom back, so everything after is tapped at the wrong scale. *Hover that stands in
+for "selected" or "on" is wrapped in `@media (hover: hover)`* — a tap latches `:hover` onto
+whatever it lands on and nothing takes it off again, so an unguarded rule leaves a row the finger
+merely passed over looking exactly like the one that was chosen. `e2e.mjs` checks what it can at
+phone size, but emulation has no toolbars: a `vh` dialog measures as fitting perfectly there, so
+that one is only caught in review. Autofocus is the same trade — `autoFocusSearch` in
+`src/pointer.ts` — since raising the keyboard on open buries the dialog's own buttons.
+
 **Modals stack.** `Modal` keeps a stack so Escape closes only the top one. A new dialog opened
 from inside another must not add its own window-level Escape handler.
 

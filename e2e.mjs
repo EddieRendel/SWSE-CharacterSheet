@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { chromium, devices } from 'playwright';
 
 const errors = [];
 const browser = await chromium.launch();
@@ -725,6 +725,79 @@ await step('reopen and check sheet survived', async () => {
   await page.waitForSelector('.def-cell:has-text("Reflex")');
 });
 await page.screenshot({ path: 'screenshot-builder.png' });
+
+/*
+ * A phone, on its own context so it starts with an empty local storage and a touch screen.
+ *
+ * All of this is one bug: on an iPhone the species picker could not be used. The dialog is
+ * sized against the viewport, its search field was focused the moment it opened, and 14px of
+ * field text is under the 16px at which iOS zooms the page and does not zoom back — so the
+ * keyboard came up over the bottom half of a dialog that had no way to give ground, and what
+ * it covered was the button that commits the choice. The steps below pin the parts of that a
+ * desktop engine can be made to show: what has focus, how large the text is, and that nothing
+ * overflows the window at any width down to 320px.
+ *
+ * The other half is a rule this cannot check. `vh` on a phone is measured against the viewport
+ * the browser would have with its toolbars retracted, and the toolbars are then drawn over the
+ * top of it, so a dialog sized in `vh` hangs ~100px below what you can see and touch, with a
+ * non-scrolling overlay behind it. Emulation has no toolbars, `vh` and the window agree, and a
+ * broken dialog measures as fitting perfectly. Dialogs are therefore sized in `dvh` — the same
+ * measure taken live — and that has to be held by reading `index.css`, not by this file.
+ */
+console.log('\n▸ On a phone');
+const phone = await (await browser.newContext({ ...devices['iPhone 13'] })).newPage();
+phone.on('console', m => { if (m.type() === 'error') errors.push('console (phone): ' + m.text()); });
+phone.on('pageerror', e => errors.push('pageerror (phone): ' + e.message));
+
+await step('the picker opens on a touch screen', async () => {
+  await phone.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await phone.click('button:has-text("Create your first character")');
+  await phone.click('button:has-text("Choose a species")');
+  await phone.waitForSelector('.modal .opt');
+  const touch = await phone.evaluate(() => matchMedia('(pointer: coarse)').matches);
+  if (!touch) throw new Error('the context is not emulating a touch screen, so this proves nothing');
+});
+
+await step('it does not raise the keyboard over its own buttons', async () => {
+  const focused = await phone.evaluate(() => document.activeElement?.tagName);
+  if (focused === 'INPUT') throw new Error('the search field is autofocused, which opens the keyboard on top of the dialog');
+});
+
+await step('its fields are 16px, below which iOS zooms the page and never zooms back', async () => {
+  const size = await phone.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.modal input')).fontSize));
+  if (size < 16) throw new Error(`search field is ${size}px`);
+});
+
+await step('the button that commits the choice is on screen and hits', async () => {
+  const geo = await phone.evaluate(() => {
+    const b = document.querySelector('.modal footer button.primary').getBoundingClientRect();
+    const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    return { bottom: Math.round(b.bottom), vh: window.innerHeight, hits: hit?.tagName === 'BUTTON' };
+  });
+  if (geo.bottom > geo.vh) throw new Error(`it ends ${geo.bottom - geo.vh}px below a ${geo.vh}px screen`);
+  if (!geo.hits) throw new Error('something else is on top of it');
+});
+
+// 320px is the floor the layout is expected to hold, dialogs included. Checked on the picker
+// already open rather than by reopening one, so it is the same dialog being measured.
+await step('and still fits when the screen is only 320px', async () => {
+  await phone.setViewportSize({ width: 320, height: 568 });
+  const geo = await phone.evaluate(() => ({
+    sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    bottom: Math.round(document.querySelector('.modal > footer').getBoundingClientRect().bottom),
+    vh: window.innerHeight,
+  }));
+  if (geo.sideways) throw new Error('the page scrolls sideways');
+  if (geo.bottom > geo.vh) throw new Error(`the footer ends ${geo.bottom - geo.vh}px below the screen`);
+});
+
+await step('a species can be chosen by touch alone', async () => {
+  await phone.setViewportSize({ width: 390, height: 664 });
+  await phone.locator('.opt:has-text("Wookiee")').tap();
+  await phone.locator('.modal footer button.primary').tap();
+  await phone.waitForSelector('.modal', { state: 'detached' });
+  await phone.waitForSelector('.panel:has-text("Wookiee")');
+});
 
 await browser.close();
 
