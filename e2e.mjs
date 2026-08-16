@@ -555,6 +555,50 @@ await step('open compendium', async () => {
   console.log(`       (${n} feats listed)`);
   await page.click('.modal header button');
 });
+console.log('\n▸ Themes');
+await step('a palette repaints the chrome and survives a reload', async () => {
+  const accent = () => page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--accent').trim());
+  const hpHurt = () => page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--amber').trim());
+
+  const before = await accent();
+  await page.click('button:has-text("Theme")');
+  await page.waitForSelector('.theme-grid');
+  await page.click('.theme-option:has-text("Sith")');
+  await page.click('.modal footer button');
+  await page.waitForSelector('.modal', { state: 'detached' });
+
+  const themed = await page.evaluate(() => document.documentElement.dataset.theme);
+  if (themed !== 'sith') throw new Error(`expected the sith palette, got ${themed}`);
+  if (await accent() === before) throw new Error('the accent did not move');
+
+  // The whole contract: a palette owns the chrome and leaves meaning alone, so a half-empty
+  // hit point bar is still amber next to a crimson accent rather than lost in it.
+  if (await hpHurt() === await accent()) {
+    throw new Error('caution and accent collapsed to one colour');
+  }
+
+  await page.reload({ waitUntil: 'networkidle' });
+  if (await page.evaluate(() => document.documentElement.dataset.theme) !== 'sith') {
+    throw new Error('the choice did not survive a reload');
+  }
+
+  // A theme is a preference, not character data — nothing about it belongs in a save.
+  const saved = await page.evaluate(() => localStorage.getItem('swse-forge:characters:v1'));
+  if (/theme/i.test(saved)) throw new Error('a theme leaked into the saved characters');
+
+  // Back to the default, which is the absence of the attribute rather than a palette.
+  await page.click('button:has-text("Theme")');
+  await page.waitForSelector('.theme-grid');
+  await page.click('.theme-option:has-text("Holocron")');
+  await page.click('.modal footer button');
+  await page.waitForSelector('.modal', { state: 'detached' });
+  const cleared = await page.evaluate(() => document.documentElement.dataset.theme ?? null);
+  if (cleared !== null) throw new Error(`default should carry no attribute, got ${cleared}`);
+  console.log(`       accent ${before} -> sith -> back to ${await accent()}`);
+});
+
 console.log('\n▸ Choices made when a talent is taken');
 await step('a talent that grants a choice offers it, and records what was chosen', async () => {
   // Stolen Form reads "Choose one Talent from the Lightsaber Forms Talent Tree". It lives

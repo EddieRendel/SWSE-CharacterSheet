@@ -1,27 +1,229 @@
+/**
+ * Every colour in the app, in one place, so a theme is a block that redefines some of these
+ * and nothing else. Nothing below this block should hold a literal colour — the exception is
+ * `@media print`, which is deliberately fixed: paper is white whatever theme you are wearing.
+ *
+ * The hues are declared as bare channels (`--x-rgb`) and the solid colour is derived from
+ * them, so a tint at any alpha can be composed — `rgba(var(--accent-rgb), 0.13)` — without a
+ * theme having to restate the same hue in two forms.
+ */
 :root {
+  /* ---- chrome: what a theme is free to repaint ------------------------------------ */
   --bg: #0b0f14;
   --bg-2: #111823;
   --bg-3: #17202e;
   --panel: #131b26;
   --border: #24313f;
   --border-2: #2f3f52;
+  /* The lift a control takes under the pointer. */
+  --hover-bg: #1e293b;
+  --hover-border: #3d5570;
   --text: #dfe7f0;
   --text-dim: #93a4b8;
   --text-faint: #64758a;
-  --accent: #ffcf4d;
+
+  --accent-rgb: 255, 207, 77;
+  --accent: rgb(var(--accent-rgb));
   --accent-dim: #b08c22;
-  /* The sheet re-points this at another hue when the character's state calls for it — a
-     fallen character's page is not the same gold as an untouched one. Everything on the
-     sheet that used to hard-code --accent reads this instead, which is also the seam the
-     palette picker will hang off. */
-  --sheet-accent: #ffcf4d;
-  --sheet-accent-dim: #b08c22;
-  --blue: #4ea8de;
-  --red: #ef5b5b;
-  --green: #5cc98b;
-  --purple: #a98bdc;
+  /* A filled accent button under the pointer, and the ink that sits on top of one. */
+  --accent-bright: #ffd968;
+  --accent-ink: #1a1200;
+
+  /* ---- meaning: these say something, so a theme changes them at its peril ---------- */
+  /* Red is "wrong or nearly dead", green is "healthy, trained, innate", blue is defenses
+     and feats, purple is talents. Repainting the sheet in one of them costs that signal —
+     a Sith palette that turns everything red leaves 8/80 hit points saying nothing. */
+  --red-rgb: 239, 91, 91;
+  --red: rgb(var(--red-rgb));
+  --red-soft: #ff9d9d;
+  --red-edge: #5c2b2b;
+  --red-deep: #3a1b1b;
+
+  --green-rgb: 92, 201, 139;
+  --green: rgb(var(--green-rgb));
+  --green-edge: #2b5c40;
+
+  --blue-rgb: 78, 168, 222;
+  --blue: rgb(var(--blue-rgb));
+  --blue-edge: #2b455c;
+
+  --purple-rgb: 169, 139, 220;
+  --purple: rgb(var(--purple-rgb));
+  --purple-edge: #453b5c;
+
+  /* Caution: "not finished" and "hurt but not dying". It starts out the same gold as the
+     accent, and was the accent until themes arrived — but the accent is identity, free to
+     become crimson for a Sith palette, and then a half-empty hit point bar turned the same
+     colour as an empty one. Held apart so the warning still reads whatever the theme. */
+  --amber-rgb: 255, 207, 77;
+  --amber: rgb(var(--amber-rgb));
+  --amber-dim: #b08c22;
+
+  /* ---- state: the sheet re-points these per character ----------------------------- */
+  /* A fallen character's page is not the same gold as an untouched one. Everything on the
+     sheet reads --sheet-accent rather than --accent, and Sheet.tsx overrides the pair
+     inline as the Dark Side score climbs. A theme sets --accent and these follow. */
+  --sheet-accent: var(--accent);
+  --sheet-accent-dim: var(--accent-dim);
+  --accent-tempted: #ff9f45;
+  --accent-tempted-dim: #a8611c;
+  --accent-fallen-dim: #8f3b3b;
+
+  /* ---- neutral washes: hover films and drop shadows ------------------------------- */
+  --wash-rgb: 255, 255, 255;
+  --shadow-rgb: 0, 0, 0;
+
   --radius: 8px;
   --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ================= palettes ==================================================
+   Each one redefines chrome and nothing else: backgrounds, borders, text, accent. The hues
+   that carry meaning stay exactly as :root sets them, so a half-empty hit point bar is amber
+   and a lost defense is red whatever the sheet is wearing. A palette that has to move one of
+   them says why, and Sith is the only one that does.
+
+   Every accent here is checked against the meaning hues it will sit beside — that is the
+   whole constraint. Green, blue, purple and amber are spoken for, which is why these run
+   through golds, coppers and bone rather than the spectrum.
+   ---------------------------------------------------------------------------- */
+
+/* Temple granite, lit by marble.
+ *
+ * The chrome is a warm grey stone rather than a brown one, which is what keeps it clear of
+ * Kashyyyk; the accent is not a gold but a pale yellow-white, the colour of the marble rather
+ * than of the gilding on it. That accent has to stay brighter and yellower than the body text
+ * or it stops reading as an accent at all — the two are close by design, so --text is pulled
+ * a little greyer and a little darker to leave it room. */
+[data-theme="jedi"] {
+  --bg: #131211;
+  --bg-2: #1d1c19;
+  --bg-3: #272521;
+  --panel: #1a1917;
+  --border: #35322c;
+  --border-2: #4e4a41;
+  --hover-bg: #2c2a25;
+  --hover-border: #6a6558;
+  --text: #ddd8ca;
+  --text-dim: #a9a392;
+  --text-faint: #7e7867;
+  --accent-rgb: 242, 231, 196;
+  --accent-dim: #8d8362;
+  --accent-bright: #fbf5e2;
+  --accent-ink: #17150f;
+}
+
+/* Not black and red so much as black, with one thing in it that is not black.
+ *
+ * The chrome is deliberately neutral. Tinting the backgrounds, the borders and the text red
+ * as well as the accent left nowhere for the eye to rest, and a saturated red against a
+ * near-black is the pairing that tires fastest — the eye cannot hold both in focus at once.
+ * Ash greys everywhere, red only where it is saying something, and the red reads stronger
+ * for being the only one in the room. The accent is a brick rather than a signal red for the
+ * same reason: it is the saturation that wears, not the hue. */
+[data-theme="sith"] {
+  --bg: #0c0b0c;
+  --bg-2: #151315;
+  --bg-3: #1e1b1d;
+  --panel: #131113;
+  --border: #2e2a2c;
+  --border-2: #453e41;
+  --hover-bg: #262225;
+  --hover-border: #5f5559;
+  --text: #ece8e9;
+  --text-dim: #a9a2a5;
+  --text-faint: #7a7376;
+  --accent-rgb: 199, 74, 74;
+  --accent-dim: #7d2b2b;
+  --accent-bright: #d96060;
+  --accent-ink: #1a0505;
+  /* The one palette that has to move a meaning hue. Its accent is red, so danger needs to
+     stop being the same red — pushed towards orange, and the soft and edge shades with it,
+     or a character at 8 hit points would look exactly like a character at full. */
+  --red-rgb: 255, 138, 76;
+  --red-soft: #ffc09a;
+  --red-edge: #7a3a18;
+  --red-deep: #3a1d0c;
+}
+
+/* Beskar: cold plate, a scorched-orange visor glow. */
+[data-theme="mandalorian"] {
+  --bg: #0c0e10;
+  --bg-2: #151a1e;
+  --bg-3: #1e252b;
+  --panel: #131a1f;
+  --border: #2a343c;
+  --border-2: #3d4b56;
+  --hover-bg: #242e36;
+  --hover-border: #55697a;
+  --text: #e6ecf0;
+  --text-dim: #a0aeb9;
+  --text-faint: #6f7d88;
+  --accent-rgb: 226, 116, 58;
+  --accent-dim: #97481d;
+  --accent-bright: #f28c52;
+  --accent-ink: #1a0c04;
+}
+
+/* Dagobah: everything a little damp, light coming through leaves rather than windows. */
+[data-theme="yoda"] {
+  --bg: #0a0d0a;
+  --bg-2: #141a14;
+  --bg-3: #1c241b;
+  --panel: #121812;
+  --border: #293327;
+  --border-2: #3d4a3a;
+  --hover-bg: #232d21;
+  --hover-border: #56684f;
+  --text: #e8eee2;
+  --text-dim: #a6b39c;
+  --text-faint: #74806c;
+  --accent-rgb: 201, 180, 88;
+  --accent-dim: #85742f;
+  --accent-bright: #ddc972;
+  --accent-ink: #141405;
+}
+
+/* Kashyyyk: wroshyr bark under the canopy, and bowcaster brass catching what light gets down.
+ *
+ * The bark is darker than it was and the brass brighter. Both were mid-warm before, close
+ * enough in value that the accent sank into the background instead of sitting on it — and
+ * close enough to the Jedi palette that the two read as the same theme twice. */
+[data-theme="wookiee"] {
+  --bg: #0a0705;
+  --bg-2: #150e09;
+  --bg-3: #1f150e;
+  --panel: #120c08;
+  --border: #332316;
+  --border-2: #4d3623;
+  --hover-bg: #291c12;
+  --hover-border: #6f4e31;
+  --text: #f7efe4;
+  --text-dim: #c6ae94;
+  --text-faint: #8e7a64;
+  --accent-rgb: 242, 179, 96;
+  --accent-dim: #a06a24;
+  --accent-bright: #ffc98a;
+  --accent-ink: #180d02;
+}
+
+/* Scored hull plating, and the bone-white of a ship painted a long time ago. */
+[data-theme="smuggler"] {
+  --bg: #0d0d0f;
+  --bg-2: #171719;
+  --bg-3: #212124;
+  --panel: #141416;
+  --border: #2e2e33;
+  --border-2: #434349;
+  --hover-bg: #28282d;
+  --hover-border: #5c5c66;
+  --text: #eceae4;
+  --text-dim: #a8a59c;
+  --text-faint: #77746c;
+  --accent-rgb: 214, 211, 196;
+  --accent-dim: #8c8a7e;
+  --accent-bright: #eeece2;
+  --accent-ink: #17170f;
 }
 
 * { box-sizing: border-box; }
@@ -55,22 +257,22 @@ button {
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
-button:hover:not(:disabled) { background: #1e293b; border-color: #3d5570; }
+button:hover:not(:disabled) { background: var(--hover-bg); border-color: var(--hover-border); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #1a1200;
+  color: var(--accent-ink);
   font-weight: 600;
 }
-button.primary:hover:not(:disabled) { background: #ffd968; border-color: #ffd968; }
+button.primary:hover:not(:disabled) { background: var(--accent-bright); border-color: var(--accent-bright); }
 
 button.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
 button.ghost:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 
-button.danger { border-color: #5c2b2b; color: #ff9d9d; }
-button.danger:hover:not(:disabled) { background: #3a1b1b; border-color: var(--red); }
+button.danger { border-color: var(--red-edge); color: var(--red-soft); }
+button.danger:hover:not(:disabled) { background: var(--red-deep); border-color: var(--red); }
 
 button.sm { padding: 3px 8px; font-size: 12px; }
 
@@ -86,7 +288,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent-dim);
-  box-shadow: 0 0 0 2px rgba(255, 207, 77, 0.12);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.12);
 }
 textarea { resize: vertical; min-height: 70px; font-family: inherit; }
 select { cursor: pointer; }
@@ -128,7 +330,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   min-width: 190px; padding: 6px;
   display: flex; flex-direction: column; gap: 2px;
   background: var(--bg-2); border: 1px solid var(--border-2);
-  border-radius: var(--radius); box-shadow: 0 14px 36px rgba(0,0,0,0.55);
+  border-radius: var(--radius); box-shadow: 0 14px 36px rgba(var(--shadow-rgb), 0.55);
 }
 .menu-pop button {
   background: none; border: none; border-radius: 6px;
@@ -158,7 +360,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: none; border: none; border-bottom: 2px solid transparent;
   border-radius: 0; padding: 9px 14px; color: var(--text-dim); white-space: nowrap;
 }
-.tabs button:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.tabs button:hover { background: rgba(var(--wash-rgb), 0.03); color: var(--text); }
 .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tabs .badge { margin-left: 6px; }
 
@@ -240,11 +442,11 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: var(--bg-3); color: var(--text-dim); border: 1px solid var(--border-2);
   text-transform: uppercase;
 }
-.badge.accent { background: rgba(255,207,77,0.13); color: var(--accent); border-color: var(--accent-dim); }
-.badge.red { background: rgba(239,91,91,0.13); color: #ff9d9d; border-color: #5c2b2b; }
-.badge.green { background: rgba(92,201,139,0.13); color: var(--green); border-color: #2b5c40; }
-.badge.blue { background: rgba(78,168,222,0.13); color: var(--blue); border-color: #2b455c; }
-.badge.purple { background: rgba(169,139,220,0.13); color: var(--purple); border-color: #453b5c; }
+.badge.accent { background: rgba(var(--accent-rgb), 0.13); color: var(--accent); border-color: var(--accent-dim); }
+.badge.red { background: rgba(var(--red-rgb), 0.13); color: var(--red-soft); border-color: var(--red-edge); }
+.badge.green { background: rgba(var(--green-rgb), 0.13); color: var(--green); border-color: var(--green-edge); }
+.badge.blue { background: rgba(var(--blue-rgb), 0.13); color: var(--blue); border-color: var(--blue-edge); }
+.badge.purple { background: rgba(var(--purple-rgb), 0.13); color: var(--purple); border-color: var(--purple-edge); }
 
 .stat {
   background: var(--bg-2); border: 1px solid var(--border);
@@ -300,12 +502,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 .slot { border-left: 3px solid var(--border-2); }
 .slot.filled { border-left-color: var(--green); }
-.slot.unfilled { border-left-color: var(--accent); background: rgba(255,207,77,0.04); }
+.slot.unfilled { border-left-color: var(--amber); background: rgba(var(--amber-rgb), 0.04); }
 .slot.auto { border-left-color: var(--blue); }
 
 .hint { font-size: 12px; color: var(--text-faint); }
-.warn { color: #ffcf4d; }
-.err { color: #ff9d9d; }
+.warn { color: var(--amber); }
+.err { color: var(--red-soft); }
 .ok { color: var(--green); }
 
 .rules-text p { margin: 0 0 8px; color: var(--text-dim); font-size: 13px; }
@@ -320,7 +522,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 /* ---------- modal ---------- */
 .overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.66);
+  position: fixed; inset: 0; background: rgba(var(--shadow-rgb), 0.66);
   display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
   backdrop-filter: blur(2px);
 }
@@ -328,7 +530,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: var(--panel); border: 1px solid var(--border-2);
   border-radius: 10px; width: 100%; max-width: 860px;
   max-height: 88vh; display: flex; flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+  box-shadow: 0 20px 60px rgba(var(--shadow-rgb), 0.55);
 }
 .modal > header {
   display: flex; align-items: center; gap: 10px;
@@ -411,7 +613,7 @@ th {
   color: var(--text-faint); font-weight: 700;
 }
 td.num, th.num { text-align: right; font-family: var(--mono); }
-tbody tr:hover { background: rgba(255,255,255,0.02); }
+tbody tr:hover { background: rgba(var(--wash-rgb), 0.02); }
 
 .mono { font-family: var(--mono); }
 .dim { color: var(--text-dim); }
@@ -434,15 +636,15 @@ button.chip:hover:not(:disabled) { border-color: var(--accent-dim); color: var(-
 button.chip:disabled { cursor: default; }
 
 .notice {
-  background: rgba(78,168,222,0.08); border: 1px solid #2b455c;
+  background: rgba(var(--blue-rgb), 0.08); border: 1px solid var(--blue-edge);
   border-radius: 6px; padding: 10px 12px; font-size: 12px; color: var(--text-dim);
 }
-.notice.warn { background: rgba(255,207,77,0.07); border-color: var(--accent-dim); }
+.notice.warn { background: rgba(var(--amber-rgb), 0.07); border-color: var(--amber-dim); }
 /* Something already wrong, rather than something still to do — the same red as an
    over-spent skill allowance. */
-.notice.conflict { background: rgba(239,91,91,0.07); border-color: #5c2b2b; }
-.notice.conflict strong { color: #ff9d9d; }
-.item.slot.conflict { border-color: #5c2b2b; }
+.notice.conflict { background: rgba(var(--red-rgb), 0.07); border-color: var(--red-edge); }
+.notice.conflict strong { color: var(--red-soft); }
+.item.slot.conflict { border-color: var(--red-edge); }
 
 /* Scoped to mouse pointers on purpose. Declaring ::-webkit-scrollbar at all opts a touch
    browser out of its native overlay scrollbars — the ones that appear only while you scroll
@@ -452,7 +654,7 @@ button.chip:disabled { cursor: default; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 5px; border: 2px solid var(--bg); }
-  ::-webkit-scrollbar-thumb:hover { background: #3d5570; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--hover-border); }
 }
 
 /* Firefox has no overlay scrollbars, so ask for the thin low-contrast pair instead. */
@@ -509,7 +711,7 @@ button.chip:disabled { cursor: default; }
   border: 1px solid var(--border); cursor: pointer; line-height: 0;
 }
 .portrait-choice:hover { border-color: var(--border-2); background: var(--bg-3); }
-.portrait-choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,207,77,0.15); }
+.portrait-choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15); }
 .portrait-choice img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
 
 .portrait-button {
@@ -520,7 +722,7 @@ button.chip:disabled { cursor: default; }
 .portrait-overlay {
   position: absolute; inset: 0; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.6); color: var(--accent);
+  background: rgba(var(--shadow-rgb), 0.6); color: var(--accent);
   font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   opacity: 0; transition: opacity 0.12s;
 }
@@ -558,8 +760,8 @@ button.linklike.block { display: block; width: 100%; }
 }
 .attack-nums .breakdown { font-size: 14px; }
 .badge.warn-badge {
-  background: rgba(255,207,77,0.13); color: var(--accent);
-  border-color: var(--accent-dim); cursor: help;
+  background: rgba(var(--amber-rgb), 0.13); color: var(--amber);
+  border-color: var(--amber-dim); cursor: help;
 }
 
 /* ---------- Force power uses ---------- */
@@ -586,7 +788,7 @@ button.linklike.block { display: block; width: 100%; }
   overflow: hidden;
   background: var(--bg-2); border: 1px solid var(--border-2);
   border-radius: 8px; padding: 10px 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  box-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.55);
   font-size: 13px; line-height: 1.45; pointer-events: none;
   transition: opacity 80ms ease-out;
 }
@@ -656,15 +858,15 @@ button.linklike.block { display: block; width: 100%; }
 }
 .todo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .todo-chip {
-  background: rgba(255,207,77,0.12); border-color: var(--accent-dim); color: var(--accent);
+  background: rgba(var(--amber-rgb), 0.12); border-color: var(--amber-dim); color: var(--amber);
 }
-.todo-chip:hover { background: rgba(255,207,77,0.2); }
+.todo-chip:hover { background: rgba(var(--amber-rgb), 0.2); }
 
 /* Having more than you are entitled to reads as a fault, not as a choice still to make. */
 .todo-chip.over {
-  background: rgba(239,91,91,0.12); border-color: #5c2b2b; color: #ff9d9d;
+  background: rgba(var(--red-rgb), 0.12); border-color: var(--red-edge); color: var(--red-soft);
 }
-.todo-chip.over:hover { background: rgba(239,91,91,0.2); }
+.todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
 
 .edit-section { margin-bottom: 4px; }
 /* Whatever a new level still owes you is lifted to the top and outlined. The outline and the
@@ -672,12 +874,12 @@ button.linklike.block { display: block; width: 100%; }
    after a level-up every section owes something and taking all four tones over turned the
    page a single gold — which is what the tones were introduced to stop. */
 .edit-section.needs-attention > .panel {
-  border-color: var(--accent-dim);
-  box-shadow: 0 0 0 1px rgba(255,207,77,0.14);
+  border-color: var(--amber-dim);
+  box-shadow: 0 0 0 1px rgba(var(--amber-rgb), 0.14);
 }
 .edit-section.conflict > .panel {
-  border-color: #5c2b2b;
-  box-shadow: 0 0 0 1px rgba(239,91,91,0.16);
+  border-color: var(--red-edge);
+  box-shadow: 0 0 0 1px rgba(var(--red-rgb), 0.16);
 }
 /* A conflict is different: something is already wrong rather than still to do, and that
    outranks what the panel happens to be about. */
@@ -689,9 +891,9 @@ button.linklike.block { display: block; width: 100%; }
 .skill-row.trained .skill-label { font-weight: 700; }
 .needs-header {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 6px; color: var(--accent); font-size: 13px;
+  margin-bottom: 6px; color: var(--amber); font-size: 13px;
 }
-.needs-header.conflict { color: #ff9d9d; }
+.needs-header.conflict { color: var(--red-soft); }
 @media print { .level-bar, .needs-header { display: none; } }
 
 /* ================= the sheet =================================================
@@ -785,7 +987,7 @@ button.linklike.block { display: block; width: 100%; }
   height: 100%; background: var(--green);
   transition: width 0.18s ease-out, background 0.18s;
 }
-.hp-fill.hurt { background: var(--accent); }
+.hp-fill.hurt { background: var(--amber); }
 .hp-fill.bad { background: var(--red); }
 .vital.hp.bad .vital-value { color: var(--red); }
 .hp-controls { flex-wrap: wrap; gap: 5px; }
@@ -800,7 +1002,7 @@ button.linklike.block { display: block; width: 100%; }
   background: none; border: none; border-radius: 4px;
   padding: 3px 1px; cursor: pointer;
 }
-.ctrack-step:hover:not(:disabled) { background: rgba(255,255,255,0.04); }
+.ctrack-step:hover:not(:disabled) { background: rgba(var(--wash-rgb), 0.04); }
 .ctrack-mark {
   width: 100%; height: 5px; border-radius: 2px;
   background: var(--border-2); transition: background 0.12s;
@@ -947,6 +1149,27 @@ button.linklike.block { display: block; width: 100%; }
 .panel.tint-accent { --tone: var(--sheet-accent); }
 .panel.tint-blue { --tone: var(--blue); }
 
+/* ---------- the theme picker ---------- */
+.theme-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 620px) { .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.theme-option {
+  display: flex; align-items: center; gap: 11px; text-align: left;
+  padding: 9px 11px; border-radius: 6px;
+  background: var(--bg-2); border: 1px solid var(--border);
+}
+.theme-option:hover:not(:disabled) { border-color: var(--border-2); background: var(--bg-3); }
+.theme-option.selected { border-color: var(--accent-dim); background: var(--bg-3); }
+.theme-option .grow { flex: 1; min-width: 0; display: block; }
+.theme-name { display: block; font-weight: 600; }
+.theme-blurb { display: block; font-size: 12px; color: var(--text-faint); }
+/* Three bands — page, panel, accent — which is the whole palette at a glance. Literal
+   colours on purpose: a swatch has to show the theme it offers, not the one in use. */
+.theme-swatch {
+  display: flex; flex-shrink: 0; width: 44px; height: 30px;
+  border-radius: 4px; overflow: hidden; border: 1px solid var(--border-2);
+}
+.theme-swatch > span { flex: 1; }
+
 /* ---------- the character page ---------- */
 /* It was three identical grey boxes of identical inputs, and the only colour on it was the
    fourteen ticked checkboxes on the least interesting panel. */
@@ -995,11 +1218,11 @@ button.linklike.block { display: block; width: 100%; }
 .species-empty {
   display: block; width: 100%; text-align: left;
   padding: 14px 16px; border-radius: 6px;
-  background: rgba(255,207,77,0.05);
-  border: 1px dashed var(--accent-dim); color: var(--accent);
+  background: rgba(var(--amber-rgb), 0.05);
+  border: 1px dashed var(--amber-dim); color: var(--amber);
   font-weight: 600; cursor: pointer;
 }
-.species-empty:hover:not(:disabled) { background: rgba(255,207,77,0.11); border-color: var(--accent); }
+.species-empty:hover:not(:disabled) { background: rgba(var(--amber-rgb), 0.11); border-color: var(--amber); }
 
 /* A rule with a name on it, for splitting one long panel into the things it is actually
    about — the description panel was twelve identical boxes in a row. */
@@ -1127,10 +1350,10 @@ button.linklike.block { display: block; width: 100%; }
 .tone-blue { color: var(--blue); }
 .tone-purple { color: var(--purple); }
 .tone-green { color: var(--green); }
-button.chip.tone-accent { background: rgba(255,207,77,0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
-button.chip.tone-blue { background: rgba(78,168,222,0.09); border-color: #2b455c; color: var(--text); }
-button.chip.tone-purple { background: rgba(169,139,220,0.09); border-color: #453b5c; color: var(--text); }
-button.chip.tone-green { background: rgba(92,201,139,0.09); border-color: #2b5c40; color: var(--text); }
+button.chip.tone-accent { background: rgba(var(--accent-rgb), 0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
+button.chip.tone-blue { background: rgba(var(--blue-rgb), 0.09); border-color: var(--blue-edge); color: var(--text); }
+button.chip.tone-purple { background: rgba(var(--purple-rgb), 0.09); border-color: var(--purple-edge); color: var(--text); }
+button.chip.tone-green { background: rgba(var(--green-rgb), 0.09); border-color: var(--green-edge); color: var(--text); }
 button.chip.tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
 button.chip.tone-blue:hover:not(:disabled) { border-color: var(--blue); }
 button.chip.tone-purple:hover:not(:disabled) { border-color: var(--purple); }
@@ -1150,7 +1373,7 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
 .kit-row td:first-child { border-left: 3px solid transparent; }
 .kit-row.worn td:first-child { border-left-color: var(--sheet-accent); }
 .kit-row.worn .item-name { font-weight: 600; }
-.kit-row:hover td { background: rgba(255,255,255,0.02); }
+.kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
 .kit-actions { display: flex; gap: 2px; justify-content: flex-end; }
 
 @media print {
