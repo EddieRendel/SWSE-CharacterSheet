@@ -4,6 +4,7 @@ import { SPECIES, FEATURES, CLASSES, ALL_BOOKS, BOOK_NAMES, NEAR_HUMAN, RULES, f
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { Panel, Field, Modal, FeatureDetail, RulesText, PortraitButton } from './ui';
+import { autoFocusSearch } from '../pointer';
 import { Droid } from './Droid';
 
 export function Overview({
@@ -226,7 +227,7 @@ function SpeciesPicker({
     >
       <div className="row" style={{ marginBottom: 12 }}>
         <input
-          autoFocus
+          autoFocus={autoFocusSearch}
           placeholder="Search by name, trait, ability or book…"
           value={query}
           onChange={e => setQuery(e.target.value)}

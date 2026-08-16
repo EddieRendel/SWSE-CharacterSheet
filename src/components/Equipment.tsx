@@ -9,6 +9,7 @@ import { getItem, carriedItems, signed, upgradeTotal } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { uid } from '../storage';
 import { Panel, Modal, Field, ItemDetail } from './ui';
+import { autoFocusSearch } from '../pointer';
 import { Tip, ItemTipBody, TipRows } from './Tip';
 
 /** How the sheet names each step of the carrying rules. */
@@ -391,7 +392,7 @@ function ItemBrowser({
       footer={<button onClick={onClose}>Done</button>}
     >
       <div className="row" style={{ marginBottom: 12 }}>
-        <input autoFocus placeholder="Search…" value={query} onChange={e => setQuery(e.target.value)} />
+        <input autoFocus={autoFocusSearch} placeholder="Search…" value={query} onChange={e => setQuery(e.target.value)} />
         <select value={cat} onChange={e => setCat(e.target.value)} style={{ width: 150 }}>
           <option value="">All</option>
           <option value="weapon">Weapons</option>
@@ -455,7 +456,7 @@ function ItemStatFields({
     <>
       <div className="grid g2">
         <Field label="Name">
-          <input value={draft.name} onChange={e => set({ name: e.target.value })} autoFocus />
+          <input value={draft.name} onChange={e => set({ name: e.target.value })} autoFocus={autoFocusSearch} />
         </Field>
         {allowCategory && (
           <Field label="Category">
