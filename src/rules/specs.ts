@@ -49,8 +49,10 @@ export function specOptionsFor(feature: Feature | undefined, derived: Derived): 
     }
     case 'weapon':
       return Object.values(EQUIPMENT)
-        .filter(i => i.category === 'weapon')
-        .map(i => ({ id: i.id, name: i.name }));
+        .filter(i => i.category === 'weapon'
+          && (!feature.specWeaponGroup || i.group === feature.specWeaponGroup))
+        .map(i => ({ id: i.id, name: i.name }))
+        .sort(byName);
     case 'option':
       return feature.specOptions ?? [];
     default:

@@ -79,6 +79,115 @@
     "The rest of each requirements block is repeated here because the supplement merge is a",
     "shallow spread — naming `requirements` replaces the whole block, not just the one entry."
   ],
+  "_comment_feat_prerequisites": [
+    "A sweep of every feat's `requirements` against the prerequisite line the books give it.",
+    "The two disagree in fourteen places, and where they do the block is the one that is wrong:",
+    "`prerequisites` is quoted from the source, while `requirements` is parsed out of the",
+    "spreadsheet column by tools-import-excel.mjs and can pick up the wrong number, the wrong",
+    "ability, or a token belonging to the row above.",
+    "",
+    "Blocks a legal character — the feat is greyed out for someone who qualifies:",
+    "  savage-attack        required Vehicular Combat, which appears nowhere in the feat. Its",
+    "                       line is 'Double Attack (Chosen Weapon)' and its effect is 'one",
+    "                       weapon group or Exotic Weapon you have selected for the Double",
+    "                       Attack Feat', so the requirement is Double Attack held with the very",
+    "                       group being chosen — exactly how its sibling Triple Attack reads.",
+    "                       matchingWeaponGroupProficiency goes with it: Double Attack already",
+    "                       demands proficiency, and applied here it would also refuse the",
+    "                       Exotic Weapon case the effect names outright.",
+    "  autofire-assault     both read 'Weapon Focus (Chosen Weapon)' and both were parsed as a",
+    "  autofire-sweep       matchingWeaponGroupProficiency with no specType to satisfy it, so",
+    "                       the check was `!!spec && ...` with spec forever undefined and",
+    "                       neither feat could be taken by anybody. Same wording, same effect",
+    "                       ('a weapon for which you possess the Weapon Focus Feat') and so the",
+    "                       same fix as critical-strike and halt above: Weapon Focus, no spec.",
+    "  droidcraft           required Tech Specialist. Its own description quotes the line, and",
+    "                       it is 'Trained in Mechanics' and nothing else. Tech Specialist",
+    "                       belongs to vehicle-systems-expertise, whose line does name it.",
+    "  angled-throw         asked for Strength 13 where the book says Dexterity 13 — a feat",
+    "                       about bouncing a grenade off a wall.",
+    "  bantha-herder        all four say 'Base Attack Bonus +1' and all four were given +6.",
+    "  gunnery-specialist   rancor-crush's own description quotes its line in full, and it",
+    "  strafe               agrees with the prerequisite field against the block.",
+    "  rancor-crush",
+    "",
+    "Wrong skill, which blocks and admits the wrong people at once:",
+    "  deadly-sniper        'Trained in Stealth'   was checked as Acrobatics",
+    "  duck-and-cover       'Trained in Stealth'   was checked as Acrobatics",
+    "  deceptive-drop       'Trained in Initiative' was checked as Acrobatics",
+    "  vehicle-systems-expertise  'Trained in Mechanics' was checked as Pilot",
+    "",
+    "Restriction present but never actually applied:",
+    "  slammer              size 'small' against a ladder spelled 'Small', so indexOf gave -1",
+    "  tool-frenzy          and the comparison passed for every size including Fine. Both mean",
+    "                       'Small size or larger'; powerful-charge already reads 'Medium'.",
+    "  improved-sleight-of-hand  Dexterity 13 where the book says 15.",
+    "  improved-bantha-rush      lost the 'Base Attack Bonus +1' its description still quotes.",
+    "",
+    "Not checked at all, though the line is a plain feat, skill or ability name the schema",
+    "already expresses. These were reaching the UI as 'not enforced automatically', which is",
+    "the right treatment for 'proficient with weapon' or 'Receive the Gamemaster's Approval'",
+    "but not for these:",
+    "  droid-hunter, unstoppable-force                    'Combat Reflexes'",
+    "  fight-through-pain, officer-candidacy-training,    'Force Sensitivity, Trained in Use",
+    "  rapid-reaction, recovering-surge                    the Force'",
+    "  unwavering-resolve                                 'Trained in Perception'",
+    "  power-blast                                        'Dex 13'",
+    "  staggering-attack                                  'Sneak Attack or Rapid Shot or",
+    "                                                      Rapid Strike'",
+    "The rest of the unparsed set is left alone deliberately. 'Trained in at least one",
+    "Knowledge Skill' (recall) has no way to say 'any of these' in the schema, and 'Cannot be",
+    "a Droid' (instinctive-attack, instinctive-defense) has no way to say 'not'. Showing those",
+    "beats guessing at them.",
+    "",
+    "The rest of each block is restated because the merge is a shallow spread — naming",
+    "`requirements` replaces all of it, not the one entry being corrected."
+  ],
+  "_comment_unobtainable_prerequisites": [
+    "A prerequisite naming a feature nothing can ever grant is a locked door. Four ids were",
+    "in that state; three are fixed here and the fourth is left standing on purpose.",
+    "",
+    "  droid   The Droid trait gates fourteen features — Aiming Accuracy, Damage Conversion,",
+    "          Distracting Droid, Droid Shield Mastery, Erratic Target, Logic Upgrade (Skill",
+    "          Swap), Mechanical Martial Arts, Multi-Targeting, Pincer, Pinpoint Accuracy,",
+    "          Sensor Link, Slammer, Tool Frenzy and Turn and Burn — and no droid had it. The",
+    "          Droid species entry carries no traits, because a droid is built from a degree,",
+    "          a size and systems rather than a fixed stat block, so `species.features` was",
+    "          left empty and the trait was never granted to anybody. It is granted below.",
+    "          `species` is merged over the generated species the same way features are; that",
+    "          path was added for this, since species.json is rewritten by the importer.",
+    "",
+    "  duros   Spacer's Surge reads 'Duros', which is a species and not a trait. The",
+    "          provenance note above records 49 such prerequisites already retargeted from",
+    "          features to species; this one was missed.",
+    "",
+    "  skill-focus-initiative   Surprisingly Quick reads 'Skill Focus (Initiative)'. The id it",
+    "          named is a summary-only stub trait ('Species trait. See your sourcebook'), not",
+    "          the Skill Focus feat, so holding the feat never satisfied it. It is the feat",
+    "          with the Initiative specialization.",
+    "",
+    "  intercept-starship-maneuver   NOT fixed. Telekinetic Vigilance (Zeison Sha Warrior)",
+    "          requires the Intercept starship maneuver, and that requirement is correct. The",
+    "          app carries all 27 maneuvers and has a slot kind, a picker filter and a derived",
+    "          `starshipManeuvers` list for them, but nothing ever builds a maneuver slot — no",
+    "          class offers the choice and Starship Tactics does not grant it — so no character",
+    "          can hold one. Weakening the talent would be inventing a rule to paper over a",
+    "          missing feature; the fix is to grant the slots."
+  ],
+  "_comment_exotic_weapons": [
+    "Exotic Weapon Proficiency is 'Choose a single Exotic Weapon', but it was imported as a",
+    "weapon-*group* choice whose allowedSpecs were five weapon ids. Nothing resolves a weapon",
+    "id against the group table, so the picker listed the five as the raw slugs 'atlatl',",
+    "'amphistaff', 'bowcaster', 'cesta' and 'flamethrower' — and the other 28 exotic weapons",
+    "in the data could not be chosen at all.",
+    "",
+    "The specialization is a weapon, so specType is 'weapon'. `specWeaponGroup` narrows the",
+    "list to the exotic group rather than naming the weapons here, so a re-import that adds an",
+    "exotic weapon puts it on offer without this file being touched. The spec values are",
+    "unchanged — weapon ids, which is what prereqs.ts already looks for when it checks",
+    "matchingWeaponProficiency against exotic-weapon-proficiency — so saved characters keep",
+    "the weapon they chose."
+  ],
   "_comment_stolen_form": [
     "Stolen Form hands over the talent it names, and nothing in the data said so. The talent",
     "reads: 'Choose one Talent from the Lightsaber Forms Talent Tree; you gain the benefits of",
@@ -197,6 +306,301 @@
     },
     "stolen-form": {
       "specGrants": true
+    },
+    "savage-attack": {
+      "requirements": {
+        "features": [
+          {
+            "id": "double-attack",
+            "matchingSpec": true
+          }
+        ]
+      }
+    },
+    "autofire-assault": {
+      "requirements": {
+        "features": [
+          {
+            "id": "weapon-focus"
+          }
+        ]
+      }
+    },
+    "autofire-sweep": {
+      "requirements": {
+        "features": [
+          {
+            "id": "weapon-focus"
+          }
+        ]
+      }
+    },
+    "droidcraft": {
+      "requirements": {
+        "trainedSkills": [
+          "mechanics"
+        ]
+      }
+    },
+    "angled-throw": {
+      "requirements": {
+        "abilities": {
+          "dex": 13
+        }
+      }
+    },
+    "bantha-herder": {
+      "requirements": {
+        "baseAttackBonus": 1
+      }
+    },
+    "gunnery-specialist": {
+      "requirements": {
+        "baseAttackBonus": 1
+      }
+    },
+    "strafe": {
+      "requirements": {
+        "baseAttackBonus": 1
+      }
+    },
+    "rancor-crush": {
+      "requirements": {
+        "baseAttackBonus": 1,
+        "abilities": {
+          "str": 15
+        },
+        "features": [
+          {
+            "id": "crush"
+          },
+          {
+            "id": "pin"
+          }
+        ]
+      }
+    },
+    "improved-bantha-rush": {
+      "requirements": {
+        "baseAttackBonus": 1,
+        "abilities": {
+          "str": 15
+        },
+        "features": [
+          {
+            "id": "bantha-rush"
+          }
+        ]
+      }
+    },
+    "improved-sleight-of-hand": {
+      "requirements": {
+        "abilities": {
+          "dex": 15
+        },
+        "trainedSkills": [
+          "stealth"
+        ],
+        "features": [
+          {
+            "id": "skill-focus",
+            "spec": "deception"
+          }
+        ]
+      }
+    },
+    "slammer": {
+      "requirements": {
+        "size": "Small",
+        "abilities": {
+          "str": 13
+        },
+        "features": [
+          {
+            "id": "droid"
+          }
+        ]
+      }
+    },
+    "tool-frenzy": {
+      "requirements": {
+        "size": "Small",
+        "features": [
+          {
+            "id": "droid"
+          }
+        ]
+      }
+    },
+    "exotic-weapon-proficiency": {
+      "specType": "weapon",
+      "allowedSpecs": null,
+      "specWeaponGroup": "exotic-weapons"
+    },
+    "deadly-sniper": {
+      "requirements": {
+        "baseAttackBonus": 9,
+        "trainedSkills": [
+          "stealth"
+        ],
+        "features": [
+          {
+            "id": "sniper"
+          }
+        ]
+      }
+    },
+    "duck-and-cover": {
+      "requirements": {
+        "trainedSkills": [
+          "stealth"
+        ]
+      }
+    },
+    "deceptive-drop": {
+      "requirements": {
+        "trainedSkills": [
+          "initiative"
+        ]
+      }
+    },
+    "vehicle-systems-expertise": {
+      "requirements": {
+        "trainedSkills": [
+          "mechanics"
+        ],
+        "features": [
+          {
+            "id": "tech-specialist"
+          }
+        ]
+      }
+    },
+    "droid-hunter": {
+      "requirements": {
+        "features": [
+          {
+            "id": "combat-reflexes"
+          }
+        ]
+      }
+    },
+    "unstoppable-force": {
+      "requirements": {
+        "features": [
+          {
+            "id": "combat-reflexes"
+          }
+        ]
+      }
+    },
+    "fight-through-pain": {
+      "requirements": {
+        "trainedSkills": [
+          "use-the-force"
+        ],
+        "features": [
+          {
+            "id": "force-sensitivity"
+          }
+        ]
+      }
+    },
+    "officer-candidacy-training": {
+      "requirements": {
+        "trainedSkills": [
+          "use-the-force"
+        ],
+        "features": [
+          {
+            "id": "force-sensitivity"
+          }
+        ]
+      }
+    },
+    "rapid-reaction": {
+      "requirements": {
+        "trainedSkills": [
+          "use-the-force"
+        ],
+        "features": [
+          {
+            "id": "force-sensitivity"
+          }
+        ]
+      }
+    },
+    "recovering-surge": {
+      "requirements": {
+        "trainedSkills": [
+          "use-the-force"
+        ],
+        "features": [
+          {
+            "id": "force-sensitivity"
+          }
+        ]
+      }
+    },
+    "unwavering-resolve": {
+      "requirements": {
+        "trainedSkills": [
+          "perception"
+        ]
+      }
+    },
+    "power-blast": {
+      "requirements": {
+        "abilities": {
+          "dex": 13
+        }
+      }
+    },
+    "spacers-surge": {
+      "requirements": {
+        "species": [
+          "duros"
+        ]
+      }
+    },
+    "surprisingly-quick": {
+      "requirements": {
+        "features": [
+          {
+            "id": "skill-focus",
+            "spec": "initiative"
+          }
+        ]
+      }
+    },
+    "staggering-attack": {
+      "requirements": {
+        "anyOf": [
+          [
+            {
+              "features": [
+                {
+                  "id": "sneak-attack"
+                }
+              ]
+            },
+            {
+              "features": [
+                {
+                  "id": "rapid-shot"
+                }
+              ]
+            },
+            {
+              "features": [
+                {
+                  "id": "rapid-strike"
+                }
+              ]
+            }
+          ]
+        ]
+      }
     }
   },
   "_comment_mortar": [
@@ -482,6 +886,15 @@
     },
     "variable-blaster": {
       "stun": true
+    }
+  },
+  "species": {
+    "droid": {
+      "features": [
+        {
+          "id": "droid"
+        }
+      ]
     }
   },
   "talentTrees": {},

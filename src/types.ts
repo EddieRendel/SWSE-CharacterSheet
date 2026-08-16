@@ -75,6 +75,12 @@ export interface Feature {
   /** For a talent choice: the trees it may come from. */
   specTrees?: string[];
   /**
+   * For a `weapon` choice: the weapon group it must come from. Exotic Weapon Proficiency
+   * chooses "a single Exotic Weapon", which is every weapon in the exotic group and not a
+   * list written down here — a re-import that adds one must put it on offer too.
+   */
+  specWeaponGroup?: string;
+  /**
    * The chosen option is gained outright, not merely referred to. Stolen Form says "you gain
    * the benefits of this Talent and are considered to have this Talent for the purpose of
    * satisfying prerequisites"; Share Talent and Force Power Mastery, which also choose a
