@@ -157,6 +157,21 @@
     "          `species` is merged over the generated species the same way features are; that",
     "          path was added for this, since species.json is rewritten by the importer.",
     "",
+    "          Granting the trait is only half of it. Seven of those fourteen lines carry a",
+    "          second condition about the chassis — '2+ Appendages', '2+ Tool Appendages',",
+    "          'Claw or Hand Appendage', 'Hovering or Flying Locomotion', 'Hovering, Flying,",
+    "          Wheeled, or Tracked Locomotion', 'Basic Processor', 'Shield Generator' — and",
+    "          none of it was checked. Unlocking the trait on its own would have handed a",
+    "          walking droid with no arms the Slammer feat, which is 'you slam a target with",
+    "          your appendages'. Six are now checked through `requirements.droidSystems`,",
+    "          against the systems fitted in the Droid panel.",
+    "",
+    "          Droid Shield Mastery is the seventh and is NOT checked: it wants a Shield",
+    "          Generator, and the systems catalogue has no such entry — the nearest are the",
+    "          Shield Expansion Module and the Micro Shield, and neither is the thing named.",
+    "          Guessing at one would refuse a legal droid, so it carries the phrase in",
+    "          `unparsedPrerequisites` and the UI says it is not enforced automatically.",
+    "",
     "  duros   Spacer's Surge reads 'Duros', which is a species and not a trait. The",
     "          provenance note above records 49 such prerequisites already retargeted from",
     "          features to species; this one was missed.",
@@ -555,6 +570,118 @@
           "dex": 13
         }
       }
+    },
+    "slammer": {
+      "requirements": {
+        "size": "Small",
+        "abilities": {
+          "str": 13
+        },
+        "features": [
+          {
+            "id": "droid"
+          }
+        ],
+        "droidSystems": {
+          "appendages": 2
+        }
+      }
+    },
+    "tool-frenzy": {
+      "requirements": {
+        "size": "Small",
+        "features": [
+          {
+            "id": "droid"
+          }
+        ],
+        "droidSystems": {
+          "appendages": 2,
+          "appendageType": "Tool"
+        }
+      }
+    },
+    "pincer": {
+      "requirements": {
+        "baseAttackBonus": 1,
+        "features": [
+          {
+            "id": "droid"
+          },
+          {
+            "id": "pin"
+          },
+          {
+            "id": "crush"
+          }
+        ],
+        "droidSystems": {
+          "anyOf": [
+            "claw",
+            "hand"
+          ]
+        }
+      }
+    },
+    "erratic-target": {
+      "requirements": {
+        "abilities": {
+          "dex": 13
+        },
+        "features": [
+          {
+            "id": "droid"
+          },
+          {
+            "id": "dodge"
+          }
+        ],
+        "droidSystems": {
+          "anyOf": [
+            "hovering",
+            "flying"
+          ]
+        }
+      }
+    },
+    "turn-and-burn": {
+      "requirements": {
+        "abilities": {
+          "dex": 13
+        },
+        "features": [
+          {
+            "id": "droid"
+          }
+        ],
+        "droidSystems": {
+          "anyOf": [
+            "hovering",
+            "flying",
+            "wheeled",
+            "tracked"
+          ]
+        }
+      }
+    },
+    "logic-upgrade-skill-swap": {
+      "requirements": {
+        "features": [
+          {
+            "id": "droid"
+          }
+        ],
+        "droidSystems": {
+          "anyOf": [
+            "basic-processor"
+          ]
+        }
+      }
+    },
+    "droid-shield-mastery": {
+      "unparsedPrerequisites": [
+        "Shield Generator (Droid Accessory)"
+      ]
     },
     "spacers-surge": {
       "requirements": {

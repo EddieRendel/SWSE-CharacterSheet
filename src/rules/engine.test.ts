@@ -817,21 +817,24 @@ console.log('\n▸ a size prerequisite is spelled the way the size ladder is');
   check('every size requirement names a size on the ladder', bad, []);
 
   // Strength 18 so that the size penalty (−2 Small, −4 Tiny) leaves both well clear of
-  // Slammer's Strength 13 and size is the only thing that can separate them.
+  // Slammer's Strength 13 and size is the only thing that can separate them. Two Tool
+  // appendages so that the hardware half of both lines is satisfied as well.
   const droid = (size: string) => make(x => {
     x.speciesId = 'droid';
     setAbilities(x, { str: 18, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
     x.levels = [{ classId: 'scout' }];
-    x.droid = { degree: '2', size, systems: ['walking', 'heuristic-processor'] };
+    x.droid = { degree: '2', size, systems: ['walking', 'heuristic-processor', 'tool', 'tool'] };
   });
   const tiny = droid('Tiny');
   const dt = computeCharacter(tiny);
   check('a Tiny droid is Tiny', dt.size, 'Tiny');
   check('and is now refused a Small-or-larger feat',
     [canSelect('slammer', tiny, dt).met, canSelect('tool-frenzy', tiny, dt).met], [false, false]);
+  check('for the size and nothing else',
+    canSelect('slammer', tiny, dt).checks.filter(c => !c.met).map(c => c.kind), ['size']);
   const small = droid('Small');
   const ds = computeCharacter(small);
-  check('while a Small one still qualifies',
+  check('while a Small one with the appendages qualifies',
     [canSelect('slammer', small, ds).met, canSelect('tool-frenzy', small, ds).met], [true, true]);
 }
 
@@ -896,8 +899,10 @@ console.log('\n▸ every prerequisite names something a character can actually g
     x.levels = [{ classId: 'scout' }];
   });
   check('a Human does not', hasFeature(computeCharacter(man).features, 'droid'), false);
+  // Distracting Droid's whole line is "Droid", so the trait is the only thing separating them.
   check('so a droid-only feat is now reachable by a droid and not by a human',
-    [canSelect('turn-and-burn', bot, db).met, canSelect('turn-and-burn', man, computeCharacter(man)).met],
+    [canSelect('distracting-droid', bot, db).met,
+      canSelect('distracting-droid', man, computeCharacter(man)).met],
     [true, false]);
 
   // "Duros" is a species, not a trait — one straggler from the 49 already retargeted.
@@ -934,6 +939,108 @@ console.log('\n▸ every prerequisite names something a character can actually g
       other.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'skill-focus', spec: 'perception' }];
       return checkRequirementsFor('surprisingly-quick', other, computeCharacter(other)).met;
     })(), false);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ a droid feat checks the chassis, not just the trait');
+// ---------------------------------------------------------------------------
+{
+  // Granting the Droid trait is only half of these lines. Seven of the fourteen also name
+  // hardware — "2+ Appendages", "Hovering or Flying Locomotion", "Basic Processor" — and
+  // none of it was checked, so unlocking the trait alone would have handed a walking droid
+  // with no arms the Slammer feat, whose benefit is slamming a target with its appendages.
+  const bot = (systems: string[]) => make(x => {
+    x.speciesId = 'droid';
+    setAbilities(x, { str: 16, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
+    x.levels = Array(3).fill(null).map(() => ({ classId: 'scout', hitPoints: 5 }));
+    x.droid = { degree: '2', size: 'Medium', systems };
+  });
+
+  // "2+ Appendages" — counted, since a droid fits the same appendage twice.
+  const bare = bot(['walking', 'heuristic-processor']);
+  const dbare = computeCharacter(bare);
+  check('a droid with no appendages is refused Slammer', canSelect('slammer', bare, dbare).met, false);
+  check('and told which part is missing',
+    canSelect('slammer', bare, dbare).checks.filter(c => !c.met).map(c => [c.text, c.kind]),
+    [['2+ appendages', 'droid-system']]);
+  const oneArm = computeCharacter(bot(['walking', 'hand']));
+  check('one appendage is still not two',
+    canSelect('slammer', bot(['walking', 'hand']), oneArm).checks.filter(c => !c.met)
+      .map(c => c.text), ['2+ appendages (you have 1)']);
+  const twoArms = bot(['walking', 'hand', 'hand']);
+  check('two of them qualify', canSelect('slammer', twoArms, computeCharacter(twoArms)).met, true);
+
+  // "2+ Tool Appendages" — the same count, narrowed to one kind.
+  const dTwoArms = computeCharacter(twoArms);
+  check('two Hands do not satisfy a Tool requirement',
+    canSelect('tool-frenzy', twoArms, dTwoArms).checks.filter(c => !c.met).map(c => c.text),
+    ['2+ Tool appendages']);
+  const tooled = bot(['walking', 'tool', 'tool']);
+  check('two Tools do', canSelect('tool-frenzy', tooled, computeCharacter(tooled)).met, true);
+  const mixed = bot(['walking', 'tool', 'hand']);
+  check('and one of each does not',
+    canSelect('tool-frenzy', mixed, computeCharacter(mixed)).met, false);
+  check('while still counting for the untyped requirement',
+    canSelect('slammer', mixed, computeCharacter(mixed)).met, true);
+
+  // "Claw or Hand Appendage" — named systems, any one of which will do.
+  const clawed = bot(['walking', 'claw']);
+  clawed.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'pin' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'crush' },
+  ];
+  const dclawed = computeCharacter(clawed);
+  check('a Claw satisfies "Claw or Hand"', canSelect('pincer', clawed, dclawed).met, true);
+  const probed = structuredClone(clawed);
+  probed.droid!.systems = ['walking', 'probe'];
+  check('a Probe does not',
+    canSelect('pincer', probed, computeCharacter(probed)).checks.filter(c => !c.met)
+      .map(c => [c.text, c.kind]), [['Claw or Hand', 'droid-system']]);
+
+  // Locomotion, on the two feats that name a list of it.
+  const walker = bot(['walking', 'heuristic-processor']);
+  const dwalk = computeCharacter(walker);
+  check('a walking droid cannot Turn and Burn or be an Erratic Target',
+    [canSelect('turn-and-burn', walker, dwalk).met, canSelect('erratic-target', walker, dwalk).met],
+    [false, false]);
+  const flier = bot(['flying', 'heuristic-processor']);
+  const dfly = computeCharacter(flier);
+  check('a flying one can Turn and Burn', canSelect('turn-and-burn', flier, dfly).met, true);
+  const wheeled = bot(['wheeled', 'heuristic-processor']);
+  const dwheel = computeCharacter(wheeled);
+  check('and a wheeled one can too, but is no Erratic Target',
+    [canSelect('turn-and-burn', wheeled, dwheel).met,
+      canSelect('erratic-target', wheeled, dwheel).checks
+        .filter(c => !c.met && c.kind === 'droid-system').map(c => c.text)],
+    [true, ['Hovering or Flying']]);
+
+  // "Basic Processor" — a single named system.
+  const heuristic = bot(['walking', 'heuristic-processor']);
+  check('a Heuristic Processor is not a Basic one',
+    canSelect('logic-upgrade-skill-swap', heuristic, computeCharacter(heuristic)).met, false);
+  const basic = bot(['walking', 'basic-processor']);
+  check('and the Basic one satisfies it',
+    canSelect('logic-upgrade-skill-swap', basic, computeCharacter(basic)).met, true);
+
+  // Droid Shield Mastery names a Shield Generator, which the systems catalogue does not
+  // have — the Shield Expansion Module and the Micro Shield are not it. Guessing at one
+  // would refuse a legal droid, so the condition is declared unenforced instead.
+  check('no system is called a Shield Generator',
+    Object.values(DROIDS.systems).filter(s => /shield generator/i.test(s.name)), []);
+  check('so Droid Shield Mastery says so rather than guessing',
+    FEATURES['droid-shield-mastery'].unparsedPrerequisites, ['Shield Generator (Droid Accessory)']);
+
+  // The invariant: hardware named in a droid feat's line is either checked or declared.
+  // Everything here reads "Droid, <hardware>, …", and the trait alone was passing for all
+  // of it, which is exactly the failure this guards.
+  const HARDWARE = /appendage|locomotion|processor|shield generator|hovering|flying|wheeled|tracked|claw or hand/i;
+  const unaccounted = Object.values(FEATURES)
+    .filter(f => (f.requirements?.features ?? []).some(r => r.id === 'droid'))
+    .filter(f => HARDWARE.test(f.prerequisites ?? ''))
+    .filter(f => !f.requirements?.droidSystems && !f.unparsedPrerequisites?.length)
+    .map(f => f.id);
+  check('every droid feat naming hardware either checks it or declares it unenforced',
+    unaccounted, []);
 }
 
 // ---------------------------------------------------------------------------

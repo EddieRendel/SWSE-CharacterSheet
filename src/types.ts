@@ -42,6 +42,13 @@ export interface Requirements {
    */
   talents?: { count: number; trees?: string[]; force?: boolean };
   forceTechniques?: number;
+  /**
+   * Hardware bolted to a droid chassis, rather than anything the character has learned:
+   * "Hovering or Flying Locomotion", "2+ Appendages", "2+ Tool Appendages". `anyOf` names
+   * system ids and one of them is enough; `appendages` counts them, narrowed to a single
+   * `appendageType` when the rule asks for a particular kind.
+   */
+  droidSystems?: { anyOf?: string[]; appendages?: number; appendageType?: string };
   matchingWeaponGroupProficiency?: boolean;
   matchingWeaponProficiency?: boolean;
   matchingForcePower?: boolean;
