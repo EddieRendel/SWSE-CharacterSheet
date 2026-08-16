@@ -42,6 +42,13 @@ const ids = new Set(THEMES.map(t => t.id));
 let cache: string | null = null;
 const listeners = new Set<() => void>();
 
+/**
+ * What is stored may be missing, may be an id a later version dropped, or may be whatever a
+ * hand-edited storage entry contains. Anything unrecognised falls back rather than stamping
+ * an attribute no stylesheet answers to.
+ */
+const valid = (id: string | null | undefined) => (id && ids.has(id) ? id : 'default');
+
 function read(): string {
   if (cache) return cache;
   let stored: string | null = null;
@@ -50,9 +57,7 @@ function read(): string {
   } catch {
     // Private browsing, or storage disabled. The default palette is a fine answer.
   }
-  // A theme removed in a later version leaves an id nothing matches; fall back rather than
-  // stamping an attribute no stylesheet answers to.
-  cache = stored && ids.has(stored) ? stored : 'default';
+  cache = valid(stored);
   return cache;
 }
 
@@ -79,9 +84,29 @@ export function setTheme(id: string) {
   for (const l of listeners) l();
 }
 
+let listening = false;
+
 /** Called once at start-up, before React paints, so there is no flash of the default. */
 export function initTheme() {
   apply(read());
+
+  // The palette belongs to the browser, not to a tab, so a second window has to follow the
+  // first rather than keep wearing whatever it opened in. `storage` fires only in the *other*
+  // tabs on this origin, so there is nothing to echo back and no write to make here — the tab
+  // that made the change has already saved it.
+  if (listening) return;
+  listening = true;
+  window.addEventListener('storage', event => {
+    // sessionStorage raises the same event, and a null key is localStorage.clear() rather
+    // than a change to ours.
+    if (event.storageArea && event.storageArea !== localStorage) return;
+    if (event.key !== null && event.key !== KEY) return;
+    const next = valid(event.key === null ? null : event.newValue);
+    if (next === cache) return;
+    cache = next;
+    apply(next);
+    for (const l of listeners) l();
+  });
 }
 
 const subscribe = (cb: () => void) => {

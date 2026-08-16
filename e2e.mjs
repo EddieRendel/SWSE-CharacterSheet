@@ -2,7 +2,10 @@ import { chromium } from 'playwright';
 
 const errors = [];
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+// An explicit context rather than browser.newPage(): that one refuses to open a second page,
+// and two pages sharing one origin's storage is exactly what the theme sync test needs.
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+const page = await context.newPage();
 
 page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 page.on('pageerror', e => errors.push('pageerror: ' + e.message));
@@ -597,6 +600,46 @@ await step('a palette repaints the chrome and survives a reload', async () => {
   const cleared = await page.evaluate(() => document.documentElement.dataset.theme ?? null);
   if (cleared !== null) throw new Error(`default should carry no attribute, got ${cleared}`);
   console.log(`       accent ${before} -> sith -> back to ${await accent()}`);
+});
+
+await step('a second tab follows the palette rather than keeping its own', async () => {
+  // Same context means the same origin storage, which is what a second tab actually is.
+  const other = await page.context().newPage();
+  try {
+    await other.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const themeOf = p => p.evaluate(() => document.documentElement.dataset.theme ?? 'default');
+    if (await themeOf(other) !== 'default') throw new Error('the second tab did not start clean');
+
+    // Changed through the picker in this tab, not by poking storage directly.
+    await page.click('button:has-text("Theme")');
+    await page.waitForSelector('.theme-grid');
+    await page.click('.theme-option:has-text("Kashyyyk")');
+    await page.click('.modal footer button');
+    await page.waitForSelector('.modal', { state: 'detached' });
+
+    await other.waitForFunction(() => document.documentElement.dataset.theme === 'wookiee', null,
+      { timeout: 3000 }).catch(() => {});
+    if (await themeOf(other) !== 'wookiee') throw new Error('the other tab kept its old palette');
+
+    // And the other way, so it is not one-directional.
+    await other.click('button:has-text("Theme")');
+    await other.waitForSelector('.theme-grid');
+    await other.click('.theme-option:has-text("Holocron")');
+    await other.click('.modal footer button');
+    await page.waitForFunction(() => !document.documentElement.dataset.theme, null,
+      { timeout: 3000 }).catch(() => {});
+    if (await themeOf(page) !== 'default') throw new Error('the change did not come back the other way');
+
+    // The picker itself has to agree, not just the page — the store notifies its subscribers.
+    await page.click('button:has-text("Theme")');
+    await page.waitForSelector('.theme-grid');
+    const on = (await page.locator('.theme-option.selected .theme-name').textContent()).trim();
+    if (on !== 'Holocron') throw new Error(`the picker still marks "${on}"`);
+    await page.click('.modal footer button');
+    await page.waitForSelector('.modal', { state: 'detached' });
+  } finally {
+    await other.close();
+  }
 });
 
 console.log('\n▸ Choices made when a talent is taken');
