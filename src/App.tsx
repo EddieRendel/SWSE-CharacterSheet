@@ -11,6 +11,7 @@ import { outstandingCount, hasConflicts } from './components/outstanding';
 import { Sheet } from './components/Sheet';
 import { FeatureBrowser } from './components/FeaturePicker';
 import { Panel, Portrait } from './components/ui';
+import { ThemePicker } from './components/ThemePicker';
 import { useDismissLayer } from './dismiss';
 
 type Tab = 'overview' | 'edit' | 'sheet';
@@ -52,6 +53,7 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
   const [browsing, setBrowsing] = useState(false);
+  const [pickingTheme, setPickingTheme] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -95,6 +97,7 @@ export default function App() {
   // Declared once and rendered twice — inline on wide screens, inside the burger
   // menu on narrow ones — so the two never drift apart.
   const topActions = [
+    { label: 'Theme', run: () => setPickingTheme(true) },
     { label: 'Compendium', run: () => setBrowsing(true) },
     ...(active ? [
       { label: 'Export', run: () => exportCharacter(active) },
@@ -238,6 +241,7 @@ export default function App() {
       />
 
       {browsing && <FeatureBrowser onClose={() => setBrowsing(false)} />}
+      {pickingTheme && <ThemePicker onClose={() => setPickingTheme(false)} />}
     </div>
   );
 }

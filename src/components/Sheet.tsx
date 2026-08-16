@@ -149,10 +149,12 @@ export function Sheet({
   const tempted = !derived.isDroid && wisdom > 0 && !fallen && char.darkSideScore * 2 >= wisdom;
   const fallFraction = wisdom > 0 ? Math.min(1, char.darkSideScore / wisdom) : 0;
 
+  // Both shifts name tokens rather than hexes, so a palette can restate what "tempted" and
+  // "fallen" look like in its own colours along with everything else.
   const accentVars = fallen
-    ? { '--sheet-accent': 'var(--red)', '--sheet-accent-dim': '#8f3b3b' }
+    ? { '--sheet-accent': 'var(--red)', '--sheet-accent-dim': 'var(--accent-fallen-dim)' }
     : tempted
-      ? { '--sheet-accent': '#ff9f45', '--sheet-accent-dim': '#a8611c' }
+      ? { '--sheet-accent': 'var(--accent-tempted)', '--sheet-accent-dim': 'var(--accent-tempted-dim)' }
       : undefined;
 
   const loadWord = derived.carrying.level === 'heavy' ? 'heavy load'
