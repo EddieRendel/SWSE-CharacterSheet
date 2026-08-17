@@ -3340,6 +3340,72 @@ console.log('\n▸ Source hygiene');
   check('no imports mixing values with an inline `type` specifier', offenders, []);
 }
 
+// ---------------------------------------------------------------------------
+console.log('\n▸ supplement.json patches each id exactly once');
+// ---------------------------------------------------------------------------
+{
+  // A second entry for the same key is not an error in JSON — the parser keeps the last
+  // one and drops the rest without a word. In a hand-maintained file that merges over the
+  // generated data, that means a correction can sit in the file looking perfectly valid
+  // and have no effect at all: Slammer and Tool Frenzy were each patched twice, once for
+  // the size and once for the appendages, and only the appendage entry survived. Reading
+  // the raw text is the only way to see it, since the imported object has already lost it.
+  const raw = readFileSync(join(import.meta.dirname, '../data/supplement.json'), 'utf8');
+  const duplicates: string[] = [];
+  const seen = (path: string, pairs: [string, unknown][]) => {
+    const counts = new Map<string, number>();
+    for (const [k] of pairs) counts.set(k, (counts.get(k) ?? 0) + 1);
+    for (const [k, n] of counts) if (n > 1) duplicates.push(`${path}${k} ×${n}`);
+  };
+  // JSON.parse's reviver visits every key, but only after the duplicates are gone; the
+  // pairs have to be caught as they are parsed, which is what this walk does.
+  const scan = (text: string) => {
+    let i = 0;
+    const ws = () => { while (i < text.length && /\s/.test(text[i])) i++; };
+    const str = () => {
+      let out = '';
+      i++;
+      while (text[i] !== '"') { out += text[i] === '\\' ? text[i++] + text[i++] : text[i++]; }
+      i++;
+      return JSON.parse(`"${out}"`) as string;
+    };
+    const value = (path: string): void => {
+      ws();
+      if (text[i] === '{') {
+        i++;
+        const pairs: [string, unknown][] = [];
+        ws();
+        if (text[i] === '}') { i++; return; }
+        for (;;) {
+          ws();
+          const key = str();
+          pairs.push([key, null]);
+          ws(); i++;            // the colon
+          value(`${path}${key}.`);
+          ws();
+          if (text[i] === ',') { i++; continue; }
+          i++; break;          // the closing brace
+        }
+        seen(path, pairs);
+      } else if (text[i] === '[') {
+        i++;
+        ws();
+        if (text[i] === ']') { i++; return; }
+        for (;;) {
+          value(path);
+          ws();
+          if (text[i] === ',') { i++; continue; }
+          i++; break;
+        }
+      } else if (text[i] === '"') { str(); }
+      else { while (i < text.length && !/[,\]}\s]/.test(text[i])) i++; }
+    };
+    value('');
+  };
+  scan(raw);
+  check('no id is patched twice in supplement.json', duplicates, []);
+}
+
 console.log(results.join('\n'));
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed ? 1 : 0);

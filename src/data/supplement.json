@@ -121,6 +121,9 @@
     "  slammer              size 'small' against a ladder spelled 'Small', so indexOf gave -1",
     "  tool-frenzy          and the comparison passed for every size including Fine. Both mean",
     "                       'Small size or larger'; powerful-charge already reads 'Medium'.",
+    "                       Their patch carries the appendage requirement as well and lives",
+    "                       with the droid hardware below — one entry per feat, since a",
+    "                       second entry for the same id would silently win over this one.",
     "  improved-sleight-of-hand  Dexterity 13 where the book says 15.",
     "  improved-bantha-rush      lost the 'Base Attack Bonus +1' its description still quotes.",
     "",
@@ -420,29 +423,6 @@
           {
             "id": "skill-focus",
             "spec": "deception"
-          }
-        ]
-      }
-    },
-    "slammer": {
-      "requirements": {
-        "size": "Small",
-        "abilities": {
-          "str": 13
-        },
-        "features": [
-          {
-            "id": "droid"
-          }
-        ]
-      }
-    },
-    "tool-frenzy": {
-      "requirements": {
-        "size": "Small",
-        "features": [
-          {
-            "id": "droid"
           }
         ]
       }
