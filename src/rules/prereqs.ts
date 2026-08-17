@@ -1,6 +1,7 @@
 import type { Character, FeatureRef, FeatureType, Requirements, AbilityId } from '../types';
 import {
-  CLASSES, FEATURES, SKILLS, SPECIES, WEAPON_GROUPS, TALENT_TREES, RULES, specName, FORCE_TALENT_TREES,
+  CLASSES, FEATURES, SKILLS, SPECIES, WEAPON_GROUPS, TALENT_TREES, RULES, DROIDS, specName,
+  FORCE_TALENT_TREES,
 } from '../data';
 import { countFeature, hasFeature } from './engine';
 import type { Derived } from './engine';
@@ -14,7 +15,7 @@ import { specOptionsFor, groupOfSpec, PICKS_A_FEATURE } from './specs';
 export type ReqKind =
   | FeatureType
   | 'ability' | 'skill' | 'species' | 'level' | 'attack' | 'size' | 'dark-side'
-  | 'choice' | 'other';
+  | 'droid-system' | 'choice' | 'other';
 
 export interface ReqCheck {
   text: string;
@@ -182,6 +183,34 @@ export function checkRequirements(
       met: derived.forceTechniques.length >= reqs.forceTechniques,
       kind: 'force-technique',
     });
+  }
+
+  // Droid hardware. "Droid" on its own is the species trait and is checked as a feature
+  // like any other; these are the conditions on what is actually bolted to the chassis,
+  // which the Droid panel is already the single source of.
+  if (reqs.droidSystems) {
+    const { anyOf, appendages, appendageType } = reqs.droidSystems;
+    const installed = derived.droidSystems;
+    if (anyOf?.length) {
+      checks.push({
+        text: anyOf.map(id => DROIDS.systems[id]?.name ?? id).join(' or '),
+        met: installed.some(s => anyOf.includes(s.id)),
+        kind: 'droid-system',
+      });
+    }
+    if (appendages !== undefined) {
+      // Appendages are counted, not listed: two Tool appendages is the Tool system twice,
+      // and a system may be worth more than one. The Droid panel totals them the same way.
+      const held = installed
+        .filter(s => !appendageType || s.appendageType === appendageType)
+        .reduce((n, s) => n + (s.appendages ?? 0), 0);
+      checks.push({
+        text: `${appendages}+ ${appendageType ? `${appendageType} ` : ''}appendages`
+          + (held ? ` (you have ${held})` : ''),
+        met: held >= appendages,
+        kind: 'droid-system',
+      });
+    }
   }
 
   // --- "matching" rules: constrain the specialization being selected ---

@@ -45,6 +45,8 @@ export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = 
   skill: { label: 'skill', cls: 'accent' },
   species: { label: 'species', cls: '' },
   size: { label: 'size', cls: '' },
+  // Hardware, fitted in the Droid panel rather than chosen from a list of features.
+  'droid-system': { label: 'droid system', cls: '' },
   'dark-side': { label: 'dark side', cls: 'red' },
   choice: { label: 'any of', cls: '' },
   // Nothing worth adding — "Base attack bonus +9" and "Character level 7" already name

@@ -42,6 +42,13 @@ export interface Requirements {
    */
   talents?: { count: number; trees?: string[]; force?: boolean };
   forceTechniques?: number;
+  /**
+   * Hardware bolted to a droid chassis, rather than anything the character has learned:
+   * "Hovering or Flying Locomotion", "2+ Appendages", "2+ Tool Appendages". `anyOf` names
+   * system ids and one of them is enough; `appendages` counts them, narrowed to a single
+   * `appendageType` when the rule asks for a particular kind.
+   */
+  droidSystems?: { anyOf?: string[]; appendages?: number; appendageType?: string };
   matchingWeaponGroupProficiency?: boolean;
   matchingWeaponProficiency?: boolean;
   matchingForcePower?: boolean;
@@ -74,6 +81,12 @@ export interface Feature {
   allowedSpecs?: string[];
   /** For a talent choice: the trees it may come from. */
   specTrees?: string[];
+  /**
+   * For a `weapon` choice: the weapon group it must come from. Exotic Weapon Proficiency
+   * chooses "a single Exotic Weapon", which is every weapon in the exotic group and not a
+   * list written down here — a re-import that adds one must put it on offer too.
+   */
+  specWeaponGroup?: string;
   /**
    * The chosen option is gained outright, not merely referred to. Stolen Form says "you gain
    * the benefits of this Talent and are considered to have this Talent for the purpose of

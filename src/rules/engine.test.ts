@@ -438,7 +438,7 @@ console.log('\n▸ Force power descriptors');
     'id', 'name', 'book', 'type', 'description', 'prerequisites', 'benefit', 'special', 'normal',
     'requirements', 'grants', 'multiple', 'maxCount', 'specType', 'allowedSpecs', 'incomplete',
     // how a feature's post-selection choice is offered, and whether it is gained outright
-    'specTrees', 'specHeld', 'specTrained', 'specOptions', 'specGrants',
+    'specTrees', 'specHeld', 'specTrained', 'specOptions', 'specGrants', 'specWeaponGroup',
     'page', 'summaryOnly', 'unparsedPrerequisites', 'hidden', 'hiddenReason',
     // presentational fields the data carries that are not descriptors
     'matchWeaponIcon', 'customSpecIcon', 'additional', 'dogfight',
@@ -645,23 +645,438 @@ console.log('\n▸ "Weapon Focus (Chosen Weapon)" feats need Focus in anything')
 }
 
 // ---------------------------------------------------------------------------
-console.log('\n▸ every matchingSpec requirement has a specialization to match');
+console.log('\n▸ every matching requirement has a specialization to match');
 // ---------------------------------------------------------------------------
 {
-  // The bug above, as an invariant: a matchingSpec requirement is checked against the
-  // specialization being chosen, so a feature carrying one while offering no choice can
-  // never be selected by anybody. A re-import writes this pair again from the same
-  // "(Chosen Weapon)" wording, which is why it is asserted rather than just fixed.
+  // The bug above, as an invariant: a matching rule is checked against the specialization
+  // being chosen, so a feature carrying one while offering no choice can never be selected
+  // by anybody. A re-import writes these again from the same "(Chosen Weapon)" wording,
+  // which is why it is asserted rather than just fixed.
+  //
+  // Every rule in checkRequirements that reads `!!spec &&` belongs here, not just
+  // matchingSpec. Autofire Assault and Autofire Sweep were stranded on
+  // matchingWeaponGroupProficiency for exactly the same reason and this only covered
+  // matchingSpec, so it passed while neither feat could be taken by anyone.
+  const MATCHING = [
+    'matchingWeaponGroupProficiency', 'matchingWeaponProficiency', 'matchingForcePower',
+    'matchingTrainedSkill', 'matchingUntrainedSkill', 'matchingClassSkill',
+  ] as const;
   const wantsMatch = (r: unknown): boolean => {
-    const req = r as { features?: { matchingSpec?: boolean }[]; anyOf?: unknown[][] } | undefined;
+    const req = r as
+      (Record<string, unknown> & { features?: { matchingSpec?: boolean }[]; anyOf?: unknown[][] })
+      | undefined;
     if (!req) return false;
     return (req.features ?? []).some(f => f.matchingSpec)
+      || MATCHING.some(k => req[k])
       || (req.anyOf ?? []).some(group => group.some(o => wantsMatch(o)));
   };
   const stranded = Object.values(FEATURES)
     .filter(f => wantsMatch(f.requirements) && !f.specType && !f.allowedSpecs?.length)
     .map(f => f.id);
   check('no feature needs a matching spec it cannot choose', stranded, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ feat prerequisites match the line the books print');
+// ---------------------------------------------------------------------------
+{
+  // `requirements` is parsed out of a spreadsheet column and had drifted from the
+  // `prerequisites` text quoted from the source in fourteen places — a wrong number, a
+  // wrong ability, a wrong skill, or a token belonging to the row above. Each of these
+  // pins one character who qualifies by the book, since re-running the importer writes
+  // the bad parse back.
+
+  // Savage Attack: "Double Attack (Chosen Weapon)", and its effect names "one weapon group
+  // or Exotic Weapon you have selected for the Double Attack Feat" — so it is Double Attack
+  // held with the very group being chosen, and nothing else. It had also picked up
+  // Vehicular Combat, which put it behind trained Pilot for no reason at all.
+  const gunner = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(6).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.trainedSkills = ['perception'];
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-proficiency', spec: 'rifles' },
+      { key: 'feat:3', choiceId: 'feat', featureId: 'double-attack', spec: 'rifles' },
+    ];
+  });
+  const dg = computeCharacter(gunner);
+  check('the Savage Attack character has Double Attack (rifles) and BAB +6',
+    [hasFeature(dg.features, 'double-attack', 'rifles'), dg.baseAttackBonus], [true, 6]);
+  check('Savage Attack no longer wants Vehicular Combat',
+    canSelect('savage-attack', gunner, dg).checks.map(c => c.text), ['Double Attack (Rifles)']);
+  check('and is selectable with the group Double Attack was taken for',
+    canSelect('savage-attack', gunner, dg, 'rifles').met, true);
+  check('but not with a group it was not',
+    canSelect('savage-attack', gunner, dg, 'pistols').met, false);
+  check('so only that group is offered',
+    canSelect('savage-attack', gunner, dg).viableSpecs, ['rifles']);
+
+  // Autofire Assault and Autofire Sweep read "Weapon Focus (Chosen Weapon)" and were
+  // parsed as a weapon-group match with no group to match, so `!!spec` was never true.
+  const focused = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(3).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'weapon-focus', spec: 'rifles' },
+    ];
+  });
+  const df = computeCharacter(focused);
+  check('Autofire Assault takes no specialization',
+    canSelect('autofire-assault', focused, df).needsSpec, false);
+  check('and Weapon Focus in any group is enough',
+    [canSelect('autofire-assault', focused, df).met, canSelect('autofire-sweep', focused, df).met],
+    [true, true]);
+  const noFocus = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(3).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+  });
+  const dn = computeCharacter(noFocus);
+  check('without Weapon Focus they are still refused',
+    [canSelect('autofire-assault', noFocus, dn).met, canSelect('autofire-sweep', noFocus, dn).met],
+    [false, false]);
+
+  // "Base Attack Bonus +1" read as +6 on four feats, so a 1st-level Soldier who qualifies
+  // was told to come back at 6th.
+  const rookie = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 15, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const dr = computeCharacter(rookie);
+  check('the rookie is BAB +1', dr.baseAttackBonus, 1);
+  check('and the +1 feats are open at 1st level',
+    ['bantha-herder', 'gunnery-specialist', 'strafe'].filter(id => !canSelect(id, rookie, dr).met), []);
+
+  // Angled Throw is about bouncing a grenade off a wall; the book asks for Dexterity 13
+  // and the block asked for Strength 13.
+  const nimble = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 8, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scoundrel' }];
+  });
+  const dnb = computeCharacter(nimble);
+  check('Angled Throw asks for Dexterity',
+    checkRequirementsFor('angled-throw', nimble, dnb).checks.map(c => c.text), ['Dexterity 13']);
+  check('and a Dex 14 / Str 8 character qualifies', canSelect('angled-throw', nimble, dnb).met, true);
+
+  // Droidcraft's own description quotes "Prerequisite: Trained in Mechanics"; the block
+  // also demanded Tech Specialist, which belongs to Vehicle Systems Expertise.
+  const mechanic = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 10, dex: 12, con: 12, int: 14, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scout' }];
+    x.trainedSkills = ['mechanics'];
+  });
+  const dm = computeCharacter(mechanic);
+  check('Droidcraft needs only trained Mechanics',
+    checkRequirementsFor('droidcraft', mechanic, dm).checks.map(c => c.text), ['Trained in Mechanics']);
+  check('so a trained mechanic can take it', canSelect('droidcraft', mechanic, dm).met, true);
+  check('while Vehicle Systems Expertise keeps Tech Specialist and now wants Mechanics too',
+    checkRequirementsFor('vehicle-systems-expertise', mechanic, dm).checks.map(c => [c.text, c.met]),
+    [['Tech Specialist', false], ['Trained in Mechanics', true]]);
+
+  // Three feats were checked against Acrobatics, which none of their lines mention.
+  check('Deadly Sniper, Duck and Cover and Deceptive Drop ask for the skill printed',
+    ['deadly-sniper', 'duck-and-cover', 'deceptive-drop']
+      .map(id => checkRequirementsFor(id, mechanic, dm).checks.filter(c => c.kind === 'skill')
+        .map(c => c.text)),
+    [['Trained in Stealth'], ['Trained in Stealth'], ['Trained in Initiative']]);
+
+  // A prerequisite the schema can express should be enforced, not shown as prose.
+  check('Combat Reflexes gates Droid Hunter and Unstoppable Force',
+    ['droid-hunter', 'unstoppable-force']
+      .map(id => canSelect(id, mechanic, dm).checks.map(c => c.text)),
+    [['Combat Reflexes'], ['Combat Reflexes']]);
+  check('Unwavering Resolve wants trained Perception',
+    canSelect('unwavering-resolve', mechanic, dm).checks.map(c => [c.text, c.met]),
+    [['Trained in Perception', false]]);
+  check('Staggering Attack takes any one of its three',
+    canSelect('staggering-attack', mechanic, dm).checks.map(c => [c.text, c.met, c.kind]),
+    [['Sneak Attack or Rapid Shot or Rapid Strike', false, 'choice']]);
+  check('and Rapid Shot alone satisfies it', (() => {
+    const shooter = structuredClone(mechanic);
+    shooter.selections.push({ key: 'feat:1', choiceId: 'feat', featureId: 'rapid-shot' });
+    return canSelect('staggering-attack', shooter, computeCharacter(shooter)).met;
+  })(), true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ a size prerequisite is spelled the way the size ladder is');
+// ---------------------------------------------------------------------------
+{
+  // Slammer and Tool Frenzy said "small" against a ladder spelled "Small", so indexOf
+  // returned -1 and `indexOf(actual) >= -1` passed for every size on the ladder — the
+  // restriction was in the data and enforced against nobody. It fails silently, in the
+  // safe direction, which is exactly why it needs an assertion rather than a symptom.
+  const bad = Object.values(FEATURES)
+    .filter(f => f.requirements?.size && !RULES.sizes.includes(f.requirements.size))
+    .map(f => f.id);
+  check('every size requirement names a size on the ladder', bad, []);
+
+  // Strength 18 so that the size penalty (−2 Small, −4 Tiny) leaves both well clear of
+  // Slammer's Strength 13 and size is the only thing that can separate them. Two Tool
+  // appendages so that the hardware half of both lines is satisfied as well.
+  const droid = (size: string) => make(x => {
+    x.speciesId = 'droid';
+    setAbilities(x, { str: 18, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scout' }];
+    x.droid = { degree: '2', size, systems: ['walking', 'heuristic-processor', 'tool', 'tool'] };
+  });
+  const tiny = droid('Tiny');
+  const dt = computeCharacter(tiny);
+  check('a Tiny droid is Tiny', dt.size, 'Tiny');
+  check('and is now refused a Small-or-larger feat',
+    [canSelect('slammer', tiny, dt).met, canSelect('tool-frenzy', tiny, dt).met], [false, false]);
+  check('for the size and nothing else',
+    canSelect('slammer', tiny, dt).checks.filter(c => !c.met).map(c => c.kind), ['size']);
+  const small = droid('Small');
+  const ds = computeCharacter(small);
+  check('while a Small one with the appendages qualifies',
+    [canSelect('slammer', small, ds).met, canSelect('tool-frenzy', small, ds).met], [true, true]);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ every prerequisite names something a character can actually get');
+// ---------------------------------------------------------------------------
+{
+  // A requirement pointing at a feature nothing grants and nobody can pick is a locked
+  // door: the feature it guards is unobtainable, and the UI has no way to say so because
+  // the check looks perfectly ordinary. The Droid trait was the worst of these — fourteen
+  // features asked for it and the Droid species granted no traits at all.
+  const grantable = new Set<string>();
+  for (const s of Object.values(SPECIES)) for (const r of s.features ?? []) grantable.add(r.id);
+  for (const c of Object.values(CLASSES)) for (const lvl of c.features ?? []) for (const r of lvl) grantable.add(r.id);
+  for (const t of Object.values(TALENT_TREES)) for (const r of t.features ?? []) grantable.add(r.id);
+  for (const f of Object.values(FEATURES)) for (const o of f.specOptions ?? []) grantable.add(o.id);
+  for (const id of [...NEAR_HUMAN.mechanical, ...NEAR_HUMAN.cosmetic]) grantable.add(id);
+
+  // Anything with a slot of its own can be chosen without being granted.
+  const CHOOSABLE = new Set(['feat', 'talent', 'force-power', 'force-technique', 'force-secret']);
+
+  // Telekinetic Vigilance requires the Intercept starship maneuver, which is right by the
+  // book. Maneuvers have a type, a slot kind, a picker filter and a derived list, but no
+  // class or feature ever builds a maneuver slot, so none can be held. Listed rather than
+  // patched away — the talent is not what is wrong.
+  const KNOWN_UNREACHABLE = new Set(['intercept-starship-maneuver']);
+
+  const required = new Set<string>();
+  const collect = (r: unknown) => {
+    const req = r as
+      { features?: { id: string }[]; anyOf?: unknown[][] } | undefined;
+    if (!req) return;
+    for (const f of req.features ?? []) required.add(f.id);
+    for (const group of req.anyOf ?? []) for (const o of group) collect(o);
+  };
+  for (const f of Object.values(FEATURES)) collect(f.requirements);
+  for (const c of Object.values(CLASSES)) collect(c.requirements);
+
+  const locked = [...required]
+    .filter(id => !KNOWN_UNREACHABLE.has(id))
+    .filter(id => !grantable.has(id) && !CHOOSABLE.has(FEATURES[id]?.type ?? ''))
+    .sort();
+  check('no prerequisite names a feature nothing can grant or select', locked, []);
+  check('and the one left standing is still unreachable, on purpose',
+    [...KNOWN_UNREACHABLE].filter(id => grantable.has(id)), []);
+
+  // The Droid trait, granted through the species merge rather than by a branch in the engine.
+  const bot = make(x => {
+    x.speciesId = 'droid';
+    setAbilities(x, { str: 14, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scout' }];
+    x.droid = { degree: '2', size: 'Medium', systems: ['walking', 'heuristic-processor'] };
+  });
+  const db = computeCharacter(bot);
+  check('a droid holds the Droid trait', hasFeature(db.features, 'droid'), true);
+  check('and it arrives as a species trait',
+    buildSlots(bot).filter(s => s.granted?.id === 'droid').map(s => [s.kind, s.auto]),
+    [['species-trait', true]]);
+  const man = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scout' }];
+  });
+  check('a Human does not', hasFeature(computeCharacter(man).features, 'droid'), false);
+  // Distracting Droid's whole line is "Droid", so the trait is the only thing separating them.
+  check('so a droid-only feat is now reachable by a droid and not by a human',
+    [canSelect('distracting-droid', bot, db).met,
+      canSelect('distracting-droid', man, computeCharacter(man)).met],
+    [true, false]);
+
+  // "Duros" is a species, not a trait — one straggler from the 49 already retargeted.
+  const duros = make(x => {
+    x.speciesId = 'duros';
+    setAbilities(x, { str: 12, dex: 14, con: 12, int: 12, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scout' }];
+  });
+  const dd = computeCharacter(duros);
+  check("Spacer's Surge asks for the species",
+    checkRequirementsFor('spacers-surge', duros, dd).checks.map(c => [c.text, c.kind, c.met]),
+    [['Species: Duros', 'species', true]]);
+  check('and a Human is refused it',
+    canSelect('spacers-surge', man, computeCharacter(man)).met, false);
+
+  // Surprisingly Quick named a summary-only stub trait rather than the feat, so holding
+  // Skill Focus (Initiative) never satisfied it.
+  const quick = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 12, dex: 14, con: 12, int: 12, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'scoundrel' }];
+    x.trainedSkills = ['initiative'];
+    x.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'skill-focus', spec: 'initiative' },
+    ];
+  });
+  const dq = computeCharacter(quick);
+  check('Surprisingly Quick wants the Skill Focus feat',
+    checkRequirementsFor('surprisingly-quick', quick, dq).checks.map(c => [c.text, c.kind, c.met]),
+    [['Skill Focus (Initiative)', 'feat', true]]);
+  check('and Skill Focus in another skill does not do',
+    (() => {
+      const other = structuredClone(quick);
+      other.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'skill-focus', spec: 'perception' }];
+      return checkRequirementsFor('surprisingly-quick', other, computeCharacter(other)).met;
+    })(), false);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ a droid feat checks the chassis, not just the trait');
+// ---------------------------------------------------------------------------
+{
+  // Granting the Droid trait is only half of these lines. Seven of the fourteen also name
+  // hardware — "2+ Appendages", "Hovering or Flying Locomotion", "Basic Processor" — and
+  // none of it was checked, so unlocking the trait alone would have handed a walking droid
+  // with no arms the Slammer feat, whose benefit is slamming a target with its appendages.
+  const bot = (systems: string[]) => make(x => {
+    x.speciesId = 'droid';
+    setAbilities(x, { str: 16, dex: 14, con: 10, int: 12, wis: 12, cha: 10 });
+    x.levels = Array(3).fill(null).map(() => ({ classId: 'scout', hitPoints: 5 }));
+    x.droid = { degree: '2', size: 'Medium', systems };
+  });
+
+  // "2+ Appendages" — counted, since a droid fits the same appendage twice.
+  const bare = bot(['walking', 'heuristic-processor']);
+  const dbare = computeCharacter(bare);
+  check('a droid with no appendages is refused Slammer', canSelect('slammer', bare, dbare).met, false);
+  check('and told which part is missing',
+    canSelect('slammer', bare, dbare).checks.filter(c => !c.met).map(c => [c.text, c.kind]),
+    [['2+ appendages', 'droid-system']]);
+  const oneArm = computeCharacter(bot(['walking', 'hand']));
+  check('one appendage is still not two',
+    canSelect('slammer', bot(['walking', 'hand']), oneArm).checks.filter(c => !c.met)
+      .map(c => c.text), ['2+ appendages (you have 1)']);
+  const twoArms = bot(['walking', 'hand', 'hand']);
+  check('two of them qualify', canSelect('slammer', twoArms, computeCharacter(twoArms)).met, true);
+
+  // "2+ Tool Appendages" — the same count, narrowed to one kind.
+  const dTwoArms = computeCharacter(twoArms);
+  check('two Hands do not satisfy a Tool requirement',
+    canSelect('tool-frenzy', twoArms, dTwoArms).checks.filter(c => !c.met).map(c => c.text),
+    ['2+ Tool appendages']);
+  const tooled = bot(['walking', 'tool', 'tool']);
+  check('two Tools do', canSelect('tool-frenzy', tooled, computeCharacter(tooled)).met, true);
+  const mixed = bot(['walking', 'tool', 'hand']);
+  check('and one of each does not',
+    canSelect('tool-frenzy', mixed, computeCharacter(mixed)).met, false);
+  check('while still counting for the untyped requirement',
+    canSelect('slammer', mixed, computeCharacter(mixed)).met, true);
+
+  // "Claw or Hand Appendage" — named systems, any one of which will do.
+  const clawed = bot(['walking', 'claw']);
+  clawed.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'pin' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'crush' },
+  ];
+  const dclawed = computeCharacter(clawed);
+  check('a Claw satisfies "Claw or Hand"', canSelect('pincer', clawed, dclawed).met, true);
+  const probed = structuredClone(clawed);
+  probed.droid!.systems = ['walking', 'probe'];
+  check('a Probe does not',
+    canSelect('pincer', probed, computeCharacter(probed)).checks.filter(c => !c.met)
+      .map(c => [c.text, c.kind]), [['Claw or Hand', 'droid-system']]);
+
+  // Locomotion, on the two feats that name a list of it.
+  const walker = bot(['walking', 'heuristic-processor']);
+  const dwalk = computeCharacter(walker);
+  check('a walking droid cannot Turn and Burn or be an Erratic Target',
+    [canSelect('turn-and-burn', walker, dwalk).met, canSelect('erratic-target', walker, dwalk).met],
+    [false, false]);
+  const flier = bot(['flying', 'heuristic-processor']);
+  const dfly = computeCharacter(flier);
+  check('a flying one can Turn and Burn', canSelect('turn-and-burn', flier, dfly).met, true);
+  const wheeled = bot(['wheeled', 'heuristic-processor']);
+  const dwheel = computeCharacter(wheeled);
+  check('and a wheeled one can too, but is no Erratic Target',
+    [canSelect('turn-and-burn', wheeled, dwheel).met,
+      canSelect('erratic-target', wheeled, dwheel).checks
+        .filter(c => !c.met && c.kind === 'droid-system').map(c => c.text)],
+    [true, ['Hovering or Flying']]);
+
+  // "Basic Processor" — a single named system.
+  const heuristic = bot(['walking', 'heuristic-processor']);
+  check('a Heuristic Processor is not a Basic one',
+    canSelect('logic-upgrade-skill-swap', heuristic, computeCharacter(heuristic)).met, false);
+  const basic = bot(['walking', 'basic-processor']);
+  check('and the Basic one satisfies it',
+    canSelect('logic-upgrade-skill-swap', basic, computeCharacter(basic)).met, true);
+
+  // Droid Shield Mastery names a Shield Generator, which the systems catalogue does not
+  // have — the Shield Expansion Module and the Micro Shield are not it. Guessing at one
+  // would refuse a legal droid, so the condition is declared unenforced instead.
+  check('no system is called a Shield Generator',
+    Object.values(DROIDS.systems).filter(s => /shield generator/i.test(s.name)), []);
+  check('so Droid Shield Mastery says so rather than guessing',
+    FEATURES['droid-shield-mastery'].unparsedPrerequisites, ['Shield Generator (Droid Accessory)']);
+
+  // The invariant: hardware named in a droid feat's line is either checked or declared.
+  // Everything here reads "Droid, <hardware>, …", and the trait alone was passing for all
+  // of it, which is exactly the failure this guards.
+  const HARDWARE = /appendage|locomotion|processor|shield generator|hovering|flying|wheeled|tracked|claw or hand/i;
+  const unaccounted = Object.values(FEATURES)
+    .filter(f => (f.requirements?.features ?? []).some(r => r.id === 'droid'))
+    .filter(f => HARDWARE.test(f.prerequisites ?? ''))
+    .filter(f => !f.requirements?.droidSystems && !f.unparsedPrerequisites?.length)
+    .map(f => f.id);
+  check('every droid feat naming hardware either checks it or declares it unenforced',
+    unaccounted, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Exotic Weapon Proficiency chooses an exotic weapon');
+// ---------------------------------------------------------------------------
+{
+  // It was a weapon-*group* choice whose five allowedSpecs were weapon ids, so the picker
+  // read the group table, missed, and fell back to printing the raw slugs — while the
+  // other 28 exotic weapons could not be chosen at all.
+  const soldier = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const d = computeCharacter(soldier);
+  const exotic = FEATURES['exotic-weapon-proficiency'];
+  const options = specOptionsFor(exotic, d);
+  const allExotic = Object.values(EQUIPMENT)
+    .filter(i => i.category === 'weapon' && i.group === 'exotic-weapons');
+
+  check('it asks for a weapon, not a weapon group', exotic.specType, 'weapon');
+  check('and offers every exotic weapon in the data', options.length, allExotic.length);
+  check('with more than the five it used to', options.length > 5, true);
+  check('none of them a raw slug', options.filter(o => /^[a-z0-9-]+$/.test(o.name)), []);
+  check('the five it used to offer are still among them',
+    ['atlatl', 'amphistaff', 'bowcaster', 'cesta', 'flamethrower']
+      .filter(id => !options.some(o => o.id === id)), []);
+  check('the group is not on offer as itself',
+    options.some(o => o.id === 'exotic-weapons'), false);
+  check('a saved pick still reads properly', featureName('exotic-weapon-proficiency', 'bowcaster'),
+    'Exotic Weapon Proficiency (Bowcaster)');
+
+  // The narrowing is a group filter, so an unfiltered weapon choice is unaffected.
+  check('an unnarrowed weapon choice still offers them all',
+    specOptionsFor(FEATURES['triple-crit'], d).length,
+    Object.values(EQUIPMENT).filter(i => i.category === 'weapon').length);
 }
 
 // ---------------------------------------------------------------------------
@@ -2923,6 +3338,72 @@ console.log('\n▸ Source hygiene');
   };
   walk(join(import.meta.dirname, '..'));
   check('no imports mixing values with an inline `type` specifier', offenders, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ supplement.json patches each id exactly once');
+// ---------------------------------------------------------------------------
+{
+  // A second entry for the same key is not an error in JSON — the parser keeps the last
+  // one and drops the rest without a word. In a hand-maintained file that merges over the
+  // generated data, that means a correction can sit in the file looking perfectly valid
+  // and have no effect at all: Slammer and Tool Frenzy were each patched twice, once for
+  // the size and once for the appendages, and only the appendage entry survived. Reading
+  // the raw text is the only way to see it, since the imported object has already lost it.
+  const raw = readFileSync(join(import.meta.dirname, '../data/supplement.json'), 'utf8');
+  const duplicates: string[] = [];
+  const seen = (path: string, pairs: [string, unknown][]) => {
+    const counts = new Map<string, number>();
+    for (const [k] of pairs) counts.set(k, (counts.get(k) ?? 0) + 1);
+    for (const [k, n] of counts) if (n > 1) duplicates.push(`${path}${k} ×${n}`);
+  };
+  // JSON.parse's reviver visits every key, but only after the duplicates are gone; the
+  // pairs have to be caught as they are parsed, which is what this walk does.
+  const scan = (text: string) => {
+    let i = 0;
+    const ws = () => { while (i < text.length && /\s/.test(text[i])) i++; };
+    const str = () => {
+      let out = '';
+      i++;
+      while (text[i] !== '"') { out += text[i] === '\\' ? text[i++] + text[i++] : text[i++]; }
+      i++;
+      return JSON.parse(`"${out}"`) as string;
+    };
+    const value = (path: string): void => {
+      ws();
+      if (text[i] === '{') {
+        i++;
+        const pairs: [string, unknown][] = [];
+        ws();
+        if (text[i] === '}') { i++; return; }
+        for (;;) {
+          ws();
+          const key = str();
+          pairs.push([key, null]);
+          ws(); i++;            // the colon
+          value(`${path}${key}.`);
+          ws();
+          if (text[i] === ',') { i++; continue; }
+          i++; break;          // the closing brace
+        }
+        seen(path, pairs);
+      } else if (text[i] === '[') {
+        i++;
+        ws();
+        if (text[i] === ']') { i++; return; }
+        for (;;) {
+          value(path);
+          ws();
+          if (text[i] === ',') { i++; continue; }
+          i++; break;
+        }
+      } else if (text[i] === '"') { str(); }
+      else { while (i < text.length && !/[,\]}\s]/.test(text[i])) i++; }
+    };
+    value('');
+  };
+  scan(raw);
+  check('no id is patched twice in supplement.json', duplicates, []);
 }
 
 console.log(results.join('\n'));

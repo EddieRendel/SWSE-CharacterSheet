@@ -20,6 +20,7 @@ import droidsJson from './droids.json';
 const supplement = supplementJson as unknown as {
   features?: Record<string, Partial<Feature>>;
   talentTrees?: Record<string, Partial<TalentTree>>;
+  species?: Record<string, Partial<Species>>;
 };
 
 /**
@@ -68,7 +69,22 @@ const merged = applySupplement(
 
 export const FEATURES = merged.features;
 export const CLASSES = classesJson as unknown as Record<string, CharacterClass>;
-export const SPECIES = speciesJson as unknown as Record<string, Species>;
+
+/**
+ * Species, with `supplement.species` merged over them the same way features are.
+ *
+ * The traits a species grants are what prerequisites elsewhere are checked against, so a
+ * species missing one shuts every feature that asks for it. The Droid entry listed no
+ * traits at all — droids are built from a degree, a size and systems rather than a fixed
+ * stat block — which left the fourteen features whose line begins "Droid" unobtainable by
+ * any droid.
+ */
+export const SPECIES: Record<string, Species> = {
+  ...(speciesJson as unknown as Record<string, Species>),
+};
+for (const [id, patch] of Object.entries(supplement.species ?? {})) {
+  SPECIES[id] = { ...SPECIES[id], ...patch, id } as Species;
+}
 export const SKILLS = skillsJson as unknown as Record<string, Skill>;
 export const TALENT_TREES = merged.trees;
 
