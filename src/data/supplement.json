@@ -33,7 +33,8 @@
     "49 species prerequisites retargeted from features -> species",
     "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all.",
     "12 Combined Feat rows hidden and rewritten as 8 entries in combos.json — they are automatic benefits, not selectable feats, and two of the eight had no row at all; see the note on them below",
-    "feature \"attack-combo-fire-strike\": a second copy of Attack Combo (Fire and Strike) under an \"&\" spelling; the stub is hidden and Soldier's bonus feats repointed at the full entry"
+    "feature \"attack-combo-fire-strike\": a second copy of Attack Combo (Fire and Strike) under an \"&\" spelling; the stub is hidden and Soldier's bonus feats repointed at the full entry",
+    "9 prerequisite hints rewritten from the sheet's shorthand to the compendium's wording, now that the hint is the only copy shown; see the note on them below"
   ],
   "_comment_lightsaber_chain": [
     "Saga Edition has two separate chains. The Elite Trooper one in Weapon Master chooses a",
@@ -222,6 +223,27 @@
     "Talisman, Many Shades of the Force, Share Talent, Share Force Secret, Share Force",
     "Technique, Coordinated Leadership and Squadron Maneuvers all qualify a power or talent you",
     "already possess rather than granting one, and expanding those would hand out a second copy."
+  ],
+  "_comment_prerequisite_hints": [
+    "The panel used to state a feat's prerequisites twice: once in the description, which the",
+    "compendium writes as a labelled paragraph ('Prerequisite: Dexterity 13'), and once in the",
+    "hint below it, which is the spreadsheet's own column. 109 feats carried both. The line is",
+    "cut from the description now and the hint is the only copy, so the hint has to be the",
+    "better of the two -- and for nine feats it was not, being the sheet's shorthand: 'BAB +1',",
+    "'Con 13', 'SF Knowledge (social sciences) or (galactic lore)', 'WP Heavy'. Worse, Sport",
+    "Hunter's read 'proficient with weapon' where the feat wants Weapon Proficiency (pistols)",
+    "or (rifles), which is not the same requirement at all.",
+    "",
+    "Those nine are written out below in the compendium's wording, keeping anything the sheet",
+    "said that the description did not -- Shield Surge's scomp link, Sensor Link's associated",
+    "hardware. Only `prerequisites` is set, a string beside `requirements` rather than inside",
+    "it, so the shallow spread leaves the machine-checked block alone. Nothing here changes",
+    "what is enforced; `requirements` is what gates a pick and it is untouched.",
+    "",
+    "The cut is not unconditional. It happens only where the hint covers what the line says,",
+    "compared on words with 'Feat' ignored -- the compendium writes 'Point-Blank Shot Feat'",
+    "where the sheet writes 'Point Blank Shot'. A hint that says less keeps both copies, which",
+    "is untidy and loses nothing, and is what a re-import introducing a new thin one will get."
   ],
   "features": {
     "critical-strike": {
@@ -711,21 +733,84 @@
         ]
       }
     },
-    "charging-fire-dodge": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "dodge-charging-fire": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "dodge-running-attack": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "running-attack-dodge": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "dual-weapon-mastery-i-quick-draw": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "quick-draw-dual-weapon-mastery-i": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "quick-draw-wp-lightsabers": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "weapon-proficiency-lightsabers-qd": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "force-training-improved-disarm": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "improved-disarm-force-training": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "weapon-finesse-weapon-focus": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
-    "weapon-focus-weapon-finesse": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "charging-fire-dodge": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dodge-charging-fire": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dodge-running-attack": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "running-attack-dodge": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dual-weapon-mastery-i-quick-draw": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "quick-draw-dual-weapon-mastery-i": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "quick-draw-wp-lightsabers": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-proficiency-lightsabers-qd": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "force-training-improved-disarm": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "improved-disarm-force-training": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-finesse-weapon-focus": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-focus-weapon-finesse": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
     "attack-combo-fire-strike": {
       "hidden": true,
       "hiddenReason": "the same feat as Attack Combo (Fire and Strike), which has the full text"
+    },
+    "sport-hunter": {
+      "prerequisites": "Weapon Proficiency (pistols) or Weapon Proficiency (rifles)"
+    },
+    "fl-che": {
+      "prerequisites": "Base attack bonus +1"
+    },
+    "dreadful-countenance": {
+      "prerequisites": "Charisma 13, member of the Sith"
+    },
+    "ion-shielding": {
+      "prerequisites": "Droid and Strength 13, or Cyborg Hybrid and Constitution 13"
+    },
+    "poison-resistance": {
+      "prerequisites": "Constitution 13"
+    },
+    "suppression-fire": {
+      "prerequisites": "Strength 13, Burst Fire, Weapon Proficiency (heavy weapons)"
+    },
+    "shield-surge": {
+      "prerequisites": "Droid or Cyborg Hybrid with a scomp link or similar, trained in Mechanics"
+    },
+    "elders-knowledge": {
+      "prerequisites": "Skill Focus (Knowledge [social sciences]) or Skill Focus (Knowledge [galactic lore])"
+    },
+    "sensor-link": {
+      "prerequisites": "Droid or Cyborg Hybrid with the associated hardware"
     }
   },
   "_comment_feat_combos": [

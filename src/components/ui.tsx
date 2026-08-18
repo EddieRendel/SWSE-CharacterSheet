@@ -6,7 +6,7 @@ import { combosForFeatureState, isSameHalf } from '../rules/engine';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 import { useDismissLayer } from '../dismiss';
-import { descriptorsOf, itemStatRows, upgradeEffects } from './labels';
+import { descriptorsOf, itemStatRows, prerequisiteText, readDescription, upgradeEffects } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -399,6 +399,15 @@ export function FeatureDetail({
   /** Every feature that character holds, i.e. `derived.features`. */
   held?: FeatureRef[];
 }) {
+  // The book's own order: a sentence saying what the feat is, then what it takes, then the
+  // rules. So the hint sits between the lead-in prose and the first headed section rather
+  // than below everything — which is also where the line it replaced used to be.
+  const blocks = readDescription(feature, combosForFeature(feature.id));
+  const firstSection = blocks.findIndex(b => b.label);
+  const [intro, sections] = firstSection < 0
+    ? [blocks, []]
+    : [blocks.slice(0, firstSection), blocks.slice(firstSection)];
+
   return (
     <div>
       <div className="row" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
@@ -442,19 +451,25 @@ export function FeatureDetail({
         </div>
       )}
 
-      <RulesText lines={feature.description} />
+      {/* Effect, Normal, Special and Benefit all read as headed sections now, wherever the
+          data happened to put them — see readDescription, which also cuts the prerequisite
+          paragraph the hint restates and the "Combined Feat (…)" lines the cards below
+          restate. Both cuts are conditional on the replacement actually being there. */}
+      {intro.map((block, i) => <RulesText key={i} lines={block.lines} />)}
 
       {feature.prerequisites && (
-        <p className="hint"><span className="label">Prerequisites:</span> {feature.prerequisites}</p>
+        <p className="hint">
+          <span className="label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
+        </p>
       )}
       {feature.unparsedPrerequisites?.length && (
         <p className="hint warn">
           Not enforced automatically: {feature.unparsedPrerequisites.join('; ')}
         </p>
       )}
-      <RulesSection label="Benefit" lines={feature.benefit} />
-      <RulesSection label="Normal" lines={feature.normal} />
-      <RulesSection label="Special" lines={feature.special} />
+      {sections.map((block, i) => (block.label
+        ? <RulesSection key={i} label={block.label} lines={block.lines} />
+        : <RulesText key={i} lines={block.lines} />))}
       <ComboBlock feature={feature} spec={spec} char={char} held={held} />
     </div>
   );

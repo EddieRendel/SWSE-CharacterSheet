@@ -10,7 +10,7 @@ import {
   buildAttack, buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
   defaultAttackOptions, unarmedDamage, SITUATIONAL,
 } from './attacks';
-import { talentSources } from '../components/labels';
+import { talentSources, readDescription, restatesDescription, prerequisiteText, wordCoverage } from '../components/labels';
 import { newCharacter, migrate } from '../storage';
 import type { Character, AbilityId, Feature, InventoryEntry } from '../types';
 import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, COMBOS, combosForFeature, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
@@ -3579,6 +3579,275 @@ console.log('\n▸ Attack Combo (Fire and Strike) is one feat, not two');
       .map(r => r.id)
       .filter(id => /^attack-combo-fire/.test(id)),
     ['attack-combo-fire-and-strike']);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Combined Feat prose gives way to the card');
+// ---------------------------------------------------------------------------
+{
+  // The panel cuts the "Combined Feat (…)" line from the description because the card below
+  // restates it and adds the one thing the prose cannot say — whether you hold the other
+  // half. The cut must take the line and nothing else.
+  const shown = (id: string) =>
+    readDescription(FEATURES[id], combosForFeature(id)).flatMap(b => b.lines);
+  const text = (id: string) => shown(id).join(' ').replace(/<[^>]*>/g, ' ');
+
+  check('no feat that has a card still states its Combined Feat in prose',
+    Object.values(FEATURES)
+      .filter(f => combosForFeature(f.id).length && /Combined Feat/i.test(text(f.id)))
+      .map(f => f.id), []);
+
+  // Dodge carries two of them, under a heading that belongs to Starships of the Galaxy and
+  // introduces a vehicle rule as well. The heading and that rule have to survive.
+  check('Dodge loses both lines and keeps the rest',
+    [FEATURES.dodge.description.length, shown('dodge').length], [7, 4]);
+  check('including the paragraph the surviving heading introduces',
+    [/Starships of the Galaxy/.test(text('dodge')), /Pilot of a Vehicle/.test(text('dodge'))],
+    [true, true]);
+
+  // Charging Fire's heading introduced the cut line and nothing else, so it goes too —
+  // otherwise the panel ends on a reference to a book with no rule under it.
+  check('a heading left with nothing under it goes as well',
+    /Additional Charging Fire Effects/.test(text('charging-fire')), false);
+  check('but the feat keeps its own rules', shown('charging-fire').length, 3);
+
+  // Two shapes the compendium's markup takes that a tag-matching cut would miss.
+  check('a clause split across two <strong> tags is cut',
+    /Combined Feat|Attack of Opportunity against you while using/.test(text('running-attack')), false);
+  check('and one sharing its line with the heading takes both',
+    [/Combined Feat|Additional Weapon Focus/.test(text('weapon-focus')),
+      /especially good at using particular weapons/.test(text('weapon-focus'))],
+    [false, true]);
+  check('a clause with no heading over it is cut on its own',
+    [/Combined Feat/.test(text('return-fire')), shown('return-fire').length], [false, 3]);
+
+  // Force Disarm quotes the same wording without being a half of anything, so it has no card
+  // to replace it. Cutting there would lose the sentence from the app altogether.
+  check('a feature with no card keeps its text',
+    [/Combined Feat \(Force Training \+ Improved Disarm\)/.test(
+      readDescription(FEATURES['force-disarm'], combosForFeature('force-disarm'))
+        .flatMap(b => b.lines).join(' ')),
+      combosForFeature('force-disarm').length],
+    [true, 0]);
+  check('which is where that wording still lives',
+    /Combined Feat/i.test(FEATURES['force-disarm'].description.join(' ')), true);
+
+  // Nothing may vanish that was not a clause, a heading emptied by it, or the prerequisite
+  // paragraph the hint restates. Compared on content, not on the line: a labelled paragraph
+  // loses its "Effect:" opener to the heading that now carries it.
+  const squash = (t: string) => t.replace(/<[^>]*>/g, ' ').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const collateral = Object.values(FEATURES).flatMap(f => {
+    const kept = squash(readDescription(f, combosForFeature(f.id)).flatMap(b => b.lines).join(' '));
+    return f.description
+      .filter(l => !/Combined Feat/i.test(l)
+        && !/^Additional\b/i.test(l)
+        && !/^\s*<strong>\s*Prerequisites?:?\s*<\/strong>/i.test(l))
+      // The opener goes to the heading; everything after it must still be there.
+      .map(l => squash(l.replace(/^\s*<strong>[^<]*<\/strong>/i, '')))
+      .filter(body => body && !kept.includes(body))
+      .map(() => f.id);
+  });
+  check('no other line is lost', collateral, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A section the description already states is not printed twice');
+// ---------------------------------------------------------------------------
+{
+  // Two importers describe the same feat, and where both had a Normal line the panel showed
+  // it inline in the description and then again under a NORMAL heading.
+  const NORMAL_LINE = /^\s*<strong>\s*Normal:?\s*<\/strong>/i;
+  const inlineNormal = (f: Feature) => (f.description ?? []).some(l => NORMAL_LINE.test(l));
+  const suppressed = (key: 'benefit' | 'normal' | 'special') =>
+    Object.values(FEATURES).filter(f => restatesDescription(f.description, f[key]));
+
+  check('Melee Defense stated its Normal rule twice',
+    [inlineNormal(FEATURES['melee-defense']), !!FEATURES['melee-defense'].normal?.length],
+    [true, true]);
+  check('and now prints the description copy only',
+    restatesDescription(FEATURES['melee-defense'].description, FEATURES['melee-defense'].normal),
+    true);
+
+  // Every suppression must be a feat whose description really does carry the line — never a
+  // section that was the only place a rule appeared.
+  check('nothing is suppressed without an inline Normal line to replace it',
+    suppressed('normal').filter(f => !inlineNormal(f)).map(f => f.id), []);
+  check('which is nearly every feat that has both', suppressed('normal').length, 56);
+  check('and the four with an inline line but no field keep it',
+    Object.values(FEATURES)
+      .filter(f => inlineNormal(f) && !f.normal?.length)
+      .map(f => f.id).sort(),
+    ['advantageous-attack', 'force-sensitivity', 'ion-shielding', 'risk-taker']);
+
+  // Benefit is where 236 feats keep the rules their description only summarises. Nothing
+  // there may be swallowed, and Special is the near miss that proves the threshold.
+  check('no Benefit section is ever suppressed', suppressed('benefit').map(f => f.id), []);
+  check('nor any Special', suppressed('special').map(f => f.id), []);
+  check('Force Stun keeps its Special, which shares vocabulary and nothing else',
+    restatesDescription(FEATURES['force-stun'].description, FEATURES['force-stun'].special), false);
+
+  // Implant Training's field says something the description does not, so it survives —
+  // failing the test has to mean "print both", not "drop one".
+  check('a field that adds to the description is kept',
+    restatesDescription(FEATURES['implant-training'].description, FEATURES['implant-training'].normal),
+    false);
+  check('because only it explains the penalty',
+    [/interference with normal brain functions/i.test(FEATURES['implant-training'].normal!.join(' ')),
+      /interference with normal brain functions/i.test(FEATURES['implant-training'].description.join(' '))],
+    [true, false]);
+
+  // A short section is never judged: a few common words can all appear in a long description
+  // by chance, and there would be nothing left to read.
+  check('a section too short to judge is left alone',
+    restatesDescription(['You take a -5 penalty on your attack roll.'], ['A -5 penalty.']), false);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Prerequisites are stated once, in the hint');
+// ---------------------------------------------------------------------------
+{
+  const PREREQ = /^\s*<strong>\s*Prerequisites?:?\s*<\/strong>/i;
+  const inlinePrereq = (f: Feature) => (f.description ?? []).some(l => PREREQ.test(l));
+  const shown = (f: Feature) =>
+    readDescription(f, combosForFeature(f.id)).flatMap(b => b.lines);
+  const withPrereqLine = Object.values(FEATURES).filter(inlinePrereq);
+
+  check('109 feats stated them in the description as well as the hint', withPrereqLine.length, 109);
+  check('every one of those has a hint to fall back on',
+    withPrereqLine.filter(f => !f.prerequisites).map(f => f.id), []);
+  check('and none of them states it in the description any more',
+    withPrereqLine.filter(f => shown(f).some(l => PREREQ.test(l))).map(f => f.id), []);
+
+  // Melee Defense read "Prerequisite: Intelligence 13" and then "Prerequisites: Intelligence 13."
+  check('Melee Defense keeps its summary and its effect, and loses the repeat',
+    [FEATURES['melee-defense'].description.length, shown(FEATURES['melee-defense']).length],
+    [4, 3]);
+  check('with the hint still carrying it',
+    prerequisiteText(FEATURES['melee-defense'].prerequisites!), 'Intelligence 13.');
+
+  // The cut is conditional, and the condition is the hint saying as much as the line. Nine
+  // hints were the spreadsheet's shorthand and are rewritten in supplement.json; if one is
+  // ever thinner than the line again, both copies stay rather than the fuller one going.
+  const thin = withPrereqLine.filter(f =>
+    wordCoverage([f.description.find(l => PREREQ.test(l))!.replace(PREREQ, '')],
+      [f.prerequisites ?? ''], 1) < 0.8);
+  check('no hint says less than the line it replaced', thin.map(f => f.id), []);
+  check('Sport Hunter names the two proficiencies rather than "proficient with weapon"',
+    prerequisiteText(FEATURES['sport-hunter'].prerequisites!),
+    'Weapon Proficiency (pistols) or Weapon Proficiency (rifles)');
+  check('and the shorthand hints are spelled out',
+    ['fl-che', 'poison-resistance', 'suppression-fire'].map(id => prerequisiteText(FEATURES[id].prerequisites!)),
+    ['Base attack bonus +1', 'Constitution 13',
+      'Strength 13, Burst Fire, Weapon Proficiency (heavy weapons)']);
+  // Rewriting the hint must not touch what is actually enforced.
+  check('none of the nine had its machine-checked block altered',
+    [FEATURES['suppression-fire'].requirements?.abilities?.str,
+      FEATURES['poison-resistance'].requirements?.abilities?.con,
+      FEATURES['elders-knowledge'].requirements?.anyOf?.[0].length],
+    [13, 13, 2]);
+
+  // A description that states a prerequisite with no hint behind it keeps it.
+  check('a line with no hint to replace it survives',
+    readDescription({ ...FEATURES['melee-defense'], prerequisites: undefined }, [])
+      .flatMap(b => b.lines).some(l => PREREQ.test(l)),
+    true);
+
+  // --- markup that was printing literally ---
+  const MARKUP = /<[a-z/][^>]*>/i;
+  check('fourteen hints arrived carrying markup',
+    Object.values(FEATURES).filter(f => MARKUP.test(f.prerequisites ?? '')).length, 14);
+  check('none of them renders it',
+    Object.values(FEATURES)
+      .filter(f => f.prerequisites && MARKUP.test(prerequisiteText(f.prerequisites)))
+      .map(f => f.id), []);
+  check('Implant Training reads as a sentence',
+    prerequisiteText(FEATURES['implant-training'].prerequisites!), 'Must possess an Implant');
+  // Visions closes its tag with a full stop instead of a bracket, which the tag pattern
+  // cannot match — the leftover "</em." has to go too.
+  check('an unterminated tag goes as well',
+    prerequisiteText(FEATURES['visions'].prerequisites!), 'Force Perception, farseeing');
+  check('and the commas nobody spaced are spaced',
+    prerequisiteText(FEATURES['metamorph'].prerequisites!),
+    'Shapeshift Species Trait, Constitution 13, Trained in Deception');
+  check('a plain hint is passed through untouched',
+    prerequisiteText(FEATURES['dodge'].prerequisites!), 'Dexterity 13.');
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Effect, Normal and Special are sections, like Benefit');
+// ---------------------------------------------------------------------------
+{
+  const blocks = (id: string) => readDescription(FEATURES[id], combosForFeature(id));
+  const shape = (id: string) => blocks(id).map(b => b.label ?? '(prose)');
+  const body = (id: string, label: string) =>
+    blocks(id).find(b => b.label === label)?.lines.join(' ').replace(/<[^>]*>/g, '') ?? '';
+
+  // Melee Defense drew Effect and Normal as prose and would have drawn Benefit as a heading.
+  check('Melee Defense reads lead-in, Effect, Normal', shape('melee-defense'),
+    ['(prose)', 'Effect', 'Normal']);
+  check('and the heading takes the label off the line it opened',
+    body('melee-defense', 'Effect').startsWith('When you use a Standard Action'), true);
+  check('nothing but the lead-in sentence is left as prose',
+    blocks('melee-defense')[0].lines.length, 1);
+
+  // A paragraph with no label of its own continues the section above it, which is what keeps
+  // Metamorph's two size clauses inside its Effect instead of stranding them.
+  check('unlabelled paragraphs continue the section they follow',
+    [shape('metamorph'), blocks('metamorph').find(b => b.label === 'Effect')!.lines.length],
+    [['(prose)', 'Effect'], 3]);
+  check('including the clause that would otherwise have been orphaned',
+    /increase your size to Large/.test(body('metamorph', 'Effect')), true);
+
+  // An "Additional … Effects" heading ends the section above rather than being drawn into it.
+  check('Dodge keeps its Starships rule out of its Effect',
+    [shape('dodge'), /Pilot of a Vehicle/.test(body('dodge', 'Effect'))],
+    [['(prose)', 'Effect', '(prose)'], false]);
+
+  // Only the four. A Force power's stat block stays the run it is read in.
+  check('Force Stun keeps Time and Targets as prose and heads only its Special',
+    shape('force-stun'), ['(prose)', 'Special']);
+  check('with the stat block intact — Time and Targets are bolded mid-paragraph, not opened',
+    [/Time:/.test(blocks('force-stun')[0].lines.join(' ')),
+      /Targets?:/.test(blocks('force-stun')[0].lines.join(' '))],
+    [true, true]);
+  check('every label promoted is one the panel has a heading for',
+    Array.from(new Set(Object.values(FEATURES)
+      .flatMap(f => readDescription(f, combosForFeature(f.id)))
+      .map(b => b.label).filter(Boolean))).sort(),
+    ['Benefit', 'Effect', 'Normal', 'Special']);
+
+  // A spreadsheet field joins the section its label already opened rather than adding a
+  // second heading of the same name.
+  check('Implant Training has one Normal section, not two',
+    shape('implant-training').filter(l => l === 'Normal').length, 1);
+  check('carrying both what the description said and what only the field says',
+    [/one extra step down the Condition Track/.test(body('implant-training', 'Normal')),
+      /interference with normal brain functions/.test(body('implant-training', 'Normal'))],
+    [true, true]);
+  // A heading does repeat where a second book adds to the same section, and it should: these
+  // two carry a Special of their own and another under "Additional … Effects — Starships of
+  // the Galaxy", which are different rules. The heading that separates them stays as prose.
+  check('a heading repeats only where a second book adds to the same section',
+    Object.values(FEATURES).filter(f => {
+      const labels = readDescription(f, combosForFeature(f.id)).map(b => b.label).filter(Boolean);
+      return new Set(labels).size !== labels.length;
+    }).map(f => f.id).sort(),
+    ['rapid-shot', 'triple-attack']);
+  check('and the two are held apart by that heading',
+    shape('rapid-shot'), ['(prose)', 'Effect', 'Special', '(prose)', 'Special']);
+
+  // A field with no inline label to join still gets its own heading, as it always did.
+  check('Follow Through still heads its Benefit and Special',
+    shape('follow-through'), ['(prose)', 'Benefit', 'Special']);
+
+  // A description with no labelled paragraph and no fields is left as one run of prose —
+  // nothing invents a heading for it.
+  const unlabelled = Object.values(FEATURES).filter(f =>
+    readDescription(f, combosForFeature(f.id)).every(b => !b.label));
+  check('descriptions with nothing to head stay a single run of prose',
+    [unlabelled.length > 200, unlabelled.every(f =>
+      readDescription(f, combosForFeature(f.id)).length <= 2)],
+    [true, true]);
 }
 
 console.log(results.join('\n'));

@@ -340,7 +340,7 @@ export function FeaturePicker({
               {finalResult && finalResult.checks.length > 0 && (
                 <div className="panel" style={{ marginTop: 12, marginBottom: 0 }}>
                   <h3 style={{ marginBottom: 8 }}>
-                    Prerequisites
+                    Requires
                     {needsSpec && !spec && selectableSpecs.length > 0 && (
                       <span className="faint" style={{ fontWeight: 400 }}>
                         {' '}· shown for {selectableSpecs[0].name}
