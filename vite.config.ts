@@ -1,5 +1,10 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+
+// Read rather than imported, so the config needs no resolveJsonModule and no import
+// attribute. There is one version in the repo and this is it.
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -8,6 +13,13 @@ export default defineConfig({
   // src/data/index.ts builds icon URLs from import.meta.env.BASE_URL, so setting
   // this is all that's needed for the artwork to resolve once deployed.
   base: '/SWSE-CharacterSheet/',
+
+  // Substituted into the bundle at build time. The About panel prints it, so a bug report
+  // can name the build it came from — which matters more than usual here, because a
+  // character lives in one browser's local storage and never leaves it.
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
 
   // A port of our own, so a Vite project already holding 5173 does not push this one to
   // 5174 and leave you guessing which window is which. `strictPort` makes a clash an error
