@@ -81,8 +81,18 @@ export type FeatureType =
 export interface FeatCombo {
   id: string;
   name: string;
-  book: string;
-  page?: number;
+  /**
+   * Every book that prints this interaction. Allowing any ONE of them is enough: these are
+   * alternative printings of a single rule, not conditions to be met together.
+   *
+   * Most are the KotOR Campaign Guide's alone, but two are also printed by the book their
+   * second half comes from, in that feat's own entry and with no reference back to KotOR —
+   * Follow Through's Special grants the Cleave interaction in the Jedi Academy Training
+   * Manual, and Return Fire's description grants the Combat Reflexes one in the Legacy Era
+   * Campaign Guide. Filed under KotOR alone, a Core + Jedi Academy character would hold
+   * Follow Through and be refused a rule printed in the entry they are reading.
+   */
+  sources: { book: string; page?: number }[];
   /** The feats that must all be held, in the order they should be read. */
   features: FeatureRef[];
   /** What holding all of them gets you. */

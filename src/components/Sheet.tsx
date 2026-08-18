@@ -588,10 +588,12 @@ export function Sheet({
                         <div key={combo.id} className="combo on">
                           <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                             <span className="name grow">{combo.name}</span>
-                            <span className="badge">
-                              {BOOK_NAMES[combo.book] ?? combo.book}
-                              {combo.page ? ` p.${combo.page}` : ''}
-                            </span>
+                            {combo.sources.map(source => (
+                              <span key={source.book} className="badge">
+                                {BOOK_NAMES[source.book] ?? source.book}
+                                {source.page ? ` p.${source.page}` : ''}
+                              </span>
+                            ))}
                           </div>
                           <RulesText lines={combo.effect} />
                         </div>

@@ -367,9 +367,14 @@ function ComboBlock({
                 {active && <span className="badge green">active</span>}
                 {completes && <span className="badge accent">completes this</span>}
                 {known && !active && !completes && <span className="badge">inactive</span>}
-                <span className="badge">
-                  {BOOK_NAMES[combo.book] ?? combo.book}{combo.page ? ` p.${combo.page}` : ''}
-                </span>
+                {/* One badge per printing. Two books carry two of these, and naming only the
+                    first would leave a Jedi Academy character wondering why a KotOR rule is
+                    on — the answer is the book their own feat came from. */}
+                {combo.sources.map(source => (
+                  <span key={source.book} className="badge">
+                    {BOOK_NAMES[source.book] ?? source.book}{source.page ? ` p.${source.page}` : ''}
+                  </span>
+                ))}
               </div>
               <RulesText lines={combo.effect} />
               <p className={`hint${completes ? ' ok' : ''}`} style={{ margin: 0 }}>

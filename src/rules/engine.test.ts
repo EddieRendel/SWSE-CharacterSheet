@@ -3425,6 +3425,19 @@ console.log('\n▸ Combined Feats');
   // "which is this?" in the UI a coin toss.
   check('no combo id collides with a feature id',
     COMBOS.map(c => c.id).filter(id => FEATURES[id]), []);
+  check('every combo names at least one book that prints it',
+    COMBOS.filter(c => !c.sources?.length).map(c => c.id), []);
+  check('and every one of those is a book the app knows',
+    COMBOS.flatMap(c => c.sources.map(s => s.book)).filter(b => !BOOK_NAMES[b]), []);
+  check('no book is listed twice for one combo',
+    COMBOS.filter(c => new Set(c.sources.map(s => s.book)).size !== c.sources.length)
+      .map(c => c.id), []);
+  // A second printing is a book one of the halves comes from — that is what makes it an
+  // independent grant rather than a cross-reference back to KotOR.
+  check('a second printing comes from a book one of the halves is in',
+    COMBOS.flatMap(c => c.sources.slice(1)
+      .filter(s => !c.features.some(f => FEATURES[f.id].book === s.book))
+      .map(s => `${c.id}:${s.book}`)), []);
   check('each half knows the combos it belongs to',
     combosForFeature('dodge').map(c => c.id),
     ['combo-dodge-charging-fire', 'combo-dodge-running-attack']);
@@ -3700,6 +3713,74 @@ console.log('\n▸ A section the description already states is not printed twice
   // by chance, and there would be nothing left to read.
   check('a section too short to judge is left alone',
     restatesDescription(['You take a -5 penalty on your attack roll.'], ['A -5 penalty.']), false);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A Combined Feat is granted by any book that prints it');
+// ---------------------------------------------------------------------------
+{
+  // Two of the eight are printed twice: once in the KotOR Campaign Guide's "Additional
+  // <Feat> Effects" block, and again in the entry of the half that comes from another book,
+  // with no reference back to KotOR. Gating on KotOR alone refused a table running Core plus
+  // Jedi Academy a rule printed in the very feat they had taken.
+  const withBooks = (books: string[] | null, ...picks: { id: string; spec?: string }[]) => {
+    const c = make(x => {
+      x.speciesId = 'human';
+      setAbilities(x, { str: 14, dex: 14, con: 12, int: 14, wis: 12, cha: 10 });
+      x.levels = Array(9).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+      x.trainedSkills = ['perception'];
+      x.allowedBooks = books;
+      x.selections = picks.map((p, i) => ({
+        key: `feat:${[1, 3, 6, 9][i]}`, choiceId: 'feat', featureId: p.id, spec: p.spec,
+      }));
+    });
+    return computeCharacter(c).combos.map(x => x.name);
+  };
+
+  const CLEAVE = [{ id: 'power-attack' }, { id: 'cleave' }, { id: 'follow-through' }];
+  const RETURN = [{ id: 'quick-draw' }, { id: 'weapon-focus', spec: 'rifles' },
+    { id: 'combat-reflexes' }, { id: 'return-fire', spec: 'rifles' }];
+
+  check('Cleave + Follow Through is on for Core + Jedi Academy, with no KotOR',
+    withBooks(['core', 'jedi'], ...CLEAVE), ['Cleave + Follow Through']);
+  check('and for KotOR without Jedi Academy — it is printed in both',
+    withBooks(['core', 'knights', 'jedi'], ...CLEAVE), ['Cleave + Follow Through']);
+  check('but not for Core alone', withBooks(['core'], ...CLEAVE), []);
+
+  check('Combat Reflexes + Return Fire is on for Core + Legacy, with no KotOR',
+    withBooks(['core', 'legacy'], ...RETURN), ['Combat Reflexes + Return Fire']);
+  check('but not for Core alone', withBooks(['core'], ...RETURN), []);
+
+  // The other six are KotOR's alone and must not have been loosened by this.
+  const DODGE = [{ id: 'dodge' }, { id: 'running-attack' }];
+  check('a KotOR-only combo is still refused without KotOR',
+    withBooks(['core', 'jedi', 'legacy'], ...DODGE), []);
+  check('and granted with it', withBooks(['core', 'knights'], ...DODGE), ['Dodge + Running Attack']);
+  check('six of the eight are KotOR alone',
+    COMBOS.filter(c => c.sources.length === 1 && c.sources[0].book === 'knights').length, 6);
+
+  // The evidence for the two second printings, so a re-import that moves the text fails here
+  // rather than silently returning the app to gating both on KotOR.
+  check('Follow Through grants the Cleave interaction in its own Special',
+    [FEATURES['follow-through'].book,
+      /Cleave Feat/.test(FEATURES['follow-through'].special?.join(' ') ?? '')],
+    ['jedi', true]);
+  check('and Return Fire the Combat Reflexes one in its own description',
+    [FEATURES['return-fire'].book,
+      /Combined Feat \(Combat Reflexes\)/.test(FEATURES['return-fire'].description.join(' '))],
+    ['legacy', true]);
+  // Neither of those passages sits under an "Additional … Reference Book" heading, which is
+  // what marks the KotOR insertions in Cleave's and Combat Reflexes' own entries.
+  check('neither is a KotOR insertion, unlike the copies on the other halves',
+    ['follow-through', 'return-fire'].map(id =>
+      [...FEATURES[id].description, ...(FEATURES[id].special ?? [])]
+        .some(l => /^Additional\b/i.test(l.replace(/<[^>]*>/g, '')))),
+    [false, false]);
+  check('whereas Cleave and Combat Reflexes carry exactly that heading',
+    ['cleave', 'combat-reflexes'].map(id =>
+      FEATURES[id].description.some(l =>
+        /^Additional\b/i.test(l.replace(/<[^>]*>/g, '')) && /Knights of the Old Republic/i.test(l))),
+    [true, true]);
 }
 
 // ---------------------------------------------------------------------------

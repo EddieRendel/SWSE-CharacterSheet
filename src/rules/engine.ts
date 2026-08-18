@@ -327,9 +327,16 @@ export interface ComboState {
   active: boolean;
 }
 
-/** Whether a combo's sourcebook is one this character allows. */
+/**
+ * Whether any book that prints this combo is one the character allows.
+ *
+ * `some`, not `every`: the sources are the same rule printed in more than one place, so one
+ * of them being open is the whole test. Cleave + Follow Through is in the KotOR Campaign
+ * Guide and again in Follow Through's own Jedi Academy entry, and a table running Core plus
+ * Jedi Academy is entitled to it.
+ */
 export const comboAvailable = (char: Character, combo: FeatCombo) =>
-  isBookAllowed(char, combo.book);
+  combo.sources.some(s => isBookAllowed(char, s.book));
 
 /**
  * Judge one combo against what a character holds.
