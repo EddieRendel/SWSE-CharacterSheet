@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Character, Feature, ResolvedItem } from '../types';
-import { BOOK_NAMES, CLASSES, specName, featureIcon, portraitUrl, classIcon } from '../data';
+import type { Character, FeatCombo, Feature, FeatureRef, ResolvedItem } from '../types';
+import { BOOK_NAMES, CLASSES, specName, featureName, featureIcon, portraitUrl, classIcon, combosForFeature } from '../data';
+import { combosForFeatureState, isSameHalf } from '../rules/engine';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 import { useDismissLayer } from '../dismiss';
-import { descriptorsOf, itemStatRows, upgradeEffects } from './labels';
+import { descriptorsOf, itemStatRows, prerequisiteText, readDescription, upgradeEffects } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -319,7 +320,99 @@ export function ItemDetail({ item }: { item: ResolvedItem }) {
   );
 }
 
-export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: string }) {
+/** The other halves of a Combined Feat, named the way the picker names them. */
+const otherHalves = (combo: FeatCombo, id: string) =>
+  combo.features.filter(f => f.id !== id).map(f => featureName(f.id, f.spec));
+
+/**
+ * The Combined Feats a feat takes part in, shown on both halves so that either one tells you
+ * the other exists. Nothing at all for the features that are in none, which is nearly all
+ * of them.
+ *
+ * The wording repeats the "Combined Feat (…)" line in the feat's own text above, deliberately:
+ * that line is the same however the character is built, and the only thing worth knowing —
+ * whether you actually have the other half — is what the prose cannot say and this does.
+ *
+ * The state is worked out from `held` rather than stored, so the block says the same thing
+ * wherever it is opened from. In the picker `held` does not yet include the feat being looked
+ * at — that is the "completes this" case, and the one worth shouting about, since it is the
+ * only moment the player can act on it.
+ */
+function ComboBlock({
+  feature, spec, char, held,
+}: { feature: Feature; spec?: string; char?: Character; held?: FeatureRef[] }) {
+  // Without a character — the rules compendium — there is no state to report, only the fact
+  // that the combo exists and what it takes.
+  const states = char && held
+    ? combosForFeatureState(char, feature.id, held)
+    : combosForFeature(feature.id).map(combo => ({ combo, missing: [], active: false }));
+  if (!states.length) return null;
+  const known = !!(char && held);
+
+  return (
+    <>
+      <div className="rules-section-label">
+        Combined feat{states.length > 1 ? 's' : ''}
+      </div>
+      <div className="col" style={{ gap: 8 }}>
+        {states.map(({ combo, missing, active }) => {
+          const wanting = missing
+            .filter(f => !isSameHalf(f, feature.id, spec))
+            .map(f => featureName(f.id, f.spec));
+          const completes = known && !active && wanting.length === 0;
+          return (
+            <div key={combo.id} className={`combo${active ? ' on' : ''}`}>
+              <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                <span className="name grow">{combo.name}</span>
+                {active && <span className="badge green">active</span>}
+                {completes && <span className="badge accent">completes this</span>}
+                {known && !active && !completes && <span className="badge">inactive</span>}
+                {/* One badge per printing. Two books carry two of these, and naming only the
+                    first would leave a Jedi Academy character wondering why a KotOR rule is
+                    on — the answer is the book their own feat came from. */}
+                {combo.sources.map(source => (
+                  <span key={source.book} className="badge">
+                    {BOOK_NAMES[source.book] ?? source.book}{source.page ? ` p.${source.page}` : ''}
+                  </span>
+                ))}
+              </div>
+              <RulesText lines={combo.effect} />
+              <p className={`hint${completes ? ' ok' : ''}`} style={{ margin: 0 }}>
+                {active
+                  ? `On, because you hold both halves — it costs no feat and was never chosen.`
+                  : completes
+                    ? `You already have ${otherHalves(combo, feature.id).join(' and ')}. Take this and it turns on, at no further cost.`
+                    : wanting.length > 0
+                      ? `Also needs ${wanting.join(' and ')}.`
+                      : `Held together with ${otherHalves(combo, feature.id).join(' and ')}.`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+export function FeatureDetail({
+  feature, spec, char, held,
+}: {
+  feature: Feature;
+  spec?: string;
+  /** The character reading it, when there is one — combos are judged against them. */
+  char?: Character;
+  /** Every feature that character holds, i.e. `derived.features`. */
+  held?: FeatureRef[];
+}) {
+  // The book's own order: a sentence saying what the feat is, then what it takes, then the
+  // rules. So the hint sits between the lead-in prose and the first headed section rather
+  // than below everything — which is also where the line it replaced used to be.
+  const blocks = readDescription(feature, combosForFeature(feature.id));
+  const firstSection = blocks.findIndex(b => b.label);
+  const [intro, sections] = firstSection < 0
+    ? [blocks, []]
+    : [blocks.slice(0, firstSection), blocks.slice(firstSection)];
+
   return (
     <div>
       <div className="row" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
@@ -363,19 +456,26 @@ export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: stri
         </div>
       )}
 
-      <RulesText lines={feature.description} />
+      {/* Effect, Normal, Special and Benefit all read as headed sections now, wherever the
+          data happened to put them — see readDescription, which also cuts the prerequisite
+          paragraph the hint restates and the "Combined Feat (…)" lines the cards below
+          restate. Both cuts are conditional on the replacement actually being there. */}
+      {intro.map((block, i) => <RulesText key={i} lines={block.lines} />)}
 
       {feature.prerequisites && (
-        <p className="hint"><span className="label">Prerequisites:</span> {feature.prerequisites}</p>
+        <p className="hint">
+          <span className="label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
+        </p>
       )}
       {feature.unparsedPrerequisites?.length && (
         <p className="hint warn">
           Not enforced automatically: {feature.unparsedPrerequisites.join('; ')}
         </p>
       )}
-      <RulesSection label="Benefit" lines={feature.benefit} />
-      <RulesSection label="Normal" lines={feature.normal} />
-      <RulesSection label="Special" lines={feature.special} />
+      {sections.map((block, i) => (block.label
+        ? <RulesSection key={i} label={block.label} lines={block.lines} />
+        : <RulesText key={i} lines={block.lines} />))}
+      <ComboBlock feature={feature} spec={spec} char={char} held={held} />
     </div>
   );
 }

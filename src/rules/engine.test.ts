@@ -2,7 +2,7 @@
  * Hand-verified checks of the rules engine.
  * Run with: npm run test:rules
  */
-import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses, resolveItem, carriedItems } from './engine';
+import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses, resolveItem, carriedItems, combosForFeatureState, completesACombo } from './engine';
 import type { Derived } from './engine';
 import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
@@ -10,10 +10,10 @@ import {
   buildAttack, buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
   defaultAttackOptions, unarmedDamage, SITUATIONAL,
 } from './attacks';
-import { talentSources } from '../components/labels';
+import { talentSources, readDescription, restatesDescription, prerequisiteText, wordCoverage } from '../components/labels';
 import { newCharacter, migrate } from '../storage';
 import type { Character, AbilityId, Feature, InventoryEntry } from '../types';
-import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
+import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, COMBOS, combosForFeature, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -3404,6 +3404,531 @@ console.log('\n▸ supplement.json patches each id exactly once');
   };
   scan(raw);
   check('no id is patched twice in supplement.json', duplicates, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Combined Feats');
+// ---------------------------------------------------------------------------
+{
+  // --- the data itself ---
+  check('every combo half names a real feature',
+    COMBOS.flatMap(c => c.features.map(f => f.id)).filter(id => !FEATURES[id]), []);
+  // A half may name a spec, and then only that spec will do. Naming one the feature does not
+  // offer would be a combo nothing can ever complete.
+  check('a half naming a spec names one the feature offers',
+    COMBOS.flatMap(c => c.features)
+      .filter(f => f.spec && !FEATURES[f.id]?.allowedSpecs?.includes(f.spec))
+      .map(f => `${f.id} (${f.spec})`), []);
+  check('every combo has at least two halves and an effect',
+    COMBOS.filter(c => c.features.length < 2 || !c.effect.length).map(c => c.id), []);
+  // Combos and features are separate tables looked up by id; sharing one would make every
+  // "which is this?" in the UI a coin toss.
+  check('no combo id collides with a feature id',
+    COMBOS.map(c => c.id).filter(id => FEATURES[id]), []);
+  check('every combo names at least one book that prints it',
+    COMBOS.filter(c => !c.sources?.length).map(c => c.id), []);
+  check('and every one of those is a book the app knows',
+    COMBOS.flatMap(c => c.sources.map(s => s.book)).filter(b => !BOOK_NAMES[b]), []);
+  check('no book is listed twice for one combo',
+    COMBOS.filter(c => new Set(c.sources.map(s => s.book)).size !== c.sources.length)
+      .map(c => c.id), []);
+  // A second printing is a book one of the halves comes from — that is what makes it an
+  // independent grant rather than a cross-reference back to KotOR.
+  check('a second printing comes from a book one of the halves is in',
+    COMBOS.flatMap(c => c.sources.slice(1)
+      .filter(s => !c.features.some(f => FEATURES[f.id].book === s.book))
+      .map(s => `${c.id}:${s.book}`)), []);
+  check('each half knows the combos it belongs to',
+    combosForFeature('dodge').map(c => c.id),
+    ['combo-dodge-charging-fire', 'combo-dodge-running-attack']);
+
+  // The compendium prints each Combined Feat inside the text of the feats it belongs to. A
+  // line here with no entry in combos.json is one the app states in prose and then never
+  // turns on — which is how Cleave + Follow Through and Combat Reflexes + Return Fire were
+  // missed, neither of them being among the rows the summary spreadsheets carried.
+  const COMBO_PROSE = /Combined Feat \(/i;
+  const halves = new Set(COMBOS.flatMap(c => c.features.map(f => f.id)));
+  const documents = (f: Feature) =>
+    COMBO_PROSE.test([...f.description, ...(f.benefit ?? []), ...(f.special ?? [])].join(' '));
+  check('every feat whose text states a Combined Feat has one',
+    Object.values(FEATURES)
+      .filter(f => documents(f) && !halves.has(f.id))
+      .map(f => f.id)
+      // Force Disarm is the power the Force Training + Improved Disarm one acts on, and
+      // repeats its wording. It is what the combo does, not a third half of it.
+      .filter(id => id !== 'force-disarm'),
+    []);
+  check('and the pair that states it is the pair that has it',
+    COMBOS.filter(c => !c.features.some(f => documents(FEATURES[f.id]))).map(c => c.id), []);
+
+  // --- the twelve rows they replace ---
+  const STUBS = [
+    'charging-fire-dodge', 'dodge-charging-fire',
+    'dodge-running-attack', 'running-attack-dodge',
+    'dual-weapon-mastery-i-quick-draw', 'quick-draw-dual-weapon-mastery-i',
+    'quick-draw-wp-lightsabers', 'weapon-proficiency-lightsabers-qd',
+    'force-training-improved-disarm', 'improved-disarm-force-training',
+    'weapon-finesse-weapon-focus', 'weapon-focus-weapon-finesse',
+  ];
+  check('the twelve imported combo rows are hidden', STUBS.filter(id => !FEATURES[id]?.hidden), []);
+  check('and kept rather than deleted', STUBS.filter(id => !FEATURES[id]), []);
+
+  const soldier = (fn: (c: Character) => void) => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(6).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.trainedSkills = ['perception'];
+    fn(x);
+  });
+  const feats = (...picks: { id: string; spec?: string }[]) => (c: Character) => {
+    c.selections = picks.map((p, i) => ({
+      key: `feat:${[1, 3, 6][i]}`, choiceId: 'feat', featureId: p.id, spec: p.spec,
+    }));
+  };
+  const on = (c: Character) => computeCharacter(c).combos.map(x => x.name);
+
+  const half = soldier(feats({ id: 'dodge' }));
+  const halfD = computeCharacter(half);
+  check('one half alone turns nothing on', on(half), []);
+  check('none of the twelve is on offer either', STUBS.filter(id => featureAvailable(half, id)), []);
+
+  const both = soldier(feats({ id: 'dodge' }, { id: 'running-attack' }));
+  const bothD = computeCharacter(both);
+  check('holding both turns the combo on', on(both), ['Dodge + Running Attack']);
+
+  // Nothing was chosen and nothing was spent: the combo is not a feature, holds no slot, and
+  // is not among the feats — which is the whole difference between it and Fire and Strike.
+  check('a combo costs no slot',
+    [bothD.slots.length, halfD.slots.length], [halfD.slots.length, halfD.slots.length]);
+  check('and is not a feat',
+    bothD.feats.filter(f => f.id.startsWith('combo-')).concat(
+      bothD.features.filter(f => f.id.startsWith('combo-'))), []);
+
+  check('changing a half turns it off again',
+    on(soldier(feats({ id: 'dodge' }, { id: 'toughness' }))), []);
+
+  // A combo is content from a book like any other, so a table that has not opened KotOR does
+  // not get it for free through two Core feats.
+  const coreOnly = soldier(c => {
+    feats({ id: 'dodge' }, { id: 'running-attack' })(c);
+    c.allowedBooks = ['core'];
+  });
+  check('a combo from a book you disallowed stays off', on(coreOnly), []);
+
+  // The one combo whose half names a spec.
+  check('the wrong weapon group does not complete the lightsaber combo',
+    on(soldier(feats({ id: 'quick-draw' }, { id: 'weapon-proficiency', spec: 'rifles' }))), []);
+  check('the right one does',
+    on(soldier(feats({ id: 'quick-draw' }, { id: 'weapon-proficiency', spec: 'lightsabers' }))),
+    ['Quick Draw + Weapon Proficiency (lightsabers)']);
+
+  // --- what the rules panel shows, opened from either half ---
+  const panel = (id: string) =>
+    combosForFeatureState(both, id, bothD.features).map(s => [s.combo.name, s.active]);
+  check('the combo appears on the panel for Dodge',
+    panel('dodge'), [['Dodge + Charging Fire', false], ['Dodge + Running Attack', true]]);
+  check('and on the panel for Running Attack, saying the same thing',
+    panel('running-attack'), [['Dodge + Running Attack', true]]);
+  check('a feature in no combo shows none', panel('toughness'), []);
+  check('an inactive combo names what is still wanted',
+    combosForFeatureState(half, 'dodge', halfD.features)
+      .map(s => [s.combo.name, s.missing.map(m => m.id)]),
+    [['Dodge + Charging Fire', ['charging-fire']], ['Dodge + Running Attack', ['running-attack']]]);
+
+  // --- the picker's "combo" badge ---
+  check('a feat that would complete a combo is flagged',
+    completesACombo(half, 'running-attack', undefined, halfD.features), true);
+  check('but not once the combo is already on',
+    completesACombo(both, 'running-attack', undefined, bothD.features), false);
+  check('nor for a feat that is in no combo',
+    completesACombo(half, 'toughness', undefined, halfD.features), false);
+  check('nor for a half whose other half is also missing',
+    completesACombo(soldier(feats({ id: 'toughness' })), 'dodge', undefined,
+      computeCharacter(soldier(feats({ id: 'toughness' }))).features), false);
+
+  // A spec that has not been chosen yet must not promise a combo the pick may not deliver.
+  const qd = soldier(feats({ id: 'quick-draw' }));
+  const qdD = computeCharacter(qd);
+  check('a Weapon Proficiency with no group chosen yet is not flagged',
+    completesACombo(qd, 'weapon-proficiency', undefined, qdD.features), false);
+  check('nor the wrong group',
+    completesACombo(qd, 'weapon-proficiency', 'pistols', qdD.features), false);
+  check('but lightsabers is', completesACombo(qd, 'weapon-proficiency', 'lightsabers', qdD.features), true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Attack Combo (Fire and Strike) is one feat, not two');
+// ---------------------------------------------------------------------------
+{
+  // Unlike the Combined Feats above this IS a feat with a slot cost of its own — it arrived
+  // twice because the spreadsheets spell it "&" and the compendium spells it "and", which
+  // the dedupe pass compares neither past nor through.
+  check('only one spelling is on offer',
+    Object.values(FEATURES)
+      .filter(f => !f.hidden && /^attack combo \(fire/i.test(f.name))
+      .map(f => f.id),
+    ['attack-combo-fire-and-strike']);
+  check('the summary stub is kept, hidden, and says why',
+    [FEATURES['attack-combo-fire-strike'].hidden, !!FEATURES['attack-combo-fire-strike'].hiddenReason],
+    [true, true]);
+  check('the surviving entry is the one with the full rules text',
+    [FEATURES['attack-combo-fire-and-strike'].summaryOnly,
+      FEATURES['attack-combo-fire-and-strike'].description.join(' ').length > 200],
+    [undefined, true]);
+  check('both spellings always agreed on what it needs',
+    ['attack-combo-fire-strike', 'attack-combo-fire-and-strike'].map(id => [
+      FEATURES[id].requirements?.baseAttackBonus,
+      FEATURES[id].requirements?.features?.map(r => r.id).sort(),
+    ]),
+    [[9, ['attack-combo-melee', 'attack-combo-ranged']],
+      [9, ['attack-combo-melee', 'attack-combo-ranged']]]);
+
+  // Soldier's bonus feat list named the stub. It still does — talentTrees.json is generated —
+  // so the full entry is added beside it and the stub drops out for being hidden.
+  const anyone = make(x => { x.speciesId = 'human'; x.levels = [{ classId: 'soldier' }]; });
+  check('Soldier bonus feats offer the full entry and only it',
+    TALENT_TREES['soldier-bonus'].features
+      .filter(r => featureAvailable(anyone, r.id))
+      .map(r => r.id)
+      .filter(id => /^attack-combo-fire/.test(id)),
+    ['attack-combo-fire-and-strike']);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Combined Feat prose gives way to the card');
+// ---------------------------------------------------------------------------
+{
+  // The panel cuts the "Combined Feat (…)" line from the description because the card below
+  // restates it and adds the one thing the prose cannot say — whether you hold the other
+  // half. The cut must take the line and nothing else.
+  const shown = (id: string) =>
+    readDescription(FEATURES[id], combosForFeature(id)).flatMap(b => b.lines);
+  const text = (id: string) => shown(id).join(' ').replace(/<[^>]*>/g, ' ');
+
+  check('no feat that has a card still states its Combined Feat in prose',
+    Object.values(FEATURES)
+      .filter(f => combosForFeature(f.id).length && /Combined Feat/i.test(text(f.id)))
+      .map(f => f.id), []);
+
+  // Dodge carries two of them, under a heading that belongs to Starships of the Galaxy and
+  // introduces a vehicle rule as well. The heading and that rule have to survive.
+  check('Dodge loses both lines and keeps the rest',
+    [FEATURES.dodge.description.length, shown('dodge').length], [7, 4]);
+  check('including the paragraph the surviving heading introduces',
+    [/Starships of the Galaxy/.test(text('dodge')), /Pilot of a Vehicle/.test(text('dodge'))],
+    [true, true]);
+
+  // Charging Fire's heading introduced the cut line and nothing else, so it goes too —
+  // otherwise the panel ends on a reference to a book with no rule under it.
+  check('a heading left with nothing under it goes as well',
+    /Additional Charging Fire Effects/.test(text('charging-fire')), false);
+  check('but the feat keeps its own rules', shown('charging-fire').length, 3);
+
+  // Two shapes the compendium's markup takes that a tag-matching cut would miss.
+  check('a clause split across two <strong> tags is cut',
+    /Combined Feat|Attack of Opportunity against you while using/.test(text('running-attack')), false);
+  check('and one sharing its line with the heading takes both',
+    [/Combined Feat|Additional Weapon Focus/.test(text('weapon-focus')),
+      /especially good at using particular weapons/.test(text('weapon-focus'))],
+    [false, true]);
+  check('a clause with no heading over it is cut on its own',
+    [/Combined Feat/.test(text('return-fire')), shown('return-fire').length], [false, 3]);
+
+  // Force Disarm quotes the same wording without being a half of anything, so it has no card
+  // to replace it. Cutting there would lose the sentence from the app altogether.
+  check('a feature with no card keeps its text',
+    [/Combined Feat \(Force Training \+ Improved Disarm\)/.test(
+      readDescription(FEATURES['force-disarm'], combosForFeature('force-disarm'))
+        .flatMap(b => b.lines).join(' ')),
+      combosForFeature('force-disarm').length],
+    [true, 0]);
+  check('which is where that wording still lives',
+    /Combined Feat/i.test(FEATURES['force-disarm'].description.join(' ')), true);
+
+  // Nothing may vanish that was not a clause, a heading emptied by it, or the prerequisite
+  // paragraph the hint restates. Compared on content, not on the line: a labelled paragraph
+  // loses its "Effect:" opener to the heading that now carries it.
+  const squash = (t: string) => t.replace(/<[^>]*>/g, ' ').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const collateral = Object.values(FEATURES).flatMap(f => {
+    const kept = squash(readDescription(f, combosForFeature(f.id)).flatMap(b => b.lines).join(' '));
+    return f.description
+      .filter(l => !/Combined Feat/i.test(l)
+        && !/^Additional\b/i.test(l)
+        && !/^\s*<strong>\s*Prerequisites?:?\s*<\/strong>/i.test(l))
+      // The opener goes to the heading; everything after it must still be there.
+      .map(l => squash(l.replace(/^\s*<strong>[^<]*<\/strong>/i, '')))
+      .filter(body => body && !kept.includes(body))
+      .map(() => f.id);
+  });
+  check('no other line is lost', collateral, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A section the description already states is not printed twice');
+// ---------------------------------------------------------------------------
+{
+  // Two importers describe the same feat, and where both had a Normal line the panel showed
+  // it inline in the description and then again under a NORMAL heading.
+  const NORMAL_LINE = /^\s*<strong>\s*Normal:?\s*<\/strong>/i;
+  const inlineNormal = (f: Feature) => (f.description ?? []).some(l => NORMAL_LINE.test(l));
+  const suppressed = (key: 'benefit' | 'normal' | 'special') =>
+    Object.values(FEATURES).filter(f => restatesDescription(f.description, f[key]));
+
+  check('Melee Defense stated its Normal rule twice',
+    [inlineNormal(FEATURES['melee-defense']), !!FEATURES['melee-defense'].normal?.length],
+    [true, true]);
+  check('and now prints the description copy only',
+    restatesDescription(FEATURES['melee-defense'].description, FEATURES['melee-defense'].normal),
+    true);
+
+  // Every suppression must be a feat whose description really does carry the line — never a
+  // section that was the only place a rule appeared.
+  check('nothing is suppressed without an inline Normal line to replace it',
+    suppressed('normal').filter(f => !inlineNormal(f)).map(f => f.id), []);
+  check('which is nearly every feat that has both', suppressed('normal').length, 56);
+  check('and the four with an inline line but no field keep it',
+    Object.values(FEATURES)
+      .filter(f => inlineNormal(f) && !f.normal?.length)
+      .map(f => f.id).sort(),
+    ['advantageous-attack', 'force-sensitivity', 'ion-shielding', 'risk-taker']);
+
+  // Benefit is where 236 feats keep the rules their description only summarises. Nothing
+  // there may be swallowed, and Special is the near miss that proves the threshold.
+  check('no Benefit section is ever suppressed', suppressed('benefit').map(f => f.id), []);
+  check('nor any Special', suppressed('special').map(f => f.id), []);
+  check('Force Stun keeps its Special, which shares vocabulary and nothing else',
+    restatesDescription(FEATURES['force-stun'].description, FEATURES['force-stun'].special), false);
+
+  // Implant Training's field says something the description does not, so it survives —
+  // failing the test has to mean "print both", not "drop one".
+  check('a field that adds to the description is kept',
+    restatesDescription(FEATURES['implant-training'].description, FEATURES['implant-training'].normal),
+    false);
+  check('because only it explains the penalty',
+    [/interference with normal brain functions/i.test(FEATURES['implant-training'].normal!.join(' ')),
+      /interference with normal brain functions/i.test(FEATURES['implant-training'].description.join(' '))],
+    [true, false]);
+
+  // A short section is never judged: a few common words can all appear in a long description
+  // by chance, and there would be nothing left to read.
+  check('a section too short to judge is left alone',
+    restatesDescription(['You take a -5 penalty on your attack roll.'], ['A -5 penalty.']), false);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ A Combined Feat is granted by any book that prints it');
+// ---------------------------------------------------------------------------
+{
+  // Two of the eight are printed twice: once in the KotOR Campaign Guide's "Additional
+  // <Feat> Effects" block, and again in the entry of the half that comes from another book,
+  // with no reference back to KotOR. Gating on KotOR alone refused a table running Core plus
+  // Jedi Academy a rule printed in the very feat they had taken.
+  const withBooks = (books: string[] | null, ...picks: { id: string; spec?: string }[]) => {
+    const c = make(x => {
+      x.speciesId = 'human';
+      setAbilities(x, { str: 14, dex: 14, con: 12, int: 14, wis: 12, cha: 10 });
+      x.levels = Array(9).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+      x.trainedSkills = ['perception'];
+      x.allowedBooks = books;
+      x.selections = picks.map((p, i) => ({
+        key: `feat:${[1, 3, 6, 9][i]}`, choiceId: 'feat', featureId: p.id, spec: p.spec,
+      }));
+    });
+    return computeCharacter(c).combos.map(x => x.name);
+  };
+
+  const CLEAVE = [{ id: 'power-attack' }, { id: 'cleave' }, { id: 'follow-through' }];
+  const RETURN = [{ id: 'quick-draw' }, { id: 'weapon-focus', spec: 'rifles' },
+    { id: 'combat-reflexes' }, { id: 'return-fire', spec: 'rifles' }];
+
+  check('Cleave + Follow Through is on for Core + Jedi Academy, with no KotOR',
+    withBooks(['core', 'jedi'], ...CLEAVE), ['Cleave + Follow Through']);
+  check('and for KotOR without Jedi Academy — it is printed in both',
+    withBooks(['core', 'knights', 'jedi'], ...CLEAVE), ['Cleave + Follow Through']);
+  check('but not for Core alone', withBooks(['core'], ...CLEAVE), []);
+
+  check('Combat Reflexes + Return Fire is on for Core + Legacy, with no KotOR',
+    withBooks(['core', 'legacy'], ...RETURN), ['Combat Reflexes + Return Fire']);
+  check('but not for Core alone', withBooks(['core'], ...RETURN), []);
+
+  // The other six are KotOR's alone and must not have been loosened by this.
+  const DODGE = [{ id: 'dodge' }, { id: 'running-attack' }];
+  check('a KotOR-only combo is still refused without KotOR',
+    withBooks(['core', 'jedi', 'legacy'], ...DODGE), []);
+  check('and granted with it', withBooks(['core', 'knights'], ...DODGE), ['Dodge + Running Attack']);
+  check('six of the eight are KotOR alone',
+    COMBOS.filter(c => c.sources.length === 1 && c.sources[0].book === 'knights').length, 6);
+
+  // The evidence for the two second printings, so a re-import that moves the text fails here
+  // rather than silently returning the app to gating both on KotOR.
+  check('Follow Through grants the Cleave interaction in its own Special',
+    [FEATURES['follow-through'].book,
+      /Cleave Feat/.test(FEATURES['follow-through'].special?.join(' ') ?? '')],
+    ['jedi', true]);
+  check('and Return Fire the Combat Reflexes one in its own description',
+    [FEATURES['return-fire'].book,
+      /Combined Feat \(Combat Reflexes\)/.test(FEATURES['return-fire'].description.join(' '))],
+    ['legacy', true]);
+  // Neither of those passages sits under an "Additional … Reference Book" heading, which is
+  // what marks the KotOR insertions in Cleave's and Combat Reflexes' own entries.
+  check('neither is a KotOR insertion, unlike the copies on the other halves',
+    ['follow-through', 'return-fire'].map(id =>
+      [...FEATURES[id].description, ...(FEATURES[id].special ?? [])]
+        .some(l => /^Additional\b/i.test(l.replace(/<[^>]*>/g, '')))),
+    [false, false]);
+  check('whereas Cleave and Combat Reflexes carry exactly that heading',
+    ['cleave', 'combat-reflexes'].map(id =>
+      FEATURES[id].description.some(l =>
+        /^Additional\b/i.test(l.replace(/<[^>]*>/g, '')) && /Knights of the Old Republic/i.test(l))),
+    [true, true]);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Prerequisites are stated once, in the hint');
+// ---------------------------------------------------------------------------
+{
+  const PREREQ = /^\s*<strong>\s*Prerequisites?:?\s*<\/strong>/i;
+  const inlinePrereq = (f: Feature) => (f.description ?? []).some(l => PREREQ.test(l));
+  const shown = (f: Feature) =>
+    readDescription(f, combosForFeature(f.id)).flatMap(b => b.lines);
+  const withPrereqLine = Object.values(FEATURES).filter(inlinePrereq);
+
+  check('109 feats stated them in the description as well as the hint', withPrereqLine.length, 109);
+  check('every one of those has a hint to fall back on',
+    withPrereqLine.filter(f => !f.prerequisites).map(f => f.id), []);
+  check('and none of them states it in the description any more',
+    withPrereqLine.filter(f => shown(f).some(l => PREREQ.test(l))).map(f => f.id), []);
+
+  // Melee Defense read "Prerequisite: Intelligence 13" and then "Prerequisites: Intelligence 13."
+  check('Melee Defense keeps its summary and its effect, and loses the repeat',
+    [FEATURES['melee-defense'].description.length, shown(FEATURES['melee-defense']).length],
+    [4, 3]);
+  check('with the hint still carrying it',
+    prerequisiteText(FEATURES['melee-defense'].prerequisites!), 'Intelligence 13.');
+
+  // The cut is conditional, and the condition is the hint saying as much as the line. Nine
+  // hints were the spreadsheet's shorthand and are rewritten in supplement.json; if one is
+  // ever thinner than the line again, both copies stay rather than the fuller one going.
+  const thin = withPrereqLine.filter(f =>
+    wordCoverage([f.description.find(l => PREREQ.test(l))!.replace(PREREQ, '')],
+      [f.prerequisites ?? ''], 1) < 0.8);
+  check('no hint says less than the line it replaced', thin.map(f => f.id), []);
+  check('Sport Hunter names the two proficiencies rather than "proficient with weapon"',
+    prerequisiteText(FEATURES['sport-hunter'].prerequisites!),
+    'Weapon Proficiency (pistols) or Weapon Proficiency (rifles)');
+  check('and the shorthand hints are spelled out',
+    ['fl-che', 'poison-resistance', 'suppression-fire'].map(id => prerequisiteText(FEATURES[id].prerequisites!)),
+    ['Base attack bonus +1', 'Constitution 13',
+      'Strength 13, Burst Fire, Weapon Proficiency (heavy weapons)']);
+  // Rewriting the hint must not touch what is actually enforced.
+  check('none of the nine had its machine-checked block altered',
+    [FEATURES['suppression-fire'].requirements?.abilities?.str,
+      FEATURES['poison-resistance'].requirements?.abilities?.con,
+      FEATURES['elders-knowledge'].requirements?.anyOf?.[0].length],
+    [13, 13, 2]);
+
+  // A description that states a prerequisite with no hint behind it keeps it.
+  check('a line with no hint to replace it survives',
+    readDescription({ ...FEATURES['melee-defense'], prerequisites: undefined }, [])
+      .flatMap(b => b.lines).some(l => PREREQ.test(l)),
+    true);
+
+  // --- markup that was printing literally ---
+  const MARKUP = /<[a-z/][^>]*>/i;
+  check('fourteen hints arrived carrying markup',
+    Object.values(FEATURES).filter(f => MARKUP.test(f.prerequisites ?? '')).length, 14);
+  check('none of them renders it',
+    Object.values(FEATURES)
+      .filter(f => f.prerequisites && MARKUP.test(prerequisiteText(f.prerequisites)))
+      .map(f => f.id), []);
+  check('Implant Training reads as a sentence',
+    prerequisiteText(FEATURES['implant-training'].prerequisites!), 'Must possess an Implant');
+  // Visions closes its tag with a full stop instead of a bracket, which the tag pattern
+  // cannot match — the leftover "</em." has to go too.
+  check('an unterminated tag goes as well',
+    prerequisiteText(FEATURES['visions'].prerequisites!), 'Force Perception, farseeing');
+  check('and the commas nobody spaced are spaced',
+    prerequisiteText(FEATURES['metamorph'].prerequisites!),
+    'Shapeshift Species Trait, Constitution 13, Trained in Deception');
+  check('a plain hint is passed through untouched',
+    prerequisiteText(FEATURES['dodge'].prerequisites!), 'Dexterity 13.');
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Effect, Normal and Special are sections, like Benefit');
+// ---------------------------------------------------------------------------
+{
+  const blocks = (id: string) => readDescription(FEATURES[id], combosForFeature(id));
+  const shape = (id: string) => blocks(id).map(b => b.label ?? '(prose)');
+  const body = (id: string, label: string) =>
+    blocks(id).find(b => b.label === label)?.lines.join(' ').replace(/<[^>]*>/g, '') ?? '';
+
+  // Melee Defense drew Effect and Normal as prose and would have drawn Benefit as a heading.
+  check('Melee Defense reads lead-in, Effect, Normal', shape('melee-defense'),
+    ['(prose)', 'Effect', 'Normal']);
+  check('and the heading takes the label off the line it opened',
+    body('melee-defense', 'Effect').startsWith('When you use a Standard Action'), true);
+  check('nothing but the lead-in sentence is left as prose',
+    blocks('melee-defense')[0].lines.length, 1);
+
+  // A paragraph with no label of its own continues the section above it, which is what keeps
+  // Metamorph's two size clauses inside its Effect instead of stranding them.
+  check('unlabelled paragraphs continue the section they follow',
+    [shape('metamorph'), blocks('metamorph').find(b => b.label === 'Effect')!.lines.length],
+    [['(prose)', 'Effect'], 3]);
+  check('including the clause that would otherwise have been orphaned',
+    /increase your size to Large/.test(body('metamorph', 'Effect')), true);
+
+  // An "Additional … Effects" heading ends the section above rather than being drawn into it.
+  check('Dodge keeps its Starships rule out of its Effect',
+    [shape('dodge'), /Pilot of a Vehicle/.test(body('dodge', 'Effect'))],
+    [['(prose)', 'Effect', '(prose)'], false]);
+
+  // Only the four. A Force power's stat block stays the run it is read in.
+  check('Force Stun keeps Time and Targets as prose and heads only its Special',
+    shape('force-stun'), ['(prose)', 'Special']);
+  check('with the stat block intact — Time and Targets are bolded mid-paragraph, not opened',
+    [/Time:/.test(blocks('force-stun')[0].lines.join(' ')),
+      /Targets?:/.test(blocks('force-stun')[0].lines.join(' '))],
+    [true, true]);
+  check('every label promoted is one the panel has a heading for',
+    Array.from(new Set(Object.values(FEATURES)
+      .flatMap(f => readDescription(f, combosForFeature(f.id)))
+      .map(b => b.label).filter(Boolean))).sort(),
+    ['Benefit', 'Effect', 'Normal', 'Special']);
+
+  // A spreadsheet field joins the section its label already opened rather than adding a
+  // second heading of the same name.
+  check('Implant Training has one Normal section, not two',
+    shape('implant-training').filter(l => l === 'Normal').length, 1);
+  check('carrying both what the description said and what only the field says',
+    [/one extra step down the Condition Track/.test(body('implant-training', 'Normal')),
+      /interference with normal brain functions/.test(body('implant-training', 'Normal'))],
+    [true, true]);
+  // A heading does repeat where a second book adds to the same section, and it should: these
+  // two carry a Special of their own and another under "Additional … Effects — Starships of
+  // the Galaxy", which are different rules. The heading that separates them stays as prose.
+  check('a heading repeats only where a second book adds to the same section',
+    Object.values(FEATURES).filter(f => {
+      const labels = readDescription(f, combosForFeature(f.id)).map(b => b.label).filter(Boolean);
+      return new Set(labels).size !== labels.length;
+    }).map(f => f.id).sort(),
+    ['rapid-shot', 'triple-attack']);
+  check('and the two are held apart by that heading',
+    shape('rapid-shot'), ['(prose)', 'Effect', 'Special', '(prose)', 'Special']);
+
+  // A field with no inline label to join still gets its own heading, as it always did.
+  check('Follow Through still heads its Benefit and Special',
+    shape('follow-through'), ['(prose)', 'Benefit', 'Special']);
+
+  // A description with no labelled paragraph and no fields is left as one run of prose —
+  // nothing invents a heading for it.
+  const unlabelled = Object.values(FEATURES).filter(f =>
+    readDescription(f, combosForFeature(f.id)).every(b => !b.label));
+  check('descriptions with nothing to head stay a single run of prose',
+    [unlabelled.length > 200, unlabelled.every(f =>
+      readDescription(f, combosForFeature(f.id)).length <= 2)],
+    [true, true]);
 }
 
 console.log(results.join('\n'));

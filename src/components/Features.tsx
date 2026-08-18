@@ -231,7 +231,12 @@ export function Features({
 
       {viewing && FEATURES[viewing.id] && (
         <Modal title="Rules" onClose={() => setViewing(null)}>
-          <FeatureDetail feature={FEATURES[viewing.id]} spec={viewing.spec} />
+          <FeatureDetail
+            feature={FEATURES[viewing.id]}
+            spec={viewing.spec}
+            char={char}
+            held={derived.features}
+          />
         </Modal>
       )}
     </>

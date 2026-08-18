@@ -1,9 +1,9 @@
 import type {
-  AbilityId, AbilityScores, Character, CharacterClass, Feature, FeatureRef, EquipmentItem, Species,
+  AbilityId, AbilityScores, Character, CharacterClass, Feature, FeatCombo, FeatureRef, EquipmentItem, Species,
   DroidSystem, InventoryEntry, ItemUpgrade, ResolvedItem, UpgradeNumber,
 } from '../types';
 import { ABILITY_IDS, ITEM_IDENTITY_KEYS } from '../types';
-import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TALENT_TREES, DROIDS, droidSize, droidDegree } from '../data';
+import { CLASSES, FEATURES, SPECIES, SKILLS, TALENT_TREES, EQUIPMENT, RULES, FORCE_TALENT_TREES, DROIDS, COMBOS, combosForFeature, droidSize, droidDegree } from '../data';
 
 export const abilityMod = (score: number) => Math.floor((score - 10) / 2);
 export const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
@@ -313,6 +313,87 @@ export function hasFeature(refs: FeatureRef[], id: string, spec?: string) {
   return countFeature(refs, id, spec) > 0;
 }
 
+/**
+ * A combo as it stands for one character: which halves are held, which are still wanted, and
+ * whether the benefit is therefore on.
+ *
+ * `missing` is the halves the character does not hold, so an active combo has none. It is
+ * kept rather than reduced to a flag because both places that show a combo — the rules panel
+ * for a feat, and the sheet — name what is missing rather than merely saying "no".
+ */
+export interface ComboState {
+  combo: FeatCombo;
+  missing: FeatureRef[];
+  active: boolean;
+}
+
+/**
+ * Whether any book that prints this combo is one the character allows.
+ *
+ * `some`, not `every`: the sources are the same rule printed in more than one place, so one
+ * of them being open is the whole test. Cleave + Follow Through is in the KotOR Campaign
+ * Guide and again in Follow Through's own Jedi Academy entry, and a table running Core plus
+ * Jedi Academy is entitled to it.
+ */
+export const comboAvailable = (char: Character, combo: FeatCombo) =>
+  combo.sources.some(s => isBookAllowed(char, s.book));
+
+/**
+ * Judge one combo against what a character holds.
+ *
+ * A half with no `spec` is met by any specialization, which is what `hasFeature` already does
+ * with an undefined one — Weapon Focus completes its combo whichever weapon group it names.
+ */
+export function comboState(combo: FeatCombo, refs: FeatureRef[]): ComboState {
+  const missing = combo.features.filter(f => !hasFeature(refs, f.id, f.spec));
+  return { combo, missing, active: missing.length === 0 };
+}
+
+/**
+ * Every combo the character has both halves of. Not features and not selections: they cost no
+ * slot, are never chosen, and stop the moment a half is changed away — so they are recomputed
+ * from the held features like any other derived number rather than stored on the character.
+ */
+export const activeCombos = (char: Character, refs: FeatureRef[]): FeatCombo[] =>
+  COMBOS.filter(c => comboAvailable(char, c) && comboState(c, refs).active);
+
+/**
+ * The combos one feature is a half of, judged against what the character holds. Used by the
+ * rules panel, which is opened from both halves and has to read sensibly from either.
+ *
+ * `refs` is what the character actually has, so a feature being *considered* in the picker is
+ * not among them: `missing` will include the feature itself, and the caller distinguishes
+ * "you would complete this" from "you still need something else" by looking at the rest.
+ */
+export function combosForFeatureState(
+  char: Character, id: string, refs: FeatureRef[],
+): ComboState[] {
+  return combosForFeature(id)
+    .filter(c => comboAvailable(char, c))
+    .map(c => comboState(c, refs));
+}
+
+/**
+ * Whether a missing half is the very thing being looked at, so that a panel opened on it can
+ * say "take this and the combo turns on" rather than listing it back as a requirement.
+ *
+ * The spec has to agree. Quick Draw's other half is Weapon Proficiency (lightsabers) and no
+ * other group will do, so a Weapon Proficiency slot with nothing chosen yet — or with rifles
+ * chosen — is still short of it, and saying otherwise promises a benefit the pick will not
+ * deliver. A half naming no spec is met by any.
+ */
+export const isSameHalf = (half: FeatureRef, id: string, spec?: string) =>
+  half.id === id && (half.spec === undefined || half.spec === spec);
+
+/**
+ * Whether taking this feature, with this specialization, would turn a combo on — i.e. some
+ * combo is short of nothing but this. False once it is already on.
+ */
+export const completesACombo = (
+  char: Character, id: string, spec: string | undefined, refs: FeatureRef[],
+) => combosForFeatureState(char, id, refs).some(s =>
+  s.missing.length > 0 && s.missing.every(f => isSameHalf(f, id, spec)));
+
 /** One contribution to a defense score, for the hover breakdown. */
 export interface DefensePart { label: string; value: number }
 
@@ -378,6 +459,8 @@ export interface Derived {
   forceTechniques: FeatureRef[];
   forceSecrets: FeatureRef[];
   starshipManeuvers: FeatureRef[];
+  /** Feat combos both halves of which are held — granted outright, never chosen. */
+  combos: FeatCombo[];
   /** The suit actually worn, as this character has it — upgrades and edits included. */
   equippedArmor: ResolvedItem | null;
   armorProficient: boolean;
@@ -792,6 +875,7 @@ export function computeCharacter(char: Character): Derived {
     forceTechniques: ofType('force-technique'),
     forceSecrets: ofType('force-secret'),
     starshipManeuvers: ofType('starship-maneuver'),
+    combos: activeCombos(char, features),
     equippedArmor, armorProficient, armorPenalty,
     conditionPenalty, secondWind, forceSensitive,
     isDroid: droid,

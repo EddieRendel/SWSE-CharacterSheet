@@ -1,0 +1,214 @@
+{
+  "_readme": [
+    "Combined Feats: pairs of feats that do something extra for anyone holding both.",
+    "",
+    "The term is the Knights of the Old Republic Campaign Guide's. A Combined Feat is not a",
+    "feat -- nothing is chosen and no slot is spent. The benefit is simply on once both halves",
+    "are held, and off again the moment either is changed away.",
+    "",
+    "Hand-maintained, like rules.json and skills.json -- no importer writes this file.",
+    "",
+    "The compendium already carries each one's wording, inside the description of the feats it",
+    "belongs to, under an 'Additional <Feat> Effects' heading that names the KotOR Campaign",
+    "Guide: 'Combined Feat (Running Attack): You can add your Dodge bonus to...'. That prose is",
+    "where `effect` is copied from, so a card and the feat text above it agree word for word.",
+    "What the prose cannot say is whether you have the other half -- that is what this file is",
+    "for, and why the six the summary spreadsheets listed arrived as twelve selectable feats",
+    "that each cost a slot and each demanded half of what they should. Those rows are hidden in",
+    "supplement.json; see the note there.",
+    "",
+    "`sources` lists every book that prints the interaction, and allowing ANY ONE of them is",
+    "enough -- these are alternative printings of one rule, not requirements to be met together.",
+    "Most are KotOR's alone, but two are also printed by the book their second half comes from,",
+    "in that feat's own entry and with no reference back to KotOR: Follow Through's Special in",
+    "the Jedi Academy Training Manual p.23 grants the Cleave interaction, and Return Fire's",
+    "description in the Legacy Era Campaign Guide p.37 grants the Combat Reflexes one. Filed",
+    "under KotOR alone, a Core + Jedi Academy character would hold Follow Through and be denied",
+    "a rule printed in the entry they are reading.",
+    "",
+    "A half with no `spec` accepts any specialization -- Weapon Focus completes its Combined",
+    "Feat whichever weapon group it was taken for. One that names a spec must match exactly.",
+    "",
+    "To add one: give it an id, name both halves by feature id, copy the effect from the",
+    "'Combined Feat (...)' line in the feats' own text, and list every book that prints it. A",
+    "test fails the build if a half names a feature that does not exist, if a feature carries",
+    "such a line with no entry here, or if a source is not a book the app knows."
+  ],
+  "combos": [
+    {
+      "id": "combo-cleave-follow-through",
+      "name": "Cleave + Follow Through",
+      "sources": [
+        {
+          "book": "knights"
+        },
+        {
+          "book": "jedi",
+          "page": 23
+        }
+      ],
+      "features": [
+        {
+          "id": "cleave"
+        },
+        {
+          "id": "follow-through"
+        }
+      ],
+      "effect": [
+        "If you have the Follow Through Feat, you can move up to your speed before making the extra melee attack granted by the Cleave Feat."
+      ]
+    },
+    {
+      "id": "combo-combat-reflexes-return-fire",
+      "name": "Combat Reflexes + Return Fire",
+      "sources": [
+        {
+          "book": "knights"
+        },
+        {
+          "book": "legacy",
+          "page": 37
+        }
+      ],
+      "features": [
+        {
+          "id": "combat-reflexes"
+        },
+        {
+          "id": "return-fire"
+        }
+      ],
+      "effect": [
+        "You may use the Return Fire Feat a number of times during an encounter equal to your Dexterity bonus, but no more than once during a given enemy's turn."
+      ]
+    },
+    {
+      "id": "combo-dodge-charging-fire",
+      "name": "Dodge + Charging Fire",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "dodge"
+        },
+        {
+          "id": "charging-fire"
+        }
+      ],
+      "effect": [
+        "You reduce your penalty to your Reflex Defense against all opponents to -1 when making a ranged attack at the end of a Charge."
+      ]
+    },
+    {
+      "id": "combo-dodge-running-attack",
+      "name": "Dodge + Running Attack",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "dodge"
+        },
+        {
+          "id": "running-attack"
+        }
+      ],
+      "effect": [
+        "You can add your Dodge bonus to your Reflex Defense against anyone who makes an Attack of Opportunity against you while using the Running Attack Feat."
+      ]
+    },
+    {
+      "id": "combo-force-training-improved-disarm",
+      "name": "Force Training + Improved Disarm",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "force-training"
+        },
+        {
+          "id": "improved-disarm"
+        }
+      ],
+      "effect": [
+        "When you use the Force Disarm Force Power, you gain the +5 bonus from Improved Disarm on your Use the Force check as though you were making an attack roll."
+      ]
+    },
+    {
+      "id": "combo-quick-draw-dual-weapon-mastery",
+      "name": "Quick Draw + Dual Weapon Mastery I",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "quick-draw"
+        },
+        {
+          "id": "dual-weapon-mastery-i"
+        }
+      ],
+      "effect": [
+        "You can draw or holster two weapons with a single Swift Action; you must have both hands free to draw both weapons, and each weapon must be able to be held in one hand."
+      ]
+    },
+    {
+      "id": "combo-quick-draw-lightsaber",
+      "name": "Quick Draw + Weapon Proficiency (lightsabers)",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "quick-draw"
+        },
+        {
+          "id": "weapon-proficiency",
+          "spec": "lightsabers"
+        }
+      ],
+      "effect": [
+        "You can draw and ignite your Lightsaber as a single Swift Action."
+      ]
+    },
+    {
+      "id": "combo-weapon-finesse-weapon-focus",
+      "name": "Weapon Finesse + Weapon Focus",
+      "sources": [
+        {
+          "book": "knights",
+          "page": 31
+        }
+      ],
+      "features": [
+        {
+          "id": "weapon-finesse"
+        },
+        {
+          "id": "weapon-focus"
+        }
+      ],
+      "effect": [
+        "When you are wielding a single one-handed weapon for which you have Weapon Focus, you can treat that weapon as a Light Weapon."
+      ]
+    }
+  ]
+}

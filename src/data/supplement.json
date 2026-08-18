@@ -31,7 +31,10 @@
   "provenance": [
     "feature \"superior-tech\": requirements.levle -> requirements.level (prereq was never enforced)",
     "49 species prerequisites retargeted from features -> species",
-    "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all."
+    "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all.",
+    "12 Combined Feat rows hidden and rewritten as 8 entries in combos.json — they are automatic benefits, not selectable feats, and two of the eight had no row at all; see the note on them below",
+    "feature \"attack-combo-fire-strike\": a second copy of Attack Combo (Fire and Strike) under an \"&\" spelling; the stub is hidden and Soldier's bonus feats repointed at the full entry",
+    "9 prerequisite hints rewritten from the sheet's shorthand to the compendium's wording, now that the hint is the only copy shown; see the note on them below"
   ],
   "_comment_lightsaber_chain": [
     "Saga Edition has two separate chains. The Elite Trooper one in Weapon Master chooses a",
@@ -220,6 +223,27 @@
     "Talisman, Many Shades of the Force, Share Talent, Share Force Secret, Share Force",
     "Technique, Coordinated Leadership and Squadron Maneuvers all qualify a power or talent you",
     "already possess rather than granting one, and expanding those would hand out a second copy."
+  ],
+  "_comment_prerequisite_hints": [
+    "The panel used to state a feat's prerequisites twice: once in the description, which the",
+    "compendium writes as a labelled paragraph ('Prerequisite: Dexterity 13'), and once in the",
+    "hint below it, which is the spreadsheet's own column. 109 feats carried both. The line is",
+    "cut from the description now and the hint is the only copy, so the hint has to be the",
+    "better of the two -- and for nine feats it was not, being the sheet's shorthand: 'BAB +1',",
+    "'Con 13', 'SF Knowledge (social sciences) or (galactic lore)', 'WP Heavy'. Worse, Sport",
+    "Hunter's read 'proficient with weapon' where the feat wants Weapon Proficiency (pistols)",
+    "or (rifles), which is not the same requirement at all.",
+    "",
+    "Those nine are written out below in the compendium's wording, keeping anything the sheet",
+    "said that the description did not -- Shield Surge's scomp link, Sensor Link's associated",
+    "hardware. Only `prerequisites` is set, a string beside `requirements` rather than inside",
+    "it, so the shallow spread leaves the machine-checked block alone. Nothing here changes",
+    "what is enforced; `requirements` is what gates a pick and it is untouched.",
+    "",
+    "The cut is not unconditional. It happens only where the hint covers what the line says,",
+    "compared on words with 'Feat' ignored -- the compendium writes 'Point-Blank Shot Feat'",
+    "where the sheet writes 'Point Blank Shot'. A hint that says less keeps both copies, which",
+    "is untidy and loses nothing, and is what a re-import introducing a new thin one will get."
   ],
   "features": {
     "critical-strike": {
@@ -708,8 +732,120 @@
           ]
         ]
       }
+    },
+    "charging-fire-dodge": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dodge-charging-fire": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dodge-running-attack": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "running-attack-dodge": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "dual-weapon-mastery-i-quick-draw": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "quick-draw-dual-weapon-mastery-i": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "quick-draw-wp-lightsabers": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-proficiency-lightsabers-qd": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "force-training-improved-disarm": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "improved-disarm-force-training": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-finesse-weapon-focus": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "weapon-focus-weapon-finesse": {
+      "hidden": true,
+      "hiddenReason": "modelled as a feat combo"
+    },
+    "attack-combo-fire-strike": {
+      "hidden": true,
+      "hiddenReason": "the same feat as Attack Combo (Fire and Strike), which has the full text"
+    },
+    "sport-hunter": {
+      "prerequisites": "Weapon Proficiency (pistols) or Weapon Proficiency (rifles)"
+    },
+    "fl-che": {
+      "prerequisites": "Base attack bonus +1"
+    },
+    "dreadful-countenance": {
+      "prerequisites": "Charisma 13, member of the Sith"
+    },
+    "ion-shielding": {
+      "prerequisites": "Droid and Strength 13, or Cyborg Hybrid and Constitution 13"
+    },
+    "poison-resistance": {
+      "prerequisites": "Constitution 13"
+    },
+    "suppression-fire": {
+      "prerequisites": "Strength 13, Burst Fire, Weapon Proficiency (heavy weapons)"
+    },
+    "shield-surge": {
+      "prerequisites": "Droid or Cyborg Hybrid with a scomp link or similar, trained in Mechanics"
+    },
+    "elders-knowledge": {
+      "prerequisites": "Skill Focus (Knowledge [social sciences]) or Skill Focus (Knowledge [galactic lore])"
+    },
+    "sensor-link": {
+      "prerequisites": "Droid or Cyborg Hybrid with the associated hardware"
     }
   },
+  "_comment_feat_combos": [
+    "Combined Feats — the Knights of the Old Republic Campaign Guide's term for a pair of",
+    "feats that does something extra for anyone holding both. They are not feats: nothing is",
+    "chosen and no slot is spent, and the benefit stops the moment either half is changed away.",
+    "The compendium already carries each one's wording inside the description of the feats it",
+    "belongs to, under 'Additional <Feat> Effects', which is where combos.json copies it from.",
+    "",
+    "The summary spreadsheets file each pair twice, once under each half, and each row names",
+    "only the *other* feat as its prerequisite. Imported as written they became twelve",
+    "selectable feats — two per pair — each costing a slot and each demanding half of what it",
+    "should: Dodge + Running Attack could be taken by anyone with Running Attack and no Dodge",
+    "at all. All twelve are hidden here, and the pairs are written out once each in combos.json,",
+    "where both halves are named and the engine turns them on by itself. There are eight, not",
+    "six: Cleave + Follow Through and Combat Reflexes + Return Fire state their effect in the",
+    "feats' own text but were in none of the spreadsheet rows, so they had no entry at all.",
+    "",
+    "Those same two are printed by a second book, and combos.json lists both: Follow Through",
+    "(Jedi Academy Training Manual) and Return Fire (Legacy Era) each grant the interaction in",
+    "their own entry, with no reference back to KotOR. Allowing either book is enough.",
+    "",
+    "Only `hidden` is set, so the merge's shallow spread leaves the rest of each row alone. A",
+    "character saved before this keeps the row it picked — hiding only governs what the pickers",
+    "offer from now on — and it reads as unsupported rather than vanishing.",
+    "",
+    "attack-combo-fire-strike is a different problem with the same smell. It is the Legacy Era",
+    "feat Attack Combo (Fire and Strike), which IS a real feat with a real slot cost, arriving",
+    "a second time from the spreadsheets under an '&' spelling. The dedupe pass compares names",
+    "after punctuation is stripped but not '&' against 'and', and compares rules text, which",
+    "differs between a summary and the full entry — so the two never grouped. The summary stub",
+    "is hidden and Soldier's bonus feat list, which pointed at the stub, is pointed at the full",
+    "entry below. Its prerequisites are the same either way and the test on the '&' shorthand",
+    "still reads the stub, which is kept in the data rather than deleted."
+  ],
   "_comment_mortar": [
     "Galaxy at War p.40 gives the Mortar Launcher four shells, and the Foundry entry for the",
     "launcher even cross-references them — its seeAlso says \"Mortar Shells\". The shells",
@@ -1004,7 +1140,15 @@
       ]
     }
   },
-  "talentTrees": {},
+  "talentTrees": {
+    "soldier-bonus": {
+      "features": [
+        {
+          "id": "attack-combo-fire-and-strike"
+        }
+      ]
+    }
+  },
   "icons": {
     "classes": {},
     "features": {},

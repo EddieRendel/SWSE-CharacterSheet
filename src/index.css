@@ -1427,6 +1427,20 @@ button.chip.tone-blue:hover:not(:disabled) { border-color: var(--blue); }
 button.chip.tone-purple:hover:not(:disabled) { border-color: var(--purple); }
 button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
 
+/* A feat combo: not a chip, because it has rules text to read rather than a name to
+   recognise, and not a .notice, because several stack and a run of blue boxes down the panel
+   would outweigh the feats they hang off. Off is the default, so the inactive ones in the
+   rules panel stay quiet and only the live one is coloured. */
+.combo {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--border-2);
+  border-radius: 6px; padding: 8px 10px;
+}
+.combo.on { border-left-color: var(--green); background: rgba(var(--green-rgb), 0.05); }
+.combo .name { font-size: 13px; font-weight: 600; }
+/* The last line of the effect sits on the card's own padding. */
+.combo .rules-text p:last-child { margin-bottom: 0; }
+
 /* One table for everything carried, with the category as a rule across it — three tables
    each repeating WORN / ITEM / QTY / WEIGHT was more chrome than cargo. */
 .kit-head td {

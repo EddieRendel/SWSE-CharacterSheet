@@ -1,6 +1,6 @@
 import type {
   Feature, TalentTree, CharacterClass, Species, Skill, EquipmentItem, AbilityId, FeatureRef,
-  DroidSystem, DroidDegree, DroidSize,
+  DroidSystem, DroidDegree, DroidSize, FeatCombo,
 } from '../types';
 
 import featuresJson from './features.json';
@@ -16,6 +16,7 @@ import forceTreesJson from './forceTrees.json';
 import iconsJson from './icons.json';
 import nearHumanJson from './nearHuman.json';
 import droidsJson from './droids.json';
+import combosJson from './combos.json';
 
 const supplement = supplementJson as unknown as {
   features?: Record<string, Partial<Feature>>;
@@ -96,6 +97,30 @@ export const TALENT_TREES = merged.trees;
  * they belong to Force traditions the app does not model.
  */
 export const FORCE_TALENT_TREES = forceTreesJson as string[];
+
+/**
+ * Feat combos, in display order — see `combos.json` for what they are and how to add one.
+ *
+ * Nothing merges over them: the file is hand-written, so a correction goes in it directly
+ * rather than into supplement.json.
+ */
+export const COMBOS = (combosJson as { combos: FeatCombo[] }).combos;
+
+/** Every combo one feature is a half of, keyed by feature id. Built once. */
+const COMBOS_BY_FEATURE = new Map<string, FeatCombo[]>();
+for (const combo of COMBOS) {
+  for (const half of combo.features) {
+    const list = COMBOS_BY_FEATURE.get(half.id);
+    if (list) list.push(combo);
+    else COMBOS_BY_FEATURE.set(half.id, [combo]);
+  }
+}
+
+/**
+ * The combos a feature takes part in. Empty for the overwhelming majority of features, and
+ * the same array every call, so a component may use it as a render key without copying.
+ */
+export const combosForFeature = (id: string): FeatCombo[] => COMBOS_BY_FEATURE.get(id) ?? [];
 
 /**
  * Equipment, with `supplement.equipment` merged over it the same way features are.

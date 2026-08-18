@@ -2,11 +2,11 @@ import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Character } from '../types';
 import { ABILITY_IDS } from '../types';
-import { RULES, SPECIES, FEATURES, groupRefs } from '../data';
+import { RULES, SPECIES, FEATURES, BOOK_NAMES, groupRefs } from '../data';
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { forcePointDice } from '../rules/attacks';
-import { Panel, PortraitButton, Modal, FeatureDetail } from './ui';
+import { Panel, PortraitButton, Modal, FeatureDetail, RulesText } from './ui';
 import { Tip, FeatureTip, TipRows } from './Tip';
 import type { TipRow } from './Tip';
 import { Attacks } from './Attacks';
@@ -112,7 +112,10 @@ export function Sheet({
     ['Starship maneuvers', derived.starshipManeuvers],
   ] as const).filter(([, items]) => items.length > 0);
 
-  const featureCount = featureGroups.reduce((n, [, items]) => n + items.length, 0);
+  // Combos join the count: they are things this character can do that nothing else on the
+  // tab lists, and a tab that says 12 while showing 13 entries reads as a miscount.
+  const featureCount = featureGroups.reduce((n, [, items]) => n + items.length, 0)
+    + derived.combos.length;
   const carried = char.inventory.length;
 
   const SHEET_TABS: { id: SheetTab; label: string; count?: number }[] = [
@@ -520,10 +523,13 @@ export function Sheet({
           >
             {tab === 'actions' && <Attacks char={char} derived={derived} update={update} bare />}
 
-            {tab === 'features' && (
-              featureGroups.length === 0
-                ? <div className="empty">Nothing chosen yet.</div>
-                : featureGroups.map(([title, items]) => (
+            {tab === 'features' && featureCount === 0 && (
+              <div className="empty">Nothing chosen yet.</div>
+            )}
+
+            {tab === 'features' && featureCount > 0 && (
+              <>
+                {featureGroups.map(([title, items]) => (
                   <div key={title} className="feature-group">
                     <h3 className={`tone-${FEATURE_TONES[title]}`}>
                       {title} <span className="faint">({items.length})</span>
@@ -563,7 +569,39 @@ export function Sheet({
                       })}
                     </div>
                   </div>
-                ))
+                ))}
+
+                {/* Last, and untoned by the map above, because it is the one group here that
+                    was never chosen: everything over it cost a slot. */}
+                {derived.combos.length > 0 && (
+                  <div className="feature-group">
+                    <h3 className="tone-accent">
+                      Combined feats <span className="faint">({derived.combos.length})</span>
+                      <span className="rule" />
+                    </h3>
+                    <p className="hint" style={{ margin: '0 0 8px' }}>
+                      On because you hold both feats. They cost no slot and were never chosen —
+                      change either feat and its Combined Feat goes with it.
+                    </p>
+                    <div className="col" style={{ gap: 8 }}>
+                      {derived.combos.map(combo => (
+                        <div key={combo.id} className="combo on">
+                          <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                            <span className="name grow">{combo.name}</span>
+                            {combo.sources.map(source => (
+                              <span key={source.book} className="badge">
+                                {BOOK_NAMES[source.book] ?? source.book}
+                                {source.page ? ` p.${source.page}` : ''}
+                              </span>
+                            ))}
+                          </div>
+                          <RulesText lines={combo.effect} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {tab === 'equipment' && (
@@ -586,7 +624,12 @@ export function Sheet({
 
       {viewing && FEATURES[viewing.id] && (
         <Modal title="Rules" onClose={() => setViewing(null)}>
-          <FeatureDetail feature={FEATURES[viewing.id]} spec={viewing.spec} />
+          <FeatureDetail
+            feature={FEATURES[viewing.id]}
+            spec={viewing.spec}
+            char={char}
+            held={derived.features}
+          />
         </Modal>
       )}
     </div>
