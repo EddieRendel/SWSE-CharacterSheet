@@ -39,6 +39,12 @@ const COUNTS = {
   summaryOnly: VISIBLE.filter(f => f.summaryOnly).length,
 };
 
+/**
+ * The build this page was made from. `define` in vite.config.ts substitutes it; the guard is
+ * for anything that loads this module outside Vite, where the identifier does not exist.
+ */
+const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
+
 // Levels, feats, abilities and skills all move together when you gain a level, so they
 // live on one page rather than four tabs the player has to remember to visit.
 // `short` is what shows on a phone, where the full labels scrolled off the edge.
@@ -305,6 +311,13 @@ function CharacterList({
       </Panel>
 
       <Panel title="About this data">
+        {/* A character lives in one browser's local storage and is migrated in place as the
+            app changes, so "which version were you on?" is the first question any lost-data
+            report needs an answer to. It is here rather than in the header because this is
+            the panel someone is already reading when they go looking. */}
+        <p className="hint" style={{ marginBottom: 10 }}>
+          Version <strong>{APP_VERSION}</strong>
+        </p>
         <p className="dim">
           Rules content covers <strong>{COUNTS.feats} feats, {COUNTS.talents} talents,{' '}
           {COUNTS.powers} Force powers and {COUNTS.traits} traits</strong> across {COUNTS.books} sourcebooks,
