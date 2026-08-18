@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Character, Feature, ResolvedItem } from '../types';
-import { BOOK_NAMES, CLASSES, specName, featureIcon, portraitUrl, classIcon } from '../data';
+import type { Character, FeatCombo, Feature, FeatureRef, ResolvedItem } from '../types';
+import { BOOK_NAMES, CLASSES, specName, featureName, featureIcon, portraitUrl, classIcon, combosForFeature } from '../data';
+import { combosForFeatureState, isSameHalf } from '../rules/engine';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 import { useDismissLayer } from '../dismiss';
@@ -319,7 +320,85 @@ export function ItemDetail({ item }: { item: ResolvedItem }) {
   );
 }
 
-export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: string }) {
+/** The other halves of a Combined Feat, named the way the picker names them. */
+const otherHalves = (combo: FeatCombo, id: string) =>
+  combo.features.filter(f => f.id !== id).map(f => featureName(f.id, f.spec));
+
+/**
+ * The Combined Feats a feat takes part in, shown on both halves so that either one tells you
+ * the other exists. Nothing at all for the features that are in none, which is nearly all
+ * of them.
+ *
+ * The wording repeats the "Combined Feat (…)" line in the feat's own text above, deliberately:
+ * that line is the same however the character is built, and the only thing worth knowing —
+ * whether you actually have the other half — is what the prose cannot say and this does.
+ *
+ * The state is worked out from `held` rather than stored, so the block says the same thing
+ * wherever it is opened from. In the picker `held` does not yet include the feat being looked
+ * at — that is the "completes this" case, and the one worth shouting about, since it is the
+ * only moment the player can act on it.
+ */
+function ComboBlock({
+  feature, spec, char, held,
+}: { feature: Feature; spec?: string; char?: Character; held?: FeatureRef[] }) {
+  // Without a character — the rules compendium — there is no state to report, only the fact
+  // that the combo exists and what it takes.
+  const states = char && held
+    ? combosForFeatureState(char, feature.id, held)
+    : combosForFeature(feature.id).map(combo => ({ combo, missing: [], active: false }));
+  if (!states.length) return null;
+  const known = !!(char && held);
+
+  return (
+    <>
+      <div className="rules-section-label">
+        Combined feat{states.length > 1 ? 's' : ''}
+      </div>
+      <div className="col" style={{ gap: 8 }}>
+        {states.map(({ combo, missing, active }) => {
+          const wanting = missing
+            .filter(f => !isSameHalf(f, feature.id, spec))
+            .map(f => featureName(f.id, f.spec));
+          const completes = known && !active && wanting.length === 0;
+          return (
+            <div key={combo.id} className={`combo${active ? ' on' : ''}`}>
+              <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                <span className="name grow">{combo.name}</span>
+                {active && <span className="badge green">active</span>}
+                {completes && <span className="badge accent">completes this</span>}
+                {known && !active && !completes && <span className="badge">inactive</span>}
+                <span className="badge">
+                  {BOOK_NAMES[combo.book] ?? combo.book}{combo.page ? ` p.${combo.page}` : ''}
+                </span>
+              </div>
+              <RulesText lines={combo.effect} />
+              <p className={`hint${completes ? ' ok' : ''}`} style={{ margin: 0 }}>
+                {active
+                  ? `On, because you hold both halves — it costs no feat and was never chosen.`
+                  : completes
+                    ? `You already have ${otherHalves(combo, feature.id).join(' and ')}. Take this and it turns on, at no further cost.`
+                    : wanting.length > 0
+                      ? `Also needs ${wanting.join(' and ')}.`
+                      : `Held together with ${otherHalves(combo, feature.id).join(' and ')}.`}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+export function FeatureDetail({
+  feature, spec, char, held,
+}: {
+  feature: Feature;
+  spec?: string;
+  /** The character reading it, when there is one — combos are judged against them. */
+  char?: Character;
+  /** Every feature that character holds, i.e. `derived.features`. */
+  held?: FeatureRef[];
+}) {
   return (
     <div>
       <div className="row" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
@@ -376,6 +455,7 @@ export function FeatureDetail({ feature, spec }: { feature: Feature; spec?: stri
       <RulesSection label="Benefit" lines={feature.benefit} />
       <RulesSection label="Normal" lines={feature.normal} />
       <RulesSection label="Special" lines={feature.special} />
+      <ComboBlock feature={feature} spec={spec} char={char} held={held} />
     </div>
   );
 }

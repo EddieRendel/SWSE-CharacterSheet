@@ -31,7 +31,9 @@
   "provenance": [
     "feature \"superior-tech\": requirements.levle -> requirements.level (prereq was never enforced)",
     "49 species prerequisites retargeted from features -> species",
-    "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all."
+    "Force Adept, Force Disciple and Sith Lord pointed at talent trees the source data never defined, while the trees they need sat unused under other names; those three were remapped. Without it those classes had no selectable talents at all.",
+    "12 Combined Feat rows hidden and rewritten as 8 entries in combos.json — they are automatic benefits, not selectable feats, and two of the eight had no row at all; see the note on them below",
+    "feature \"attack-combo-fire-strike\": a second copy of Attack Combo (Fire and Strike) under an \"&\" spelling; the stub is hidden and Soldier's bonus feats repointed at the full entry"
   ],
   "_comment_lightsaber_chain": [
     "Saga Edition has two separate chains. The Elite Trooper one in Weapon Master chooses a",
@@ -708,8 +710,53 @@
           ]
         ]
       }
+    },
+    "charging-fire-dodge": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "dodge-charging-fire": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "dodge-running-attack": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "running-attack-dodge": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "dual-weapon-mastery-i-quick-draw": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "quick-draw-dual-weapon-mastery-i": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "quick-draw-wp-lightsabers": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "weapon-proficiency-lightsabers-qd": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "force-training-improved-disarm": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "improved-disarm-force-training": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "weapon-finesse-weapon-focus": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "weapon-focus-weapon-finesse": { "hidden": true, "hiddenReason": "modelled as a feat combo" },
+    "attack-combo-fire-strike": {
+      "hidden": true,
+      "hiddenReason": "the same feat as Attack Combo (Fire and Strike), which has the full text"
     }
   },
+  "_comment_feat_combos": [
+    "Combined Feats — the Knights of the Old Republic Campaign Guide's term for a pair of",
+    "feats that does something extra for anyone holding both. They are not feats: nothing is",
+    "chosen and no slot is spent, and the benefit stops the moment either half is changed away.",
+    "The compendium already carries each one's wording inside the description of the feats it",
+    "belongs to, under 'Additional <Feat> Effects', which is where combos.json copies it from.",
+    "",
+    "The summary spreadsheets file each pair twice, once under each half, and each row names",
+    "only the *other* feat as its prerequisite. Imported as written they became twelve",
+    "selectable feats — two per pair — each costing a slot and each demanding half of what it",
+    "should: Dodge + Running Attack could be taken by anyone with Running Attack and no Dodge",
+    "at all. All twelve are hidden here, and the pairs are written out once each in combos.json,",
+    "where both halves are named and the engine turns them on by itself. There are eight, not",
+    "six: Cleave + Follow Through and Combat Reflexes + Return Fire state their effect in the",
+    "feats' own text but were in none of the spreadsheet rows, so they had no entry at all.",
+    "",
+    "Only `hidden` is set, so the merge's shallow spread leaves the rest of each row alone. A",
+    "character saved before this keeps the row it picked — hiding only governs what the pickers",
+    "offer from now on — and it reads as unsupported rather than vanishing.",
+    "",
+    "attack-combo-fire-strike is a different problem with the same smell. It is the Legacy Era",
+    "feat Attack Combo (Fire and Strike), which IS a real feat with a real slot cost, arriving",
+    "a second time from the spreadsheets under an '&' spelling. The dedupe pass compares names",
+    "after punctuation is stripped but not '&' against 'and', and compares rules text, which",
+    "differs between a summary and the full entry — so the two never grouped. The summary stub",
+    "is hidden and Soldier's bonus feat list, which pointed at the stub, is pointed at the full",
+    "entry below. Its prerequisites are the same either way and the test on the '&' shorthand",
+    "still reads the stub, which is kept in the data rather than deleted."
+  ],
   "_comment_mortar": [
     "Galaxy at War p.40 gives the Mortar Launcher four shells, and the Foundry entry for the",
     "launcher even cross-references them — its seeAlso says \"Mortar Shells\". The shells",
@@ -1004,7 +1051,15 @@
       ]
     }
   },
-  "talentTrees": {},
+  "talentTrees": {
+    "soldier-bonus": {
+      "features": [
+        {
+          "id": "attack-combo-fire-and-strike"
+        }
+      ]
+    }
+  },
   "icons": {
     "classes": {},
     "features": {},

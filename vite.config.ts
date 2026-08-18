@@ -9,6 +9,18 @@ export default defineConfig({
   // this is all that's needed for the artwork to resolve once deployed.
   base: '/SWSE-CharacterSheet/',
 
+  // A port of our own, so a Vite project already holding 5173 does not push this one to
+  // 5174 and leave you guessing which window is which. `strictPort` makes a clash an error
+  // rather than a silent move — the e2e suite defaults to this number, and a server that
+  // quietly relocated would have it testing whatever else is running.
+  //
+  // Not 6000, which is X11's: Chrome, Firefox and Safari all refuse it as an unsafe port,
+  // so the server would start and no browser would ever reach it.
+  server: {
+    port: 6006,
+    strictPort: true,
+  },
+
   build: {
     rolldownOptions: {
       output: {

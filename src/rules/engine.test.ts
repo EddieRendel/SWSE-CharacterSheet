@@ -2,7 +2,7 @@
  * Hand-verified checks of the rules engine.
  * Run with: npm run test:rules
  */
-import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses, resolveItem, carriedItems } from './engine';
+import { computeCharacter, abilityMod, buildSlots, hasFeature, featureAvailable, isBookAllowed, forcePowerUses, resolveItem, carriedItems, combosForFeatureState, completesACombo } from './engine';
 import type { Derived } from './engine';
 import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections } from './prereqs';
 import { specOptionsFor, SPEC_LABELS } from './specs';
@@ -13,7 +13,7 @@ import {
 import { talentSources } from '../components/labels';
 import { newCharacter, migrate } from '../storage';
 import type { Character, AbilityId, Feature, InventoryEntry } from '../types';
-import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
+import { FEATURES, CLASSES, TALENT_TREES, SPECIES, EQUIPMENT, WEAPON_GROUPS, LANGUAGES, BOOK_NAMES, NEAR_HUMAN, DROIDS, ICONS, RULES, COMBOS, combosForFeature, featureIcon, featureName, specName, classIcon, weaponIcon, portraitUrl } from '../data';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -3404,6 +3404,181 @@ console.log('\n▸ supplement.json patches each id exactly once');
   };
   scan(raw);
   check('no id is patched twice in supplement.json', duplicates, []);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Combined Feats');
+// ---------------------------------------------------------------------------
+{
+  // --- the data itself ---
+  check('every combo half names a real feature',
+    COMBOS.flatMap(c => c.features.map(f => f.id)).filter(id => !FEATURES[id]), []);
+  // A half may name a spec, and then only that spec will do. Naming one the feature does not
+  // offer would be a combo nothing can ever complete.
+  check('a half naming a spec names one the feature offers',
+    COMBOS.flatMap(c => c.features)
+      .filter(f => f.spec && !FEATURES[f.id]?.allowedSpecs?.includes(f.spec))
+      .map(f => `${f.id} (${f.spec})`), []);
+  check('every combo has at least two halves and an effect',
+    COMBOS.filter(c => c.features.length < 2 || !c.effect.length).map(c => c.id), []);
+  // Combos and features are separate tables looked up by id; sharing one would make every
+  // "which is this?" in the UI a coin toss.
+  check('no combo id collides with a feature id',
+    COMBOS.map(c => c.id).filter(id => FEATURES[id]), []);
+  check('each half knows the combos it belongs to',
+    combosForFeature('dodge').map(c => c.id),
+    ['combo-dodge-charging-fire', 'combo-dodge-running-attack']);
+
+  // The compendium prints each Combined Feat inside the text of the feats it belongs to. A
+  // line here with no entry in combos.json is one the app states in prose and then never
+  // turns on — which is how Cleave + Follow Through and Combat Reflexes + Return Fire were
+  // missed, neither of them being among the rows the summary spreadsheets carried.
+  const COMBO_PROSE = /Combined Feat \(/i;
+  const halves = new Set(COMBOS.flatMap(c => c.features.map(f => f.id)));
+  const documents = (f: Feature) =>
+    COMBO_PROSE.test([...f.description, ...(f.benefit ?? []), ...(f.special ?? [])].join(' '));
+  check('every feat whose text states a Combined Feat has one',
+    Object.values(FEATURES)
+      .filter(f => documents(f) && !halves.has(f.id))
+      .map(f => f.id)
+      // Force Disarm is the power the Force Training + Improved Disarm one acts on, and
+      // repeats its wording. It is what the combo does, not a third half of it.
+      .filter(id => id !== 'force-disarm'),
+    []);
+  check('and the pair that states it is the pair that has it',
+    COMBOS.filter(c => !c.features.some(f => documents(FEATURES[f.id]))).map(c => c.id), []);
+
+  // --- the twelve rows they replace ---
+  const STUBS = [
+    'charging-fire-dodge', 'dodge-charging-fire',
+    'dodge-running-attack', 'running-attack-dodge',
+    'dual-weapon-mastery-i-quick-draw', 'quick-draw-dual-weapon-mastery-i',
+    'quick-draw-wp-lightsabers', 'weapon-proficiency-lightsabers-qd',
+    'force-training-improved-disarm', 'improved-disarm-force-training',
+    'weapon-finesse-weapon-focus', 'weapon-focus-weapon-finesse',
+  ];
+  check('the twelve imported combo rows are hidden', STUBS.filter(id => !FEATURES[id]?.hidden), []);
+  check('and kept rather than deleted', STUBS.filter(id => !FEATURES[id]), []);
+
+  const soldier = (fn: (c: Character) => void) => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 14, dex: 14, con: 12, int: 10, wis: 12, cha: 10 });
+    x.levels = Array(6).fill(null).map(() => ({ classId: 'soldier', hitPoints: 6 }));
+    x.trainedSkills = ['perception'];
+    fn(x);
+  });
+  const feats = (...picks: { id: string; spec?: string }[]) => (c: Character) => {
+    c.selections = picks.map((p, i) => ({
+      key: `feat:${[1, 3, 6][i]}`, choiceId: 'feat', featureId: p.id, spec: p.spec,
+    }));
+  };
+  const on = (c: Character) => computeCharacter(c).combos.map(x => x.name);
+
+  const half = soldier(feats({ id: 'dodge' }));
+  const halfD = computeCharacter(half);
+  check('one half alone turns nothing on', on(half), []);
+  check('none of the twelve is on offer either', STUBS.filter(id => featureAvailable(half, id)), []);
+
+  const both = soldier(feats({ id: 'dodge' }, { id: 'running-attack' }));
+  const bothD = computeCharacter(both);
+  check('holding both turns the combo on', on(both), ['Dodge + Running Attack']);
+
+  // Nothing was chosen and nothing was spent: the combo is not a feature, holds no slot, and
+  // is not among the feats — which is the whole difference between it and Fire and Strike.
+  check('a combo costs no slot',
+    [bothD.slots.length, halfD.slots.length], [halfD.slots.length, halfD.slots.length]);
+  check('and is not a feat',
+    bothD.feats.filter(f => f.id.startsWith('combo-')).concat(
+      bothD.features.filter(f => f.id.startsWith('combo-'))), []);
+
+  check('changing a half turns it off again',
+    on(soldier(feats({ id: 'dodge' }, { id: 'toughness' }))), []);
+
+  // A combo is content from a book like any other, so a table that has not opened KotOR does
+  // not get it for free through two Core feats.
+  const coreOnly = soldier(c => {
+    feats({ id: 'dodge' }, { id: 'running-attack' })(c);
+    c.allowedBooks = ['core'];
+  });
+  check('a combo from a book you disallowed stays off', on(coreOnly), []);
+
+  // The one combo whose half names a spec.
+  check('the wrong weapon group does not complete the lightsaber combo',
+    on(soldier(feats({ id: 'quick-draw' }, { id: 'weapon-proficiency', spec: 'rifles' }))), []);
+  check('the right one does',
+    on(soldier(feats({ id: 'quick-draw' }, { id: 'weapon-proficiency', spec: 'lightsabers' }))),
+    ['Quick Draw + Weapon Proficiency (lightsabers)']);
+
+  // --- what the rules panel shows, opened from either half ---
+  const panel = (id: string) =>
+    combosForFeatureState(both, id, bothD.features).map(s => [s.combo.name, s.active]);
+  check('the combo appears on the panel for Dodge',
+    panel('dodge'), [['Dodge + Charging Fire', false], ['Dodge + Running Attack', true]]);
+  check('and on the panel for Running Attack, saying the same thing',
+    panel('running-attack'), [['Dodge + Running Attack', true]]);
+  check('a feature in no combo shows none', panel('toughness'), []);
+  check('an inactive combo names what is still wanted',
+    combosForFeatureState(half, 'dodge', halfD.features)
+      .map(s => [s.combo.name, s.missing.map(m => m.id)]),
+    [['Dodge + Charging Fire', ['charging-fire']], ['Dodge + Running Attack', ['running-attack']]]);
+
+  // --- the picker's "combo" badge ---
+  check('a feat that would complete a combo is flagged',
+    completesACombo(half, 'running-attack', undefined, halfD.features), true);
+  check('but not once the combo is already on',
+    completesACombo(both, 'running-attack', undefined, bothD.features), false);
+  check('nor for a feat that is in no combo',
+    completesACombo(half, 'toughness', undefined, halfD.features), false);
+  check('nor for a half whose other half is also missing',
+    completesACombo(soldier(feats({ id: 'toughness' })), 'dodge', undefined,
+      computeCharacter(soldier(feats({ id: 'toughness' }))).features), false);
+
+  // A spec that has not been chosen yet must not promise a combo the pick may not deliver.
+  const qd = soldier(feats({ id: 'quick-draw' }));
+  const qdD = computeCharacter(qd);
+  check('a Weapon Proficiency with no group chosen yet is not flagged',
+    completesACombo(qd, 'weapon-proficiency', undefined, qdD.features), false);
+  check('nor the wrong group',
+    completesACombo(qd, 'weapon-proficiency', 'pistols', qdD.features), false);
+  check('but lightsabers is', completesACombo(qd, 'weapon-proficiency', 'lightsabers', qdD.features), true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Attack Combo (Fire and Strike) is one feat, not two');
+// ---------------------------------------------------------------------------
+{
+  // Unlike the Combined Feats above this IS a feat with a slot cost of its own — it arrived
+  // twice because the spreadsheets spell it "&" and the compendium spells it "and", which
+  // the dedupe pass compares neither past nor through.
+  check('only one spelling is on offer',
+    Object.values(FEATURES)
+      .filter(f => !f.hidden && /^attack combo \(fire/i.test(f.name))
+      .map(f => f.id),
+    ['attack-combo-fire-and-strike']);
+  check('the summary stub is kept, hidden, and says why',
+    [FEATURES['attack-combo-fire-strike'].hidden, !!FEATURES['attack-combo-fire-strike'].hiddenReason],
+    [true, true]);
+  check('the surviving entry is the one with the full rules text',
+    [FEATURES['attack-combo-fire-and-strike'].summaryOnly,
+      FEATURES['attack-combo-fire-and-strike'].description.join(' ').length > 200],
+    [undefined, true]);
+  check('both spellings always agreed on what it needs',
+    ['attack-combo-fire-strike', 'attack-combo-fire-and-strike'].map(id => [
+      FEATURES[id].requirements?.baseAttackBonus,
+      FEATURES[id].requirements?.features?.map(r => r.id).sort(),
+    ]),
+    [[9, ['attack-combo-melee', 'attack-combo-ranged']],
+      [9, ['attack-combo-melee', 'attack-combo-ranged']]]);
+
+  // Soldier's bonus feat list named the stub. It still does — talentTrees.json is generated —
+  // so the full entry is added beside it and the stub drops out for being hidden.
+  const anyone = make(x => { x.speciesId = 'human'; x.levels = [{ classId: 'soldier' }]; });
+  check('Soldier bonus feats offer the full entry and only it',
+    TALENT_TREES['soldier-bonus'].features
+      .filter(r => featureAvailable(anyone, r.id))
+      .map(r => r.id)
+      .filter(id => /^attack-combo-fire/.test(id)),
+    ['attack-combo-fire-and-strike']);
 }
 
 console.log(results.join('\n'));

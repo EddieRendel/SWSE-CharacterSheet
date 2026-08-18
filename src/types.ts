@@ -61,6 +61,36 @@ export type FeatureType =
   | 'feat' | 'talent' | 'trait'
   | 'force-power' | 'force-secret' | 'force-technique' | 'starship-maneuver';
 
+/**
+ * A Combined Feat: a pair of feats that does something extra for anyone holding both.
+ *
+ * "Combined Feat" is the Knights of the Old Republic Campaign Guide's own term, and the one
+ * the UI uses, because the compendium prints the very same phrase inside the description of
+ * each feat involved — a card headed anything else would read as a second, unrelated rule.
+ * `combo` is kept as the name in code, which is what everyone calls them at the table.
+ *
+ * These are not feats and cost no slot: the benefit is simply on once both halves are held,
+ * and off again if either is changed away. The source spreadsheets file each one twice, once
+ * under each half, which is why the imported data carried two entries per combo that each
+ * named only the *other* feat as a prerequisite; those rows are hidden in supplement.json and
+ * the real thing lives in combos.json, written once with both halves named.
+ *
+ * A half with no `spec` is satisfied by any specialization — Weapon Focus counts whichever
+ * weapon group it was taken for. One that names a spec must match it exactly.
+ */
+export interface FeatCombo {
+  id: string;
+  name: string;
+  book: string;
+  page?: number;
+  /** The feats that must all be held, in the order they should be read. */
+  features: FeatureRef[];
+  /** What holding all of them gets you. */
+  effect: string[];
+  /** Only a one-line summary is available, not the full rules text. */
+  summaryOnly?: boolean;
+}
+
 export interface Feature {
   id: string;
   name: string;

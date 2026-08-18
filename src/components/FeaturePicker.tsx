@@ -3,7 +3,7 @@ import type { Character, Feature, FeatureRef } from '../types';
 import type { Derived, Slot } from '../rules/engine';
 import { canSelect } from '../rules/prereqs';
 import { specOptionsFor, SPEC_LABELS, PICKS_A_FEATURE } from '../rules/specs';
-import { computeCharacter, featureAvailable } from '../rules/engine';
+import { computeCharacter, featureAvailable, completesACombo } from '../rules/engine';
 import { FEATURES, BOOK_NAMES, TALENT_TREES, CLASSES, classIcon, featureName } from '../data';
 import { Modal, FeatureDetail, Descriptors, FeatureIcon } from './ui';
 import { autoFocusSearch } from '../pointer';
@@ -76,9 +76,12 @@ export function FeaturePicker({
       .sort((a, b) => a.feature.name.localeCompare(b.feature.name));
   }, [slot, char]);
 
+  // `completesCombo` is judged with this slot empty, like everything else here, so changing a
+  // pick that is currently holding a combo up offers its replacement honestly.
   const evaluated = useMemo(() => options.map(o => ({
     ...o,
     result: canSelect(o.feature.id, char, derived, o.ref.spec),
+    completesCombo: completesACombo(char, o.feature.id, o.ref.spec, derived.features),
   })), [options, char, derived]);
 
   const matches = useMemo(() => {
@@ -285,7 +288,12 @@ export function FeaturePicker({
           {!selected && <div className="empty">Select an entry to see its rules.</div>}
           {selected && (
             <>
-              <FeatureDetail feature={selected} spec={effectiveSpec} />
+              <FeatureDetail
+                feature={selected}
+                spec={effectiveSpec}
+                char={char}
+                held={derived.features}
+              />
 
               {needsSpec && (
                 <div className="panel" style={{ marginTop: 12, marginBottom: 0 }}>
@@ -317,7 +325,7 @@ export function FeaturePicker({
                     optionFeature
                       ? (
                         <div className="option-rules">
-                          <FeatureDetail feature={optionFeature} />
+                          <FeatureDetail feature={optionFeature} char={char} held={derived.features} />
                         </div>
                       )
                       : (
@@ -372,6 +380,8 @@ type EvaluatedOption = {
   ref: FeatureRef;
   feature: Feature;
   result: { met: boolean; duplicate: boolean };
+  /** Taking this would turn a feat combo on — the rules panel says which. */
+  completesCombo: boolean;
 };
 
 function OptionRow({
@@ -387,6 +397,11 @@ function OptionRow({
         {featureName(o.feature.id, o.ref.spec)}
       </span>
       <Descriptors feature={o.feature} compact />
+      {o.completesCombo && o.result.met && !o.result.duplicate && (
+        <span className="badge accent" title="You already hold the other half — taking this turns a Combined Feat on">
+          combined feat
+        </span>
+      )}
       {o.result.duplicate && <span className="badge">taken</span>}
       {!o.result.met && !o.result.duplicate && <span className="badge red">locked</span>}
       {o.feature.incomplete && <span className="badge">?</span>}

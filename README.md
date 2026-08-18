@@ -20,7 +20,9 @@ npm install
 npm run dev
 ```
 
-That prints a `http://localhost:5173` URL — open it and you're done.
+That prints a `http://localhost:6006` URL — open it and you're done. If something else is
+already on that port the server stops rather than moving to another one; free it, or change
+`server.port` in `vite.config.ts`.
 
 Other commands, none of them required:
 

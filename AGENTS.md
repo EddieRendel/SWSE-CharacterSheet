@@ -8,7 +8,7 @@ src/rules/       the game rules — engine.ts (derived stats), prereqs.ts, attac
 src/rules/engine.test.ts   hand-written assertions, run with `npm run test:rules`
 src/data/*.json  generated from the Foundry compendium and the Omegadex index — not hand-edited
 src/data/supplement.json   hand-written corrections merged over the generated data
-src/data/rules.json, skills.json   hand-maintained — see below
+src/data/rules.json, skills.json, combos.json   hand-maintained — see below
 src/components/  the UI
 tools-*.mjs      the import pipeline
 ```
@@ -29,6 +29,15 @@ script that has since been deleted, because it rewrote six other data files whol
 frozen scrape and would have undone every import run since. Those two are now hand-maintained
 like `supplement.json`: edit them directly, and note that `rules.json` is the single definition
 of the size ladder, size modifiers, the condition track and carrying capacity.
+
+**`combos.json` has no generator either.** It holds the Combined Feats — pairs of feats that do
+something extra for anyone holding both, which are not feats, cost no slot and are never chosen.
+The engine turns one on when every feat it names is held. The importer cannot produce this file:
+the summary spreadsheets list each pair twice, once under each half, and each of those rows names
+only the *other* feat as a prerequisite, so imported straight they become selectable feats that
+demand half of what they should. Those rows are hidden in `supplement.json`, which explains it at
+length. Add a pair by copying its wording from the `Combined Feat (…)` line in the feats' own
+text; a test fails the build if a feat states one and no entry here covers it.
 
 ```bash
 npm run dev         # local dev server
