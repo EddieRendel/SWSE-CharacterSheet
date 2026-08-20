@@ -1410,6 +1410,28 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
   check('none of it touches another group',
     buildAttack(master, dm, EQUIPMENT['club'], opts).damageBonus,
     buildAttack(bare, db, EQUIPMENT['club'], opts).damageBonus);
+
+  // Nor does it reach a lightsaber that has left the hand. All three tree talents are
+  // written for melee rolls, and a thrown lightsaber is a ranged attack — so matching the
+  // ids must not quietly promote them to the generic entries' wider wording.
+  const hurled = { ...EQUIPMENT['lightsaber'], thrown: true };
+  const thrownSaber = buildAttack(master, dm, hurled, opts);
+  check('a thrown lightsaber is a ranged attack', thrownSaber.melee, false);
+  check('so the melee-only talents add nothing to its damage',
+    thrownSaber.damageParts.some(p => p.label.endsWith('Weapon Specialization')), false);
+  check('nor to its attack roll',
+    thrownSaber.attackParts.some(p => p.label === 'Greater Weapon Focus'), false);
+  check('and the throw is told what it cost',
+    thrownSaber.notes.some(n => n.includes('add to melee rolls only')), true);
+  check('all three are named',
+    ['Greater Weapon Focus (lightsabers)', 'Weapon Specialization (lightsabers)',
+      'Greater Weapon Specialization (lightsabers)']
+      .every(n => thrownSaber.notes.some(t => t.includes(n))), true);
+
+  // The generic feat is not melee-only — "all attack rolls you make using the selected
+  // weapon group" — so the one the Jedi took as a feat still counts on the way out.
+  check('the generic Weapon Focus still applies to the throw',
+    thrownSaber.attackParts.some(p => p.label === 'Weapon Focus'), true);
 }
 
 // ---------------------------------------------------------------------------
