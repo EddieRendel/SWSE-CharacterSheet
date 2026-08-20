@@ -1385,6 +1385,31 @@ console.log('\n▸ The Jedi lightsaber chain is separate from the Elite Trooper 
     gwsl.description?.[0].includes('melee damage rolls with Lightsabers'), true);
   check('not the generic weapon-group text',
     gwsl.description?.[0].includes('Choose one Exotic Weapon'), false);
+
+  // Being separate ids is the whole point of the chain, and it is also how the bonuses
+  // went missing: the attack builder asked for the generic ids and a Jedi holding all
+  // three lightsaber talents was handed a lightsaber with none of them applied.
+  const opts = defaultAttackOptions();
+  const master = structuredClone(withChain);
+  master.selections = [...master.selections,
+    { key: talentSlots[2], choiceId: 'talent', featureId: 'greater-weapon-specialization-lightsabers' }];
+  const dm = computeCharacter(master);
+  check('the whole chain is held', lapsedSelections(master, dm), []);
+
+  const bareSaber = buildAttack(bare, db, EQUIPMENT['lightsaber'], opts);
+  const chainSaber = buildAttack(master, dm, EQUIPMENT['lightsaber'], opts);
+  check('the two lightsaber specializations add +2 each to damage',
+    chainSaber.damageBonus - bareSaber.damageBonus, 4);
+  check('and both are named in the breakdown',
+    chainSaber.damageParts.filter(p => p.label.endsWith('Weapon Specialization')).map(p => p.value),
+    [2, 2]);
+  check('Greater Weapon Focus (lightsabers) adds its +1 to the attack roll',
+    chainSaber.attack - bareSaber.attack, 1);
+
+  // Lightsaber-only means lightsaber-only: none of it reaches the Jedi's other weapons.
+  check('none of it touches another group',
+    buildAttack(master, dm, EQUIPMENT['club'], opts).damageBonus,
+    buildAttack(bare, db, EQUIPMENT['club'], opts).damageBonus);
 }
 
 // ---------------------------------------------------------------------------

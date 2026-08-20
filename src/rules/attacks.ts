@@ -215,6 +215,21 @@ function addWeaponDice(damage: string | undefined, extra: number): string {
 }
 
 /**
+ * Weapon Focus and the three that follow it are in the books twice over: once as the
+ * generic entry taken with a weapon group, and once written into a tree for a single
+ * weapon — the Duelist tree's Weapon Specialization (lightsabers), CR p.41. The tree's
+ * copies are separate features with their own ids, `<generic>-<group>` or
+ * `<generic>-<weapon>`, so a check for the generic id alone missed them and a Jedi's
+ * lightsaber damage silently lost the +2 the talent had granted.
+ */
+const hasWeaponFeature = (have: { id: string; spec?: string }[], id: string, weapon: ResolvedItem) => {
+  const group = weapon.group ?? '';
+  return hasFeature(have, id, group)
+    || hasFeature(have, `${id}-${group}`)
+    || hasFeature(have, `${id}-${weapon.id}`);
+};
+
+/**
  * Everything the character has that touches attacks with this weapon but which the
  * app does not model automatically — surfaced so nothing silently goes missing.
  */
@@ -265,8 +280,8 @@ export function buildAttack(
     notes.push('Weapon Finesse could use Dexterity on the attack roll, but your Strength bonus is higher.');
   }
   if (!proficient) attackParts.push({ label: 'not proficient', value: -5 });
-  if (hasFeature(have, 'weapon-focus', group)) attackParts.push({ label: 'Weapon Focus', value: 1 });
-  if (hasFeature(have, 'greater-weapon-focus', group)) attackParts.push({ label: 'Greater Weapon Focus', value: 1 });
+  if (hasWeaponFeature(have, 'weapon-focus', weapon)) attackParts.push({ label: 'Weapon Focus', value: 1 });
+  if (hasWeaponFeature(have, 'greater-weapon-focus', weapon)) attackParts.push({ label: 'Greater Weapon Focus', value: 1 });
   if (derived.armorPenalty) attackParts.push({ label: 'armor', value: derived.armorPenalty });
   if (derived.conditionPenalty) attackParts.push({ label: 'condition', value: derived.conditionPenalty });
 
@@ -373,8 +388,8 @@ export function buildAttack(
       + 'Strength modifier is added to the damage. Clear the flag on the item to swing it instead.',
     );
   }
-  if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
-  if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
+  if (hasWeaponFeature(have, 'weapon-specialization', weapon)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
+  if (hasWeaponFeature(have, 'greater-weapon-specialization', weapon)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
   if (melee && hasFeature(have, 'melee-smash')) damageParts.push({ label: 'Melee Smash', value: 1 });
   // Power Attack's own Special clause: held in two hands, it adds twice what you gave up.
   if (power) {
