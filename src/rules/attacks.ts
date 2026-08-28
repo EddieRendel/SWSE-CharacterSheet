@@ -214,6 +214,37 @@ function addWeaponDice(damage: string | undefined, extra: number): string {
   return damage.replace(/^\d+d\d+/, `${Number(m[1]) + extra}d${m[2]}`);
 }
 
+/** The four entries whose bonus the builder applies from either the generic id or a tree copy. */
+const FOCUS_FAMILY = [
+  'weapon-focus', 'greater-weapon-focus', 'weapon-specialization', 'greater-weapon-specialization',
+];
+
+/**
+ * Weapon Focus and the three that follow it are in the books twice over: once as the
+ * generic entry taken with a weapon group, and once written into a tree for a single
+ * weapon — the Duelist tree's Weapon Specialization (lightsabers), CR p.41. The tree's
+ * copies are separate features with their own ids, `<generic>-<group>` or
+ * `<generic>-<weapon>`, so a check for the generic id alone missed them and a Jedi's
+ * lightsaber damage silently lost the +2 the talent had granted.
+ *
+ * Returns the id of the copy the character holds, if any.
+ */
+const treeCopyOf = (have: { id: string }[], id: string, weapon: ResolvedItem): string | undefined =>
+  [`${id}-${weapon.group ?? ''}`, `${id}-${weapon.id}`].find(v => hasFeature(have, v));
+
+/**
+ * Whether the bonus applies at all, from either form.
+ *
+ * The two forms are not interchangeable, and this is the seam: the generic entries are
+ * written for "all attack rolls" and "damage rolls" with the group, while every tree copy
+ * names melee — "a +2 bonus on melee damage rolls with Lightsabers". A lightsaber marked
+ * thrown is a ranged attack, so it keeps a generic Weapon Focus (lightsabers) and leaves
+ * the Duelist talents behind.
+ */
+const hasWeaponFeature = (
+  have: { id: string; spec?: string }[], id: string, weapon: ResolvedItem, melee: boolean,
+) => hasFeature(have, id, weapon.group ?? '') || (melee && !!treeCopyOf(have, id, weapon));
+
 /**
  * Everything the character has that touches attacks with this weapon but which the
  * app does not model automatically — surfaced so nothing silently goes missing.
@@ -265,8 +296,8 @@ export function buildAttack(
     notes.push('Weapon Finesse could use Dexterity on the attack roll, but your Strength bonus is higher.');
   }
   if (!proficient) attackParts.push({ label: 'not proficient', value: -5 });
-  if (hasFeature(have, 'weapon-focus', group)) attackParts.push({ label: 'Weapon Focus', value: 1 });
-  if (hasFeature(have, 'greater-weapon-focus', group)) attackParts.push({ label: 'Greater Weapon Focus', value: 1 });
+  if (hasWeaponFeature(have, 'weapon-focus', weapon, melee)) attackParts.push({ label: 'Weapon Focus', value: 1 });
+  if (hasWeaponFeature(have, 'greater-weapon-focus', weapon, melee)) attackParts.push({ label: 'Greater Weapon Focus', value: 1 });
   if (derived.armorPenalty) attackParts.push({ label: 'armor', value: derived.armorPenalty });
   if (derived.conditionPenalty) attackParts.push({ label: 'condition', value: derived.conditionPenalty });
 
@@ -373,9 +404,21 @@ export function buildAttack(
       + 'Strength modifier is added to the damage. Clear the flag on the item to swing it instead.',
     );
   }
-  if (hasFeature(have, 'weapon-specialization', group)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
-  if (hasFeature(have, 'greater-weapon-specialization', group)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
+  if (hasWeaponFeature(have, 'weapon-specialization', weapon, melee)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
+  if (hasWeaponFeature(have, 'greater-weapon-specialization', weapon, melee)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
   if (melee && hasFeature(have, 'melee-smash')) damageParts.push({ label: 'Melee Smash', value: 1 });
+  // Dropping a bonus is the kind of thing that has to be said out loud — the whole point of
+  // holding the tree copies separately is that they are melee-only.
+  if (!melee) {
+    const shelved = FOCUS_FAMILY
+      .map(id => treeCopyOf(have, id, weapon))
+      .filter((id): id is string => !!id)
+      .map(id => FEATURES[id]?.name ?? id);
+    if (shelved.length) {
+      notes.push(`${shelved.join(', ')} ${shelved.length > 1 ? 'add' : 'adds'} to melee rolls only, so `
+        + `${shelved.length > 1 ? 'they do' : 'it does'} not apply to the ${weapon.name} thrown.`);
+    }
+  }
   // Power Attack's own Special clause: held in two hands, it adds twice what you gave up.
   if (power) {
     damageParts.push({
