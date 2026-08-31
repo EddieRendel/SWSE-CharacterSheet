@@ -20,6 +20,8 @@ type SheetTab = 'actions' | 'features' | 'equipment';
  * looking at what you have or at what something else wants of you.
  */
 const FEATURE_TONES: Record<string, string> = {
+  // A species trait has no colour of its own there and gets none here.
+  'Species traits': '',
   'Feats': 'blue',
   'Talents': 'purple',
   'Force powers': 'green',
@@ -102,8 +104,11 @@ export function Sheet({
     setHpAmount('');
   };
 
-  // Feats, talents and everything Force-related share one tab.
+  // Feats, talents and everything Force-related share one tab. Species traits lead it: they
+  // are what the character was before any of the rest was chosen, and Rage or Expert Climber
+  // is as much a thing you do at the table as any feat under them.
   const featureGroups = ([
+    ['Species traits', derived.speciesTraits],
     ['Feats', derived.feats],
     ['Talents', derived.talents],
     ['Force powers', derived.forcePowers],
@@ -529,9 +534,11 @@ export function Sheet({
 
             {tab === 'features' && featureCount > 0 && (
               <>
-                {featureGroups.map(([title, items]) => (
+                {featureGroups.map(([title, items]) => {
+                  const tone = FEATURE_TONES[title] ? `tone-${FEATURE_TONES[title]}` : '';
+                  return (
                   <div key={title} className="feature-group">
-                    <h3 className={`tone-${FEATURE_TONES[title]}`}>
+                    <h3 className={tone}>
                       {title} <span className="faint">({items.length})</span>
                       <span className="rule" />
                     </h3>
@@ -557,7 +564,7 @@ export function Sheet({
                                 options in the picker, where they bear on what to choose. */}
                             <button
                               type="button"
-                              className={`chip tone-${FEATURE_TONES[title]}`}
+                              className={`chip ${tone}`.trim()}
                               disabled={!FEATURES[g.ref.id]}
                               onClick={() => setViewing({ id: g.ref.id, spec: g.ref.spec })}
                             >
@@ -569,10 +576,11 @@ export function Sheet({
                       })}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
-                {/* Last, and untoned by the map above, because it is the one group here that
-                    was never chosen: everything over it cost a slot. */}
+                {/* Last, and outside the map above, because it is the one group here that is
+                    not a thing you hold: the benefit is simply on while both feats are. */}
                 {derived.combos.length > 0 && (
                   <div className="feature-group">
                     <h3 className="tone-accent">

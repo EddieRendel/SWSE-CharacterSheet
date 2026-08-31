@@ -101,6 +101,55 @@ console.log('\n▸ Wookiee species modifiers');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ Species traits are gathered for the sheet');
+// ---------------------------------------------------------------------------
+{
+  // A Wookiee Jedi: every Wookiee trait is one, and the specialization each was granted
+  // with rides along — Weapon Familiarity is for the bowcaster and reads that way on the sheet.
+  const wookieeJedi = make(x => {
+    x.speciesId = 'wookiee';
+    x.levels = [{ classId: 'jedi' }];
+  });
+  const dW = computeCharacter(wookieeJedi);
+  check('Wookiee traits', dW.speciesTraits.map(t => t.spec ? `${t.id}:${t.spec}` : t.id),
+    ['expert-climber', 'extraordinary-recuperation', 'fearsome-reputation', 'rage',
+      'weapon-familiarity-rifles:bowcaster']);
+  // Jedi 1 grants the Lightsaber trait as a class feature. It is a `trait` like the ones
+  // above, so a list picked by feature type rather than by the slot that granted it would
+  // have swept it up — it is not something the species did.
+  check('a class feature is not a species trait',
+    [dW.features.some(f => f.id === 'lightsaber'), dW.speciesTraits.some(t => t.id === 'lightsaber')],
+    [true, false]);
+
+  // Trandoshans get Toughness, which is a feat. It belongs under Feats on the sheet and
+  // must not also be listed as a trait, or a character holds one thing in two places.
+  const trandoshan = make(x => {
+    x.speciesId = 'trandoshan';
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const dT = computeCharacter(trandoshan);
+  check('a species-granted feat stays a feat',
+    [dT.feats.some(f => f.id === 'toughness'), dT.speciesTraits.some(t => t.id === 'toughness')],
+    [true, false]);
+
+  // A Near-Human's chosen trait and cosmetic variations come through species-trait slots
+  // of their own, so they belong here with the rest.
+  const nearHuman = make(x => {
+    x.speciesId = 'near-human';
+    x.levels = [{ classId: 'soldier' }];
+    x.nearHuman = { trait: NEAR_HUMAN.mechanical[0], sacrifice: 'feat', cosmetic: [NEAR_HUMAN.cosmetic[0]] };
+  });
+  const dN = computeCharacter(nearHuman);
+  check('a Near-Human\'s chosen and cosmetic traits are species traits',
+    dN.speciesTraits.map(t => t.id),
+    [NEAR_HUMAN.mechanical[0], NEAR_HUMAN.cosmetic[0]]);
+
+  // A Human has none at all, and an empty list is what the sheet drops the group on.
+  check('a Human has no species traits',
+    computeCharacter(make(x => { x.speciesId = 'human'; x.levels = [{ classId: 'soldier' }]; })).speciesTraits.length, 0);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ Multiclass: Jedi 7 / Jedi Knight 3');
 // ---------------------------------------------------------------------------
 {
