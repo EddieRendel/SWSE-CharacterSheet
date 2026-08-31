@@ -3653,6 +3653,88 @@ console.log('\n▸ Combined Feats');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ Actions in combat');
+// ---------------------------------------------------------------------------
+{
+  // rules.json reaches the app through an `as unknown as` cast, so the compiler checks none
+  // of this: a misspelt key is `undefined` at runtime and a clean build. These assertions are
+  // the only guard on the block, not a second one.
+  const { book, kinds, list } = RULES.actions;
+  const kindIds = new Set(kinds.map(k => k.id));
+  const every = [...kinds, ...list];
+
+  check('the six kinds, in the order the buttons take from them',
+    kinds.map(k => k.id),
+    ['standard', 'move', 'swift', 'full-round', 'free', 'reaction']);
+  check('every action carries its rules text',
+    list.filter(a => !a.description?.length).map(a => a.id), []);
+  check('every action names at least one kind',
+    list.filter(a => !a.kinds?.length).map(a => a.id), []);
+  // A kind that does not exist is an action no button can ever reach.
+  check('and every kind it names is one of the six',
+    list.flatMap(a => a.kinds).filter(k => !kindIds.has(k)), []);
+  check('no action lists one kind twice',
+    list.filter(a => new Set(a.kinds).size !== a.kinds.length).map(a => a.id), []);
+  // Both arrays render with the id as the React key.
+  check('no two actions share an id',
+    list.map(a => a.id).filter((id, i, all) => all.indexOf(id) !== i), []);
+  check('and no kind id collides with an action id',
+    kinds.map(k => k.id).filter(id => list.some(a => a.id === id)), []);
+
+  // A button that opens an empty dialog is worse than no button. Free Actions and Reactions
+  // have no list of their own — the book describes the kind and stops — so what each kind
+  // owes is *something* to read, not necessarily entries.
+  check('every kind has something to show',
+    kinds.filter(k => !k.description.length && !list.some(a => a.kinds.includes(k.id))).map(k => k.id), []);
+
+  check('the book they are quoted from is one the app can name', BOOK_NAMES[book] !== undefined, true);
+
+  // `cost` drives the one colour the palette leaves free, at a strength per kind. Out of
+  // range it either washes out to invisible or overshoots the accent it is tinting with.
+  check('every kind says what share of a turn it spends',
+    kinds.filter(k => !Number.isInteger(k.cost) || k.cost < 0 || k.cost > 4).map(k => k.id), []);
+  check('and the ladder runs from the whole turn down to none of it',
+    kinds.map(k => `${k.id}:${k.cost}`),
+    ['standard:3', 'move:2', 'swift:1', 'full-round:4', 'free:0', 'reaction:0']);
+
+  // rules.json is the single definition of the size modifiers, so Grapple's table is named
+  // rather than transcribed a second time under it — and the name has to resolve.
+  check('a named size-modifier table is one this file defines',
+    list.map(a => a.sizeModifiers).filter((id): id is string => !!id)
+      .filter(id => !(id in RULES.sizeModifiers)), []);
+  check('and Grapple names it rather than restating the nine numbers',
+    list.find(a => a.id === 'grapple')?.sizeModifiers, 'grapple');
+  // The prose must not quietly grow its own copy back: the entry says the modifiers "are as
+  // follows" and then leaves off, with the table coming from sizeModifiers.grapple.
+  check('and its text carries no size table of its own',
+    list.find(a => a.id === 'grapple')!.description.filter(l => /Colossal|Gargantuan/.test(l)), []);
+
+  // The feats and talents an entry names are ids, so they open the real rules dialog. An id
+  // that does not resolve is a chip that renders nothing and says nothing about why.
+  check('every feature an action names is one the app has',
+    list.flatMap(a => a.features ?? []).filter(id => !FEATURES[id]), []);
+  check('and none is listed twice under one action',
+    list.filter(a => a.features && new Set(a.features).size !== a.features.length).map(a => a.id), []);
+  // Only feats and talents are named in this text; a trait or a Force power here would mean a
+  // transcription pointed at the wrong id — `martial-arts-i` and `martial-arts-i-trait` differ
+  // by a suffix, and the trait is a species entry that no character chooses.
+  check('and every one is a feat or a talent',
+    list.flatMap(a => a.features ?? []).filter(id => FEATURES[id]
+      && FEATURES[id].type !== 'feat' && FEATURES[id].type !== 'talent'), []);
+
+  // RulesText hands each line to dangerouslySetInnerHTML. This is the first data in the repo
+  // typed straight into that path rather than arriving through the importer: the sources use
+  // <strong> and <em> and nothing else, and anything further shows as literal markup.
+  const MARKUP = /<(?!\/?(strong|em)>)[^>]*>/;
+  check('the text uses only the inline markup the renderer supports',
+    every.filter(e => e.description.some(l => MARKUP.test(l))).map(e => e.id), []);
+  // One paragraph per string. A stray newline from a paste runs two of them into one <p>,
+  // which reads as a single wall and loses the break the book put there.
+  check('each paragraph is its own string, trimmed',
+    every.filter(e => e.description.some(l => /[\r\n]/.test(l) || l.trim() !== l)).map(e => e.id), []);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ Attack Combo (Fire and Strike) is one feat, not two');
 // ---------------------------------------------------------------------------
 {

@@ -1441,6 +1441,45 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
 /* The last line of the effect sits on the card's own padding. */
 .combo .rules-text p:last-child { margin-bottom: 0; }
 
+/* One generic action of a turn: its name and the paragraphs the book gives it. The same card
+   as `.combo`, for the reason that one's comment gives — a dozen of them stack in the dialog
+   and a dozen `.notice` boxes would be a wall of blue. Its own class rather than `.combo`
+   itself, which means "you hold both halves" and has an `.on` state this has no use for. */
+/* The edge and the wash are both the accent at a strength set by `--cost`, the share of a
+   turn the kind spends: a Full-Round Action is the whole of it and reads strongest, a Free
+   Action or a Reaction costs none and barely tints. One hue at six weights rather than six
+   hues, because green, blue, purple and amber are spoken for — a kind painted blue would be
+   claiming to be a feat. A palette repaints this along with everything else it owns. */
+.turn-action {
+  background:
+    linear-gradient(rgba(var(--accent-rgb), calc(var(--cost, 0) * 0.012)) 0 100%),
+    var(--bg-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17));
+  border-radius: 6px; padding: 8px 10px;
+}
+.turn-action .name { font-size: 13px; font-weight: 600; }
+/* The buttons that open a kind, and the switcher inside, carry the same edge at the same
+   weight — so the row doubles as the legend for what the shading in the dialog means, and
+   these read as reference rather than as more of the modifier toggles above them. */
+button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17)); }
+.turn-action .rules-text p:last-child { margin-bottom: 0; }
+/* The size ladder and what each step adds, rendered from the one place rules.json defines it
+   rather than transcribed a second time into the action's own text. Its own two columns
+   rather than `.tip-rows`, which is a tooltip's table and puts the value first. */
+/* `width: auto` and the border reset are both against the global `table` and `th, td` rules
+   above — this is a short ladder read down, not one of the page's full-width tables. */
+.size-mods { width: auto; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.size-mods th {
+  padding: 0 16px 3px 0; text-align: left;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700;
+  border-bottom: 1px solid var(--border-2);
+}
+.size-mods td { padding: 1px 16px 1px 0; border-bottom: none; color: var(--text-dim); }
+.size-mods tr > :first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+.size-mods tbody tr:first-child td { padding-top: 4px; }
+
 /* One table for everything carried, with the category as a rule across it — three tables
    each repeating WORN / ITEM / QTY / WEIGHT was more chrome than cargo. */
 .kit-head td {
@@ -1459,7 +1498,9 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
 .kit-actions { display: flex; gap: 2px; justify-content: flex-end; }
 
 @media print {
-  .seg, .modifiers, .kit-actions { display: none !important; }
+  /* `.turn-actions` for the same reason as `.modifiers`: print hides every button, and both
+     are a label over a row of them, which on paper would be a heading standing over nothing. */
+  .seg, .modifiers, .kit-actions, .turn-actions { display: none !important; }
   .skill.trained { background: none; }
   .skill > .pip { border-color: #333; }
   .skill > .pip.full { background: #333; }

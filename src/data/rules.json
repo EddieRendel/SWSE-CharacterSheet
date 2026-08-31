@@ -220,5 +220,288 @@
       "stealth",
       "swim"
     ]
+  },
+  "actions": {
+    "book": "core",
+    "kinds": [
+      { "id": "standard", "cost": 3, "name": "Standard Action", "description": [] },
+      { "id": "move", "cost": 2, "name": "Move Action", "description": [] },
+      { "id": "swift", "cost": 1, "name": "Swift Action", "description": [] },
+      { "id": "full-round", "cost": 4, "name": "Full-Round Action", "description": [] },
+      {
+        "id": "free",
+        "cost": 0,
+        "name": "Free Action",
+        "description": [
+          "Free Actions consume almost no time or effort, and you may take one or more Free Actions even when it isn't your turn. Examples include calling out to your friends for help and taunting a foe. The GM puts reasonable limits on what counts as a Free Action.",
+          "Reciting the epic history of the Rodian hunter clans takes several minutes (or more) and therefore isn't a Free Action. You can't take Free Actions when you're Flat-Footed.",
+          "<strong>Additional Free Actions Aren't Free:</strong> Each round, a character can perform a number of Free Actions equal to 1 plus their Charisma modifier or Intelligence modifier (whichever is more; minimum 1 Free Action)."
+        ]
+      },
+      {
+        "id": "reaction",
+        "cost": 0,
+        "name": "Reaction",
+        "description": [
+          "A Reaction is an instantaneous response to someone else's Action, and you can use a Reaction even if it is not your turn. Examples of Reactions include making a Perception check to notice a bounty hunter sneaking up behind you and instantly activating a Force Power to absorb damage from an incoming blaster bolt.",
+          "You may only take a single Reaction to any one Action or effect. A Reaction is always resolved after the Action that triggered it, though some Reactions (such as the Negate Energy Force Power, or the Block and Deflect Talents) can affect the outcomes of the Action that triggers a Reaction."
+        ]
+      }
+    ],
+    "list": [
+      {
+        "id": "attack-melee",
+        "name": "Attack with a Melee Weapon",
+        "kinds": ["standard"],
+        "description": [
+          "With a melee weapon as a Standard Action, you can strike any target in a square you can threaten. Small and Medium characters threaten the squares adjacent to them. Bigger creatures may threaten a larger number of squares, as defined by their Reach.",
+          "<strong>Two-Handed Melee Weapons:</strong> When you wield a melee weapon two-handed, add double your Strength bonus (if any) to the damage. This higher Strength modifier does not apply to Light Weapons (weapons smaller than your size).",
+          "<strong>Improvised Melee Weapons:</strong> Sometimes objects not crafted to be weapons can be used: chairs, bottles, crates, and so on. Because these objects are not designed for such use, characters who use Improvised Melee Weapons are treated as not proficient with them and take a -5 penalty on their attack rolls.",
+          "The GM determines the size and damage dealt by an Improvised Weapon."
+        ]
+      },
+      {
+        "id": "attack-ranged",
+        "name": "Attack with a Ranged Weapon",
+        "kinds": ["standard"],
+        "description": [
+          "With a ranged weapon as a Standard Action, you can throw or shoot at any target within your Line of Sight if there are no obstructions (including other characters) between you and the target. The maximum Range of a ranged weapon depends on the weapon used.",
+          "A ranged weapon can attack a target at Point-Blank, Short, Medium, or Long Range. If you make a Ranged Attack against a target within the weapon's Point-Blank Range, you take no penalty on the attack roll; your penalty on attack rolls increases to -2 at Short Range, -5 at Medium Range, and -10 at Long Range.",
+          "<strong>Improvised Thrown Weapons:</strong> Sometimes objects not crafted to be weapons can be thrown in a dangerous manner: small rocks, vases, pitchers, Lightsabers, and so forth. Because these objects are not designed for such use, characters who use Improvised Thrown Weapons are treated as not proficient with them and take a -5 penalty on their attack rolls.",
+          "The GM determines the size and damage dealt by an Improvised Weapon."
+        ]
+      },
+      {
+        "id": "aid-another",
+        "name": "Aid Another",
+        "kinds": ["standard"],
+        "description": [
+          "As a Standard Action, you can aid an ally's next skill check or attack roll, or you can interfere with an enemy's attacks.",
+          "<strong>Aiding a Skill Check or Ability Check:</strong> You can help another character achieve success on their Skill Check or Ability Check by making the same kind of Skill Check or Ability Check in a cooperative effort. If you roll a 10 or higher on your check, the character you are helping receives a +2 bonus on their own check.",
+          "In combat, you can Aid Another character's attack by forcing an opponent to avoid your own attacks, making it more difficult for them to avoid your ally. Select an opponent and make an attack against a Reflex Defense of 10. If you succeed, you grant a +2 bonus on a single ally's next attack roll against that opponent.",
+          "In combat, you can distract or interfere with an opponent, making their attacks more difficult. Select an opponent and make an attack against a Reflex Defense of 10. If you succeed, that opponent takes a -2 penalty on its next attack roll."
+        ]
+      },
+      {
+        "id": "attack-object",
+        "name": "Attack an Object",
+        "kinds": ["standard"],
+        "description": [
+          "Sometimes you need to Attack an Object such as a door, a control console, or a held weapon, either to destroy it or bypass it. An unattended, immobile Object has a Reflex Defense of 5 + its size modifier. If you hit it with a Standard Action, you deal damage as normal.",
+          "However, an object usually has Damage Reduction (DR), which means that any attack that hits it has its damage reduced by the indicated amount. (Lightsabers ignore an objects' Damage Reduction.) An object reduced to 0 Hit Points is disabled. If the damage that reduces the object to 0 Hit Points also equals or exceeds the object's Damage Threshold, the object is destroyed instead.",
+          "Like characters, objects become increasingly debilitated if they take a lot of damage at once. If an object takes damage from a single attack that equals or exceeds its Damage Threshold, it moves -1 step on the Condition Track. An object that moves -5 steps on the Condition Track is disabled.",
+          "<em>Multiple conditions affect the Defense and DR of an object, read the book for more details.</em>"
+        ]
+      },
+      {
+        "id": "charge",
+        "name": "Charge",
+        "kinds": ["standard"],
+        "description": [
+          "As a Standard Action you can move your Speed (minimum 2 squares) in a straight line, and then make a melee attack at the end of your movement. You gain a +2 competence bonus on your attack roll, but take a -2 penalty to your Reflex Defense until the start of your next turn.",
+          "You cannot Charge through low objects or squares occupied by opponents (allies do not hinder your Charge), and Charging through Difficult Terrain costs twice as much per square as normal. You cannot Tumble during your movement as a part of a Charge.",
+          "After you resolve a Charge, you can take no further Actions this turn (although other Actions can be taken prior to the Charge)."
+        ]
+      },
+      {
+        "id": "disarm",
+        "name": "Disarm",
+        "kinds": ["standard"],
+        "description": [
+          "As a Standard Action, you may attempt to Disarm an opponent, forcing them to drop one weapon (or object) that they are holding.",
+          "Make a normal melee attack roll against your opponent, who gets a +10 bonus to their Reflex Defense during this Action. If your opponent is holding the weapon with more than one hand, you take a -5 penalty on your attack roll to Disarm them, per additional hand grasping the weapon.",
+          "If the attack succeeds, your opponent is Disarmed. If you successfully Disarm your opponent with an Unarmed Attack, you can take the Disarmed weapon (or object). Otherwise, it falls on the ground at your opponent's feet (inside their Fighting Space).",
+          "If your Disarm attack fails, your opponent can immediately make a free attack against you."
+        ],
+        "features": ["improved-disarm", "ranged-disarm"]
+      },
+      {
+        "id": "fight-defensively",
+        "name": "Fight Defensively",
+        "kinds": ["standard"],
+        "description": [
+          "As a Standard Action, you can concentrate more on protecting yourself than hurting your enemies. You can take a -5 penalty on your attack rolls and gain a +2 dodge bonus to your Reflex Defense until the start of your next turn.",
+          "<strong>Total Defense:</strong> If you choose to make no Attacks until your next turn (not even Attacks of Opportunity), you gain a +5 dodge bonus to your Reflex Defense until the start of your next turn.",
+          "<strong>Acrobatics:</strong> If you are Trained in the Acrobatics skill, you instead gain a +5 dodge bonus to your Reflex Defense when you Fight Defensively, or a +10 dodge bonus if you choose to make no Attacks."
+        ]
+      },
+      {
+        "id": "grab",
+        "name": "Grab",
+        "kinds": ["standard"],
+        "description": [
+          "As a Standard Action, you can make a Grab Attack. A Grab Attack is treated as an Unarmed Attack (thus provoking Attacks of Opportunity without the Martial Arts I feat), except that it doesn't deal damage and you take a -5 penalty on the attack roll. You can only Grab an opponent up to one size category larger than yourself, and only one opponent at a time.",
+          "Until it breaks the Grab, a Grabbed creature takes a -2 penalty on attack rolls unless it uses a Natural Weapon or a Light Weapon. Additionally, it cannot Move until it breaks the Grab.",
+          "Breaking the Grab is a Standard Action, and automatically clears one grabber per Character Level. (The Grabbed creature chooses which grabbers it clears if there are any left over.)"
+        ],
+        "features": ["martial-arts-i"]
+      },
+      {
+        "id": "grapple",
+        "name": "Grapple",
+        "kinds": ["standard"],
+        "sizeModifiers": "grapple",
+        "description": [
+          "A Grapple Attack is an improved version of the Grab. You can only make a Grapple Attack (a Standard Action) if you have a Grappling Feat (such as Pin or Trip). You can only Grapple an opponent up to one size category larger than you, and only one opponent at a time.",
+          "A Grappling Attack is treated as an Unarmed Attack (thus provoking Attacks of Opportunity without the Martial Arts I feat), except that it deals no Damage. If the Grappling Attack hits, you and the target immediately make opposed Grapple checks. A Grapple check is: 1d20 + Base Attack Bonus + Strength or Dexterity modifier (whichever is higher) + size modifier.",
+          "If your check result equals or exceeds the target's check result, the target is Grappled.",
+          "The effects of a Grapple depend on the specific Feat or combination of Feats you are using (for example; Pin, Pin and Crush, Trip, or Trip and Throw).",
+          "Alternatively, if you are armed with a Light Weapon, you may deal damage with that weapon if you win the opposed Grapple check; no attack roll is necessary.",
+          "Size modifiers for Grapple checks are as follows:"
+        ],
+        "features": ["martial-arts-i", "pin", "crush", "trip", "throw"]
+      },
+      {
+        "id": "move-your-speed",
+        "name": "Move",
+        "kinds": ["move"],
+        "description": [
+          "You can Move up to your Speed as a Move Action. Even Moving 1 square is considered a Move Action. Nonstandard modes of movement are also covered by this type of Action, such as Climb or Ride.",
+          "Moving Diagonally costs double. When Moving or counting along a diagonal path, each diagonal step counts as 2 squares. If a character moves diagonally through Low Objects or Difficult Terrain, the cost of movement doubles twice (that is, each square counts as 4 squares). A character can't make Diagonal Movement past the corner or end of a wall that extends to a grid center.",
+          "You can Move through a space occupied by any character, creature, or Droid that doesn't consider you an opponent.",
+          "You can move through a square occupied by an enemy that doesn't present an obstacle, such as one who is Dead, Unconscious, or Disabled.",
+          "Any character can move through a space occupied by an enemy three or more size categories larger or smaller than the Moving character.",
+          "A character Trained in Acrobatics can attempt to Tumble through an enemy's Fighting Space.",
+          "<strong>Tumble:</strong> If you succeed a DC 15 Acrobatics check, you can Tumble through the Threatened Area or Fighting Space of an enemy as part of your Move Action without provoking an Attack of Opportunity. Each threatened or occupied square that you Tumble through counts as 2 squares of movement."
+        ]
+      },
+      {
+        "id": "draw-or-holster",
+        "name": "Draw or Holster a Weapon",
+        "kinds": ["move"],
+        "description": [
+          "Drawing or Holstering a Weapon is a Move Action. If you are proficient in a weapon's use, Drawing the weapon always includes any action necessary to activate the weapon (thus, a Lightsaber can be Drawn and activated as a single Move Action if you are proficient with the weapon).",
+          "If you have the Quick Draw feat, you can Draw or Holster a Weapon as a Swift Action instead of a Move Action."
+        ],
+        "features": ["quick-draw"]
+      },
+      {
+        "id": "manipulate-an-item",
+        "name": "Manipulate an Item",
+        "kinds": ["move"],
+        "description": [
+          "Manipulating an Item includes picking up an item, loading a weapon, opening a door, or moving a heavy object; doing any of these is a Move Action.",
+          "Retrieving a Stored Item out of a backpack, carrying case, or other closed containers requires two Move Actions, one to open the container, and one to get the item. Holsters, Utility Belts, and Bandoliers are not considered to be closed containers for the purpose of this type of action."
+        ]
+      },
+      {
+        "id": "stand-up",
+        "name": "Stand Up",
+        "kinds": ["move"],
+        "description": [
+          "Standing Up from a Prone position requires a Move Action.",
+          "If you are Trained in the Acrobatics skill, you can stand up from a Prone position as a Swift Action with a successful DC 15 Acrobatics check."
+        ]
+      },
+      {
+        "id": "withdraw",
+        "name": "Withdraw",
+        "kinds": ["move"],
+        "description": [
+          "You can Withdraw from combat as a Move Action. To Withdraw, the first 1 square of your movement must take you out of your opponent's Threatened Area by the shortest possible route. If you must move more than 1 square to escape the Threatened Area, you can't Withdraw. You can Move normally in order to escape an opponent, but you provoke an Attack of Opportunity when doing so.",
+          "Once you clear the Threatened Area, you may continue to move, up to a total of half your Speed. You can Withdraw from more than one opponent in the same action, but only if you can clear all Threatened Areas in your first 1 square of movement.",
+          "Withdrawing protects you from Attacks of Opportunity during your first square of movement, but you may provoke Attacks of Opportunity later in your turn (for example, you may move through another character's Threatened Area)."
+        ]
+      },
+      {
+        "id": "activate-an-item",
+        "name": "Activate an Item",
+        "kinds": ["swift"],
+        "description": [
+          "A Swift Action allows you to Activate an Item. Starting a Vehicle, turning on a computer, and lighting a fusion lantern are all examples of Activating an Item."
+        ]
+      },
+      {
+        "id": "aim",
+        "name": "Aim",
+        "kinds": ["swift"],
+        "description": [
+          "You can take two consecutive Swift Actions in the same round to more carefully line up a ranged attack. When you do so, you ignore all Cover bonuses to your target's Reflex Defense on your next attack. You still must have Line of Sight to the target, however.",
+          "You lose the benefits of Aiming if you lose line of sight to your target or if you take any other Action before making your attack. Aiming provides no benefit when making an Area Attack.",
+          "If you have the Careful Shot feat, you gain a +1 bonus on your ranged attack roll when you take the time to Aim first.",
+          "If you have the Deadeye feat, you deal an extra die of damage when you take the time to Aim first."
+        ],
+        "features": ["careful-shot", "deadeye"]
+      },
+      {
+        "id": "catch-a-second-wind",
+        "name": "Catch a Second Wind",
+        "kinds": ["swift"],
+        "description": [
+          "If you are reduced to one-half your maximum Hit Points or less, you can Catch a Second Wind as a Swift Action. You can only Catch a Second Wind once per day. Only Heroic characters can Catch a Second Wind; Nonheroic characters, objects, devices, and Vehicles cannot.",
+          "This Action heals one-quarter of your full Hit Point total (rounded down) or a number of points equal to your Constitution score, whichever is greater. You can Catch a Second Wind only once per day.",
+          "Certain Feats or Talents may allow you to Catch a Second Wind more often, but never more than once in a single encounter."
+        ]
+      },
+      {
+        "id": "drop-an-item",
+        "name": "Drop an Item",
+        "kinds": ["swift"],
+        "description": [
+          "Dropping an Item is a Swift Action (but picking one up is a Move Action). You can Drop an Item so that it falls on the ground in your Fighting Space or lands in an adjacent square."
+        ]
+      },
+      {
+        "id": "fall-prone",
+        "name": "Fall Prone",
+        "kinds": ["swift"],
+        "description": [
+          "A Prone character takes a -5 penalty on melee attack rolls. Melee attacks made against a Prone character gain a +5 bonus, while ranged attacks against a Prone character take a -5 penalty.",
+          "Being Prone may also give a character Total Cover instead of normal Cover (for example, being Prone behind a low wall), subject to the GM's discretion.",
+          "If you are Trained in the Acrobatics skill, you can Fall Prone as a Free Action with a successful DC 15 Acrobatics check."
+        ]
+      },
+      {
+        "id": "recover",
+        "name": "Recover",
+        "kinds": ["swift"],
+        "description": [
+          "You can spend three Swift Actions in the same round or across consecutive rounds to move +1 step on the Condition Track. You cannot use the Recover Action while afflicted by a Persistent Condition."
+        ]
+      },
+      {
+        "id": "switch-weapon-mode",
+        "name": "Switch Weapon Mode",
+        "kinds": ["swift"],
+        "description": [
+          "Some weapons have multiple weapon modes. Examples include the Blaster Pistol, which has both a lethal setting and a Stun setting, and a Blaster Carbine, which has both a single-shot mode and an Autofire mode.",
+          "Switching to another weapon mode takes a Swift Action."
+        ]
+      },
+      {
+        "id": "coup-de-grace",
+        "name": "Coup de Grace",
+        "kinds": ["full-round"],
+        "description": [
+          "As a Full-Round Action, you can use a melee weapon to deliver a Coup de Grace to a Helpless target. You can also use a ranged weapon, provided you are adjacent to the target. You automatically score a Critical Hit, dealing double damage.",
+          "A defender reduced to 0 Hit Points by a Coup de Grace dies instantly, or, in the case of a Droid, is destroyed.",
+          "An unconscious or disabled defender hit by a Coup de Grace also dies or is destroyed instantly. You can't deliver a Coup de Grace against a Vehicle or object."
+        ]
+      },
+      {
+        "id": "full-attack",
+        "name": "Full Attack",
+        "kinds": ["full-round"],
+        "description": [
+          "As a Full-Round Action, you can make more than one attack. To gain extra attacks, you must be wielding two weapons, wielding a double weapon, or using a special ability that grants extra attacks. When making multiple attacks, you may resolve your attacks in any order desired, declaring the target of each attack immediately before making the attack roll.",
+          "Extra attacks granted from different sources are cumulative. Any penalties associated with gaining an extra attack apply to all attacks that the character makes until the start of their next turn."
+        ],
+        "features": [
+          "double-attack", "triple-attack",
+          "dual-weapon-mastery-i", "dual-weapon-mastery-ii", "dual-weapon-mastery-iii"
+        ]
+      },
+      {
+        "id": "run",
+        "name": "Run",
+        "kinds": ["full-round"],
+        "description": [
+          "You can Run as a Full-Round Action. When you Run, you can move up to four times your Speed in a straight line (or three times your Speed in a straight line if you are wearing Heavy Armor or carrying a Heavy Load).",
+          "You lose any Dexterity bonus to your Reflex Defense while you're Running, since you can't actively avoid attacks.", "You can run for a number of rounds equal to your Constitution score without any trouble. If you want to continue Running after that, you must succeed on a DC 10 Endurance check.",
+          "You must check again each round in which you continue to Run, and the DC of the Endurance check increases by 1 for each previous check you made.",
+          "When you fail a check, you move -1 Persistent step on the Condition Track. You can only remove this Persistent Condition by resting for the same length of time that you were Running. During this rest period, you can only Move at your normal Speed."
+        ]
+      }
+    ]
   }
 }

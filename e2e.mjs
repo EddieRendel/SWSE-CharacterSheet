@@ -481,6 +481,93 @@ await step('every hover card stays inside the window', async () => {
   if (offscreen.length) throw new Error(`${offscreen.length} cut off: ${offscreen.slice(0, 3).join('; ')}`);
   console.log(`       ${checked} hover cards, all on screen (${JSON.stringify(places)})`);
 });
+
+// What a turn holds, which is the same for everyone and so takes no character to test.
+await step('the turn actions open, switch kind and close', async () => {
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+
+  const bar = panel.locator('.turn-actions');
+  const kinds = await bar.locator('button').count();
+  if (kinds !== 6) throw new Error(`expected six kinds of action, got ${kinds}`);
+
+  await bar.locator('button:has-text("Standard")').click();
+  const modal = page.locator('.modal');
+  await modal.waitFor();
+  if (await modal.locator('.turn-action').count() === 0) throw new Error('no actions listed');
+  const standard = (await modal.textContent()).replace(/\s+/g, ' ');
+
+  // The switcher moves between kinds inside the one dialog rather than opening a second.
+  await modal.locator('button:has-text("Reaction")').click();
+  await page.waitForFunction(
+    prev => document.querySelector('.modal').textContent.replace(/\s+/g, ' ') !== prev,
+    standard, { timeout: 3000 });
+  if (await page.locator('.modal').count() !== 1) throw new Error('switching opened a second dialog');
+
+  // Escape closes it through the shared dismiss stack rather than a handler of its own.
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
+
+// The feats an entry names open the same rules dialog as everywhere else, over the top of the
+// actions rather than in place of them — which is the modal stack doing its job.
+await step('a feat named by an action opens its rules, and Escape closes only that', async () => {
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+  await panel.locator('.turn-actions button:has-text("Full-Round")').click();
+  await page.waitForSelector('.modal');
+
+  await page.locator('.turn-action:has-text("Full Attack") .chip:has-text("Double Attack")').click();
+  await page.waitForFunction(() => document.querySelectorAll('.modal').length === 2);
+
+  // Prerequisites are the whole reason for the link: an entry that says "if you have the
+  // feat" is no help to someone who cannot remember whether they qualify.
+  const rules = page.locator('.modal').last();
+  if (!/Prerequisites/i.test(await rules.textContent())) {
+    throw new Error('the rules dialog does not state prerequisites');
+  }
+
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.querySelectorAll('.modal').length === 1);
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
+
+// The one thing the wrapping row buys over a `.seg`: six labels run past a phone's width, and
+// a `.seg` hides its overflow rather than scrolling it, so the last two would be unreachable
+// with nothing on screen to say they were there.
+await step('all six kinds stay reachable at 320px', async () => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+  await panel.locator('.turn-actions button:has-text("Standard")').click();
+  await page.waitForSelector('.modal');
+
+  const geo = await page.evaluate(() => {
+    const modal = document.querySelector('.modal');
+    const buttons = [...modal.querySelectorAll('.row button')];
+    return {
+      wide: modal.scrollWidth > modal.clientWidth + 0.5,
+      offscreen: buttons.filter(b => {
+        const r = b.getBoundingClientRect();
+        return r.width === 0 || r.right > window.innerWidth + 0.5 || r.left < -0.5;
+      }).length,
+      switchers: buttons.length,
+    };
+  });
+  if (geo.wide) throw new Error('the dialog scrolls sideways');
+  if (geo.offscreen) throw new Error(`${geo.offscreen} of ${geo.switchers} switcher buttons are off screen`);
+
+  await page.click('.modal header button');
+  await page.waitForSelector('.modal', { state: 'detached' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+});
 // The sheet is read in three tiers — what changes in play, what you are rolled against,
 // and what is simply true — and each is drawn its own way, so each is scraped its own way.
 await step('the sheet reads in three tiers', async () => {

@@ -101,6 +101,69 @@ export interface FeatCombo {
   summaryOnly?: boolean;
 }
 
+/**
+ * One kind of action a turn is spent on, and one generic action of that kind — the Core
+ * Rulebook's Actions in Combat, transcribed.
+ *
+ * None of it is character-specific and nothing derives from it: the engine never reads these,
+ * the sheet only shows them, the way `RULES.defenses` is shown rather than computed with. It
+ * answers the question the sheet could not before — how much do I get to do in a turn — which
+ * is the same for everybody at the table.
+ */
+export interface TurnActionKind {
+  id: string;
+  name: string;
+  page?: number;
+  /**
+   * How much of a turn this kind spends: 4 for a Full-Round Action, which is all of it, down
+   * to 0 for a Free Action or a Reaction, which cost none and can happen when it is not even
+   * your turn.
+   *
+   * The books print no such number — it is the ladder the kinds already form, written down so
+   * the sheet can shade them by weight. The palette leaves only the accent to spend (green,
+   * blue, purple and amber all mean something else), so the one colour is spent at six
+   * strengths rather than six colours being invented.
+   */
+  cost: number;
+  /** The book's own framing: how many of this kind a turn holds, and what trades for what. */
+  description: string[];
+}
+
+export interface TurnAction {
+  id: string;
+  name: string;
+  /**
+   * Every kind this is listed under, in the book's order.
+   *
+   * Plural because the book files some actions under two headings — aiming is a swift action
+   * or a move action. A single-valued `kind` would force the same quoted paragraph into two
+   * entries, and two copies of book text that must stay in step is the thing quoting it
+   * rather than paraphrasing it is meant to avoid.
+   */
+  kinds: string[];
+  page?: number;
+  description: string[];
+  /**
+   * A block of `RULES.sizeModifiers` to show under the text, named rather than restated.
+   *
+   * Grapple's entry ends "size modifiers for Grapple checks are as follows" and then a table
+   * this file already holds — and rules.json is the single definition of the size modifiers.
+   * Transcribing the numbers a second time would leave two copies to correct, so the entry
+   * names the block and the dialog renders it.
+   */
+  sizeModifiers?: string;
+  /**
+   * Feats and talents the entry names, as ids — Disarm points at Improved Disarm, Full Attack
+   * at Double and Triple Attack.
+   *
+   * Listed rather than marked up inside the prose: the text is transcribed from the book and
+   * threading anchors through it would mean editing a quotation, and `RulesText` hands each
+   * line to `dangerouslySetInnerHTML` with nothing wired to a click. As ids they open the same
+   * rules dialog as everywhere else, prerequisites included, and a test can check they resolve.
+   */
+  features?: string[];
+}
+
 export interface Feature {
   id: string;
   name: string;
