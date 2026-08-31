@@ -618,9 +618,12 @@ export function Sheet({
           </Panel>
 
           {/* Framed like its neighbours but untoned — a rounded panel down here would be the
-              only one left from the old styling. */}
+              only one left from the old styling. `print-only` keeps it off the screen sheet:
+              it is the player's own prose, already editable on the Character page, and on
+              screen it sat under everything they came here to read. It is still on the
+              printout, which is where a character's notes earn their place. */}
           {(char.traits.background || char.traits.appearance || char.traits.personality || char.notes) && (
-            <Panel title="Notes" className="reference framed">
+            <Panel title="Notes" className="reference framed print-only">
               {char.traits.appearance && <p><strong>Appearance.</strong> {char.traits.appearance}</p>}
               {char.traits.personality && <p><strong>Personality.</strong> {char.traits.personality}</p>}
               {char.traits.background && <p><strong>Background.</strong> {char.traits.background}</p>}

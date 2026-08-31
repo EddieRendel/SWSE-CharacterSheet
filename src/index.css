@@ -1497,10 +1497,16 @@ button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(-
 .kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
 .kit-actions { display: flex; gap: 2px; justify-content: flex-end; }
 
+/* Kept out of the screen sheet and put back for print. On screen it is a wall of the
+   player's own prose under everything they came to the page to read, and it is already on the
+   Character page where it is written; on paper it is what the back of a sheet is for. */
+.print-only { display: none; }
+
 @media print {
   /* `.turn-actions` for the same reason as `.modifiers`: print hides every button, and both
      are a label over a row of them, which on paper would be a heading standing over nothing. */
   .seg, .modifiers, .kit-actions, .turn-actions { display: none !important; }
+  .print-only { display: block; }
   .skill.trained { background: none; }
   .skill > .pip { border-color: #333; }
   .skill > .pip.full { background: #333; }

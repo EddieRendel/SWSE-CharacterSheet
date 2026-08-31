@@ -568,6 +568,32 @@ await step('all six kinds stay reachable at 320px', async () => {
   await page.waitForSelector('.modal', { state: 'detached' });
   await page.setViewportSize({ width: 1440, height: 1000 });
 });
+
+// Notes are the player's own prose: already written on the Character page, and on the screen
+// sheet they sat under everything the page is actually read for. They belong on the printout,
+// so they are hidden by media rather than dropped from the markup — and the row of action
+// buttons is the same trade the other way round.
+await step('notes print but do not render on screen', async () => {
+  // The panel only exists once there is something to put in it, so write a note first —
+  // which also proves the Character page is still where notes are entered.
+  await page.click('.tabs button:has-text("Character")');
+  await page.fill('.field:has(label:text-is("Notes")) textarea', 'Owes Dova a life debt.');
+  await page.click('.tabs button:has-text("Sheet")');
+
+  const notes = page.locator('.panel:has(h2:text-is("Notes"))');
+  await notes.waitFor({ state: 'attached' });
+  if (await notes.isVisible()) throw new Error('notes are showing on the screen sheet');
+
+  await page.emulateMedia({ media: 'print' });
+  try {
+    if (!await notes.isVisible()) throw new Error('notes are missing from the printout');
+    if (await page.locator('.turn-actions').isVisible()) {
+      throw new Error('the action buttons print, leaving a heading over nothing');
+    }
+  } finally {
+    await page.emulateMedia({ media: 'screen' });
+  }
+});
 // The sheet is read in three tiers — what changes in play, what you are rolled against,
 // and what is simply true — and each is drawn its own way, so each is scraped its own way.
 await step('the sheet reads in three tiers', async () => {
