@@ -1,4 +1,5 @@
 import { chromium, devices } from 'playwright';
+import { readFileSync } from 'node:fs';
 
 const errors = [];
 const browser = await chromium.launch();
@@ -379,6 +380,38 @@ await step('a heavy load slows you down and is explained on hover', async () => 
   const stealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
   if (!(stealth < unloadedStealth)) throw new Error(`Stealth did not drop: ${unloadedStealth} -> ${stealth}`);
   console.log(`       ${after} — speed ${unloadedSpeed} to ${speed}, Stealth ${unloadedStealth} to ${stealth}`);
+
+  await quantity.fill('1');
+  await quantity.blur();
+});
+
+// The box used to hold a number and write `parseInt(field) || 1` straight back into it, so
+// backspacing over a count left a 1 sitting there and the next digit typed joined that 1
+// rather than replacing it. Clearing it was impossible and 0 was unreachable, which is a
+// state the rules have — you can carry a thing and be out of it.
+await step('a quantity can be cleared, retyped, and taken to none', async () => {
+  const box = page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
+  await box.locator('header button:has-text("Equipment")').click();
+  const quantity = box.locator('tbody input.mono').last();
+
+  await quantity.fill('');
+  const cleared = await quantity.inputValue();
+  if (cleared !== '') throw new Error(`clearing the box left "${cleared}" in it`);
+
+  // A key at a time rather than `fill`, which would hide a box that snapped back between
+  // keystrokes — that snapping back is the whole bug.
+  await quantity.pressSequentially('7');
+  const typed = await quantity.inputValue();
+  if (typed !== '7') throw new Error(`typing 7 into a cleared box gave "${typed}"`);
+
+  await quantity.fill('0');
+  await quantity.blur();
+  await page.waitForTimeout(150);
+  const zeroed = await quantity.inputValue();
+  if (zeroed !== '0') throw new Error(`a count of none came back as "${zeroed}"`);
+  if (!(await page.locator('tr:has-text("Jet Pack")').count())) {
+    throw new Error('the row went away with the last copy instead of staying at none');
+  }
 
   await quantity.fill('1');
   await quantity.blur();
@@ -950,6 +983,229 @@ await step('a species can be chosen by touch alone', async () => {
   await phone.locator('.modal footer button.primary').tap();
   await phone.waitForSelector('.modal', { state: 'detached' });
   await phone.waitForSelector('.panel:has-text("Wookiee")');
+});
+
+// A field that raises the full alphabetic keyboard to take a number costs a tap on the
+// layout switch every time it is touched. Checked on the ability scores, which are the
+// first numbers a character gets and the ones typed most.
+await step('numeric fields raise the number pad, not the alphabet', async () => {
+  await phone.locator('.tabs button:has-text("Edit")').tap();
+  await phone.waitForSelector('input.mono');
+  const modes = await phone.evaluate(() => [...document.querySelectorAll('input.mono')]
+    .map(i => i.inputMode || i.getAttribute('inputmode') || '(none)'));
+  if (!modes.length) throw new Error('no numeric fields on screen to check');
+  const wrong = modes.filter(m => m !== 'numeric' && m !== 'decimal');
+  if (wrong.length) throw new Error(`${wrong.length} of ${modes.length} raise the alphabet: ${wrong.join(', ')}`);
+  console.log(`       ${modes.length} numeric fields, all on the number pad`);
+});
+
+// The same clearing bug as the gear quantity, on the field it was reported against second.
+// An ability score clamped on every keystroke could not be backspaced: it snapped to 1.
+// Swept across all three tabs rather than on one screen: the controls that were under the
+// threshold ranged from a 24px `button.sm` to a 35px plain button, and they do not all
+// appear on the same page.
+await step('nothing is tapped at less than 44px, on any tab', async () => {
+  const bad = [];
+  for (const [i, name] of ['Character', 'Edit', 'Sheet'].entries()) {
+    await phone.locator('.tabs button').nth(i).tap();
+    await phone.waitForTimeout(300);
+    bad.push(...await phone.evaluate(tab => [...document.querySelectorAll('button, input, select')]
+      .filter(el => el.type !== 'checkbox' && el.type !== 'file')
+      .map(el => ({ el, b: el.getBoundingClientRect() }))
+      .filter(({ b }) => b.width && b.height && b.height < 44)
+      .map(({ el, b }) => `${tab}: ${el.tagName.toLowerCase()}.${[...el.classList].join('.') || '(none)'} ${Math.round(b.height)}px`),
+      name));
+  }
+  if (bad.length) throw new Error(`${bad.length} under-sized targets: ${[...new Set(bad)].slice(0, 8).join('; ')}`);
+});
+
+// The type ladder is fixed px and no width query touches it, so the only thing keeping the
+// smallest labels legible on a phone is the coarse-pointer override of the tokens.
+await step('and nothing is read at less than 11px', async () => {
+  const bad = [];
+  for (const [i, name] of ['Character', 'Edit', 'Sheet'].entries()) {
+    await phone.locator('.tabs button').nth(i).tap();
+    await phone.waitForTimeout(300);
+    bad.push(...await phone.evaluate(tab => {
+      const out = [], walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = walk.nextNode());) {
+        if (!n.textContent.trim()) continue;
+        const el = n.parentElement;
+        if (!el.getBoundingClientRect().height) continue;
+        const fs = parseFloat(getComputedStyle(el).fontSize);
+        if (fs < 11) out.push(`${tab}: ${el.tagName.toLowerCase()}.${[...el.classList].join('.') || '(none)'} ${fs}px`);
+      }
+      return out;
+    }, name));
+  }
+  if (bad.length) throw new Error(`${bad.length} runs of text under 11px: ${[...new Set(bad)].slice(0, 8).join('; ')}`);
+});
+
+// 320px is the floor, and it was only ever checked on one open dialog. The pages behind it
+// are what the character is actually read on.
+await step('no page scrolls sideways at 320px', async () => {
+  await phone.setViewportSize({ width: 320, height: 568 });
+  for (const [i, name] of ['Character', 'Edit', 'Sheet'].entries()) {
+    await phone.locator('.tabs button').nth(i).tap();
+    await phone.waitForTimeout(300);
+    const over = await phone.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    if (over > 0) throw new Error(`the ${name} tab overflows by ${over}px at 320px`);
+  }
+  await phone.setViewportSize({ width: 390, height: 664 });
+});
+
+await step('an ability score can be cleared and retyped', async () => {
+  await phone.locator('.tabs button').nth(1).tap();
+  await phone.waitForSelector('input.mono');
+  const score = phone.locator('input.mono').first();
+  await score.fill('');
+  const cleared = await score.inputValue();
+  if (cleared !== '') throw new Error(`clearing the box left "${cleared}" in it`);
+  await score.pressSequentially('14');
+  const typed = await score.inputValue();
+  if (typed !== '14') throw new Error(`typing 14 into a cleared box gave "${typed}"`);
+  // The floor only applies once the player is done, not between keystrokes.
+  await score.fill('');
+  await score.blur();
+  const settled = await score.inputValue();
+  if (settled !== '1') throw new Error(`an emptied score settled at "${settled}" rather than its floor of 1`);
+});
+
+// The whole point of the shell coming apart on touch. A mobile browser retracts its
+// toolbars only when the document scrolls, and the document never did: `.content` was an
+// inner scroller, so the page sat at exactly one screen tall and the ~130px of browser
+// chrome was spent for the whole session. Emulation has no toolbars to watch retract, but it
+// can be held to the thing that lets them: the document, not a div, is what scrolls.
+await step('the page itself scrolls, so the browser can put its toolbars away', async () => {
+  await phone.locator('.tabs button').nth(2).tap();
+  await phone.waitForTimeout(300);
+  const shell = await phone.evaluate(() => ({
+    contentOverflowY: getComputedStyle(document.querySelector('.content')).overflowY,
+    tabs: getComputedStyle(document.querySelector('.tabs')).position,
+    scrollable: document.scrollingElement.scrollHeight - window.innerHeight,
+  }));
+  if (shell.contentOverflowY !== 'visible') {
+    throw new Error(`.content is still an inner scroller (overflow-y: ${shell.contentOverflowY})`);
+  }
+  if (shell.scrollable <= 0) throw new Error('the document has nothing to scroll, so nothing proves it can');
+  if (shell.tabs !== 'sticky') throw new Error(`the tabs would scroll away (position: ${shell.tabs})`);
+
+  // The topbar is the space this buys back; the tabs are the only way between the pages.
+  await phone.evaluate(() => window.scrollTo(0, 220));
+  await phone.waitForTimeout(150);
+  const at = await phone.evaluate(() => ({
+    tabsTop: Math.round(document.querySelector('.tabs').getBoundingClientRect().top),
+    topbarTop: Math.round(document.querySelector('.topbar').getBoundingClientRect().top),
+  }));
+  if (at.tabsTop !== 0) throw new Error(`the tabs did not stick (top ${at.tabsTop})`);
+  if (at.topbarTop >= 0) throw new Error('the topbar did not scroll away, so nothing was reclaimed');
+});
+
+// Now that the document scrolls, an overlay is something a flick reaches straight through.
+await step('the page holds still behind a dialog, and comes back where it was', async () => {
+  const panel = phone.locator('.panel').filter({ has: phone.locator('header button:has-text("Actions")') });
+  await panel.locator('header button:has-text("Actions")').tap();
+  await phone.locator('.turn-actions button:has-text("Standard")').tap();
+  await phone.waitForSelector('.modal');
+
+  // Read where it pinned rather than where the page was before the taps: `tap` scrolls its
+  // target into view first, so the interesting number is the one the lock itself recorded.
+  const pinned = await phone.evaluate(() => ({
+    position: document.body.style.position,
+    top: Math.round(-parseFloat(document.body.style.top || '0')),
+  }));
+  if (pinned.position !== 'fixed') throw new Error('the page behind the dialog is still free to scroll');
+  if (!(pinned.top > 0)) throw new Error(`nothing to restore — the lock pinned at ${pinned.top}`);
+
+  await phone.locator('.modal header button[aria-label="Close"]').tap();
+  await phone.waitForSelector('.modal', { state: 'detached' });
+  await phone.waitForTimeout(200);
+  const after = await phone.evaluate(() => Math.round(window.scrollY));
+  // Without the saved offset this is the jump-to-top that `position: fixed` costs you.
+  if (Math.abs(after - pinned.top) > 2) throw new Error(`the sheet came back at ${after}, not ${pinned.top}`);
+});
+
+// The backdrop used to close on the press alone, so a flick to scroll dismissed the dialog
+// the moment the finger landed on it — before it had moved anywhere.
+await step('a flick that starts on the backdrop scrolls rather than closing', async () => {
+  const panel = phone.locator('.panel').filter({ has: phone.locator('header button:has-text("Actions")') });
+  await panel.locator('header button:has-text("Actions")').tap();
+  await phone.locator('.turn-actions button:has-text("Standard")').tap();
+  await phone.waitForSelector('.modal');
+
+  const drag = async (dy) => phone.evaluate(dyy => {
+    const overlay = document.querySelector('.overlay');
+    const at = (type, y) => overlay.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, clientX: 8, clientY: y, pointerId: 1, pointerType: 'touch',
+    }));
+    at('pointerdown', 300); at('pointerup', 300 + dyy);
+  }, dy);
+
+  await drag(90);
+  await phone.waitForTimeout(150);
+  if (await phone.locator('.modal').count() !== 1) throw new Error('a drag down the backdrop closed the dialog');
+
+  // A tap that stays put is still a dismissal — that is the affordance, not a bug to fix.
+  await drag(0);
+  await phone.waitForSelector('.modal', { state: 'detached' });
+});
+
+// Below 520px the dialog is a sheet standing on the bottom edge, so it has an edge to be
+// pulled back down by — the gesture every other app on the phone uses, and one that needs no
+// aim, unlike a ✕ in the far corner.
+await step('a dialog can be pulled shut, and springs back if the pull is short', async () => {
+  const panel = phone.locator('.panel').filter({ has: phone.locator('header button:has-text("Actions")') });
+  const open = async () => {
+    await panel.locator('header button:has-text("Actions")').tap();
+    await phone.locator('.turn-actions button:has-text("Standard")').tap();
+    await phone.waitForSelector('.modal');
+  };
+  // Driven with the mouse rather than synthesised PointerEvents: the handler takes a real
+  // pointer capture, which only a genuine pointer can be given.
+  const pull = async (dy) => {
+    const grab = await phone.locator('.modal-grab').boundingBox();
+    if (!grab) throw new Error('the sheet has no grab handle at this width');
+    const x = grab.x + grab.width / 2, y = grab.y + grab.height / 2;
+    await phone.mouse.move(x, y);
+    await phone.mouse.down();
+    for (let i = 1; i <= 5; i++) await phone.mouse.move(x, y + (dy * i) / 5);
+    await phone.mouse.up();
+  };
+
+  await open();
+  await pull(30);
+  await phone.waitForTimeout(300);
+  if (await phone.locator('.modal').count() !== 1) throw new Error('a short pull closed it instead of springing back');
+
+  await pull(400);
+  await phone.waitForSelector('.modal', { state: 'detached' });
+});
+
+// Held here rather than by review, which is where it sat before. A tap latches :hover onto
+// whatever it lands on and nothing takes it off again, so an unguarded rule leaves a row the
+// finger merely passed over looking exactly like the one that was chosen — and several of
+// these paint the very colour that means "selected".
+await step('every :hover is behind a guard, in the stylesheet itself', async () => {
+  const css = readFileSync(new URL('./src/index.css', import.meta.url), 'utf8')
+    // Blanked rather than removed, so the line numbers still point at the file.
+    .replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, ' '));
+  const lines = css.split('\n');
+  // `.on:hover` rules only ever match a button that is already on, and repaint it the colour
+  // it already has — they exist to outrank the generic button:hover, not to signal anything.
+  const exempt = /\.on:hover/;
+  let depth = 0, guard = null;
+  const loose = [];
+  lines.forEach((line, i) => {
+    if (/@media[^{]*(hover:\s*hover|pointer:\s*fine)/.test(line)) guard = depth;
+    if (/:hover/.test(line) && guard === null && !exempt.test(line)) {
+      loose.push(`${i + 1}: ${line.trim().slice(0, 70)}`);
+    }
+    depth += (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+    if (guard !== null && depth <= guard) guard = null;
+  });
+  if (loose.length) throw new Error(`${loose.length} unguarded :hover rules — ${loose.slice(0, 4).join(' | ')}`);
+  console.log('       every :hover rule is inside a (hover: hover) or (pointer: fine) block');
 });
 
 await browser.close();
