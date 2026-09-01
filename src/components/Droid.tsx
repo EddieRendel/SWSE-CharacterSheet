@@ -47,14 +47,14 @@ export function Droid({
 
   return (
     <Panel title="Droid chassis" className="framed tint-green">
-      <p className="hint" style={{ marginBottom: 12 }}>
+      <p className="hint" style={{ marginBottom: 'var(--sp-6)' }}>
         Droids have no Constitution score: no bonus hit points from it, and Strength applies to
         Fortitude Defense instead. They are immune to poison, disease, radiation, vacuum,
         mind-affecting and stunning effects, cannot be Force-sensitive, and cannot take the Jedi class.
       </p>
 
       {(!degree || !hasProcessor || !hasLocomotion) && (
-        <div className="notice warn" style={{ marginBottom: 12 }}>
+        <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
           {!degree && 'Choose a degree. '}
           {!hasLocomotion && 'Fit a locomotion system. '}
           {!hasProcessor && 'Fit a processor — a droid hero needs a Basic or Heuristic Processor.'}
@@ -70,7 +70,7 @@ export function Droid({
             ))}
           </select>
           {degree && (
-            <p className="hint" style={{ marginTop: 6 }}>
+            <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
               {Object.entries(degree.abilities)
                 .map(([a, v]) => `${signed(v as number)} ${a.toUpperCase()}`).join(', ')}
               {' · '}talent tree available on every talent slot
@@ -90,7 +90,7 @@ export function Droid({
               </button>
             ))}
           </div>
-          <p className="hint" style={{ marginTop: 6 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
             {Object.entries(size.abilities).length
               ? Object.entries(size.abilities)
                 .map(([a, v]) => `${signed(v as number)} ${a.toUpperCase()}`).join(', ') + ' · '
@@ -102,14 +102,14 @@ export function Droid({
         </Field>
       </div>
 
-      <div className="grid g4" style={{ marginTop: 14 }}>
+      <div className="grid g4" style={{ marginTop: 'var(--sp-7)' }}>
         <div className="stat">
           <div className="label">Appendages</div>
           <div className="value">{appendages}</div>
         </div>
         <div className="stat">
           <div className="label">Speed</div>
-          <div className="value">{derived.speed}<span style={{ fontSize: 12 }}> sq</span></div>
+          <div className="value">{derived.speed}<span style={{ fontSize: 'var(--fs-sm)' }}> sq</span></div>
         </div>
         <div className="stat">
           <div className="label">Systems fitted</div>
@@ -117,12 +117,12 @@ export function Droid({
         </div>
         <div className="stat">
           <div className="label">Systems cost</div>
-          <div className="value" style={{ fontSize: 18 }}>{totalKnown.toLocaleString()}</div>
+          <div className="value" style={{ fontSize: 'var(--fs-lg)' }}>{totalKnown.toLocaleString()}</div>
           <div className="sub">{unresolved ? `${unresolved} priced by formula` : 'credits'}</div>
         </div>
       </div>
 
-      <div style={{ marginTop: 14 }}>
+      <div style={{ marginTop: 'var(--sp-7)' }}>
         <Field label="Installed systems">
           {installed.length === 0 ? (
             <div className="empty">Nothing fitted yet.</div>
@@ -148,7 +148,7 @@ export function Droid({
         </Field>
       </div>
 
-      <div style={{ marginTop: 14 }}>
+      <div style={{ marginTop: 'var(--sp-7)' }}>
         <Field label="Fit a system">
           <div className="grid g3">
             {CATEGORIES.map(([cat, label]) => (
@@ -164,7 +164,7 @@ export function Droid({
               </select>
             ))}
           </div>
-          <p className="hint" style={{ marginTop: 6 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
             A droid hero starts with a Heuristic Processor, two appendages, and up to{' '}
             {DROIDS.startingSystemCredits.toLocaleString()} credits of further systems. Costs given
             as a formula scale with the chassis and are left for you to work out.

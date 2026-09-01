@@ -49,13 +49,13 @@ export function Abilities({
         }
       >
         {derived.isDroid && (
-          <div className="notice" style={{ marginBottom: 12 }}>
+          <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
             Droids have no Constitution score. They gain no bonus hit points from it, apply
             Strength to Fortitude Defense, and cannot take anything with a Constitution prerequisite.
           </div>
         )}
         {mode === 'point-buy' && (
-          <div className={`notice ${remaining < 0 ? 'warn' : ''}`} style={{ marginBottom: 12 }}>
+          <div className={`notice ${remaining < 0 ? 'warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
             <strong>{remaining}</strong> of {POINT_BUDGET} points remaining ({spent} spent).
             Scores run 8–18 before species modifiers. {remaining < 0 && ' You are over budget.'}
           </div>
@@ -68,14 +68,14 @@ export function Abilities({
             const levelBonus = Object.values(char.abilityIncreases).flat().filter(x => x === a).length;
             const total = derived.abilities[a];
             return (
-              <div key={a} className="stat" style={{ padding: 12 }}>
+              <div key={a} className="stat" style={{ padding: 'var(--sp-6)' }}>
                 <div className="label">{RULES.abilities[a].name}</div>
                 <div className="value" style={{ color: 'var(--accent)' }}>{total}</div>
-                <div className="sub mono" style={{ fontSize: 14, color: 'var(--text)' }}>
+                <div className="sub mono" style={{ fontSize: 'var(--fs-md)', color: 'var(--text)' }}>
                   {signed(abilityMod(total))}
                 </div>
 
-                <div className="row" style={{ marginTop: 10, gap: 4, justifyContent: 'center' }}>
+                <div className="row" style={{ marginTop: 'var(--sp-5)', gap: 'var(--sp-2)', justifyContent: 'center' }}>
                   <button className="sm" onClick={() => setBase(a, base - 1)} disabled={base <= 1}>−</button>
                   <input
                     className="mono center"
@@ -86,7 +86,7 @@ export function Abilities({
                   <button className="sm" onClick={() => setBase(a, base + 1)} disabled={base >= 30}>+</button>
                 </div>
 
-                <div className="sub" style={{ marginTop: 6, lineHeight: 1.6 }}>
+                <div className="sub" style={{ marginTop: 'var(--sp-3)', lineHeight: 1.6 }}>
                   base {base}
                   {speciesMod !== 0 && <><br /><span style={{ color: speciesMod > 0 ? 'var(--green)' : 'var(--red)' }}>{signed(speciesMod)} species</span></>}
                   {levelBonus > 0 && <><br /><span style={{ color: 'var(--blue)' }}>+{levelBonus} level</span></>}

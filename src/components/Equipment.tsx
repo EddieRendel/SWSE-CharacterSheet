@@ -154,8 +154,8 @@ export function Equipment({
   const content = (
     <>
         {compact ? (
-          <div className="row" style={{ marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-            <span className="row" style={{ gap: 4 }} title="Credits on hand">
+          <div className="row" style={{ marginBottom: 'var(--sp-5)', flexWrap: 'wrap', gap: 'var(--sp-4)' }}>
+            <span className="row" style={{ gap: 'var(--sp-2)' }} title="Credits on hand">
               <button className="sm ghost" onClick={() => spendCredits(-100)} disabled={char.credits <= 0}>−100</button>
               <input
                 className="mono center" style={{ width: 88, padding: '2px 4px' }}
@@ -183,30 +183,30 @@ export function Equipment({
             <button className="sm primary" onClick={() => setBrowsing(true)}>Add</button>
           </div>
         ) : (
-        <div className="grid g4" style={{ marginBottom: 14 }}>
+        <div className="grid g4" style={{ marginBottom: 'var(--sp-7)' }}>
           <div className="stat">
             <div className="label">Credits</div>
             <input
               className="mono center"
-              style={{ fontSize: 18, marginTop: 4 }}
+              style={{ fontSize: 'var(--fs-lg)', marginTop: 'var(--sp-2)' }}
               value={char.credits}
               onChange={e => update(c => { c.credits = parseInt(e.target.value, 10) || 0; })}
             />
           </div>
           <div className="stat">
             <div className="label">Total weight</div>
-            <div className="value" style={{ fontSize: 20 }}>{derived.carrying.weight.toFixed(1)}<span style={{ fontSize: 12 }}> kg</span></div>
+            <div className="value" style={{ fontSize: 'var(--fs-xl)' }}>{derived.carrying.weight.toFixed(1)}<span style={{ fontSize: 'var(--fs-sm)' }}> kg</span></div>
             <div className={`sub${derived.carrying.level !== 'normal' ? ' err' : ''}`}>
               {LOAD_LABEL[derived.carrying.level]} · heavy at {derived.carrying.heavy.toFixed(0)} kg
             </div>
           </div>
           <div className="stat">
             <div className="label">Armor worn</div>
-            <div className="value" style={{ fontSize: 14, marginTop: 6 }}>{derived.equippedArmor?.name ?? '—'}</div>
+            <div className="value" style={{ fontSize: 'var(--fs-md)', marginTop: 'var(--sp-3)' }}>{derived.equippedArmor?.name ?? '—'}</div>
           </div>
           <div className="stat">
             <div className="label">Armor penalty</div>
-            <div className="value" style={{ fontSize: 20, color: derived.armorPenalty ? 'var(--red)' : undefined }}>
+            <div className="value" style={{ fontSize: 'var(--fs-xl)', color: derived.armorPenalty ? 'var(--red)' : undefined }}>
               {derived.armorPenalty ? signed(derived.armorPenalty) : '—'}
             </div>
             <div className="sub">{derived.equippedArmor && !derived.armorProficient ? 'not proficient' : 'proficient'}</div>
@@ -215,7 +215,7 @@ export function Equipment({
         )}
 
         {derived.equippedArmor && !derived.armorProficient && (
-          <div className="notice warn" style={{ marginBottom: 12 }}>
+          <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
             You are not proficient with <strong>{derived.equippedArmor.name}</strong> ({derived.equippedArmor.armorType} armor).
             You take a {signed(derived.armorPenalty)} penalty on attack rolls and on Strength- and
             Dexterity-based skill checks. Take the{' '}
@@ -271,9 +271,9 @@ export function Equipment({
                                 <strong className="breakdown">{item.name}</strong>
                               </button>
                             </Tip>
-                            {item.custom && <span className="badge" style={{ marginLeft: 6 }}>custom</span>}
+                            {item.custom && <span className="badge" style={{ marginLeft: 'var(--sp-3)' }}>custom</span>}
                             {item.modified && !item.custom && (
-                              <span className="badge green" style={{ marginLeft: 6 }}>modified</span>
+                              <span className="badge green" style={{ marginLeft: 'var(--sp-3)' }}>modified</span>
                             )}
                             {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}{item.thrown ? ' · thrown' : ''}</div>}
                             {item.armorType && <div className="meta faint">{item.armorType} armor</div>}
@@ -391,7 +391,7 @@ function ItemBrowser({
       onClose={onClose}
       footer={<button onClick={onClose}>Done</button>}
     >
-      <div className="row" style={{ marginBottom: 12 }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-6)' }}>
         <input autoFocus={autoFocusSearch} placeholder="Search…" value={query} onChange={e => setQuery(e.target.value)} />
         <select value={cat} onChange={e => setCat(e.target.value)} style={{ width: 150 }}>
           <option value="">All</option>
@@ -400,7 +400,7 @@ function ItemBrowser({
           <option value="gear">Gear</option>
         </select>
       </div>
-      <div className="notice" style={{ marginBottom: 12 }}>
+      <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
         Imported from the Foundry compendium rather than transcribed by hand. Check anything that
         matters against your book, and use <strong>Custom item</strong> for gear from other sources.
       </div>
@@ -494,16 +494,16 @@ function ItemStatFields({
             <Field label="Handling">
               {/* The compendium keeps all three of these in prose — "Special: Can be Thrown"
                   — so they are set by hand on the copy you carry. */}
-              <div className="row" style={{ flexWrap: 'wrap', gap: 12 }}>
-                <label className="row" style={{ gap: 5 }}>
+              <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-6)' }}>
+                <label className="row" style={{ gap: 'var(--sp-3)' }}>
                   <input type="checkbox" checked={!!draft.twoHanded} onChange={e => set({ twoHanded: e.target.checked })} />
                   <span className="hint">two-handed</span>
                 </label>
-                <label className="row" style={{ gap: 5 }}>
+                <label className="row" style={{ gap: 'var(--sp-3)' }}>
                   <input type="checkbox" checked={!!draft.thrown} onChange={e => set({ thrown: e.target.checked })} />
                   <span className="hint">can be thrown</span>
                 </label>
-                <label className="row" style={{ gap: 5 }}>
+                <label className="row" style={{ gap: 'var(--sp-3)' }}>
                   <input type="checkbox" checked={!!draft.stun} onChange={e => set({ stun: e.target.checked })} />
                   <span className="hint">stun setting</span>
                 </label>
@@ -533,7 +533,7 @@ function ItemStatFields({
           </>
         )}
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: 'var(--sp-6)' }}>
         <Field label="Notes">
           <textarea value={draft.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
         </Field>
@@ -692,7 +692,7 @@ function ItemEditor({
       }
     >
       {!custom && (
-        <div className="notice" style={{ marginBottom: 12 }}>
+        <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
           Changes apply to the copy you are carrying, not to the compendium entry — add the
           item again for an unaltered one.
           {entry.quantity > 1 && ` This row stacks ${entry.quantity}, so all of them are altered together.`}
@@ -708,7 +708,7 @@ function ItemEditor({
           Add modification
         </button>
       </div>
-      <p className="hint" style={{ marginTop: 0 }}>
+      <p className="hint" style={{ marginTop: '0' }}>
         Anything fitted to this one item: an armor upgrade, a lightsaber crystal, a talisman's
         blessing, a talent that attunes or empowers a weapon. Attack and damage apply when you
         use it; Reflex, Fortitude and Will apply to your own defenses while it is worn or

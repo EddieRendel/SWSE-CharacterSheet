@@ -18,7 +18,7 @@ export function ThemePicker({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={<button className="primary" onClick={onClose}>Done</button>}
     >
-      <p className="hint" style={{ marginBottom: 12 }}>
+      <p className="hint" style={{ marginBottom: 'var(--sp-6)' }}>
         Repaints the app. It is a preference rather than part of a character, so it applies to
         every one of them and travels with this browser rather than with an exported file.
       </p>
@@ -44,7 +44,7 @@ export function ThemePicker({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      <p className="hint" style={{ marginTop: 12 }}>
+      <p className="hint" style={{ marginTop: 'var(--sp-6)' }}>
         Only the chrome changes. Green still means healthy or trained, red still means nearly
         dead, and amber still means unfinished — so the sheet reads the same way whatever it
         is wearing.

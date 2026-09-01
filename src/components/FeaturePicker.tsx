@@ -186,7 +186,7 @@ export function FeaturePicker({
       }
     >
       {emptyClassTrees.length > 0 && (
-        <div className="notice warn" style={{ marginBottom: 12 }}>
+        <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
           <strong>{emptyClassTrees.map(t => t.name).join(', ')}</strong>{' '}
           {emptyClassTrees.length === 1 ? 'is a talent tree' : 'are talent trees'} this class draws
           from, but the rules data contains none of their talents. Add them from your books in{' '}
@@ -195,7 +195,7 @@ export function FeaturePicker({
       )}
 
       {slot.key.startsWith('adaptable-talent:') && (
-        <div className="notice" style={{ marginBottom: 12 }}>
+        <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
           <strong>Adaptable Talent</strong> banks one talent from any class you have levels in, and
           you must meet its prerequisites. After 6 hours' rest you may swap it for one of your
           current talents — the one you swap out cannot be a prerequisite for another talent you have.
@@ -203,20 +203,20 @@ export function FeaturePicker({
       )}
 
       {sections && sections.force.length > 0 && (
-        <div className="notice" style={{ marginBottom: 12 }}>
+        <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
           You have <strong>Force Sensitivity</strong>, so the Force talent trees below are open to
           you on any talent slot, in addition to your class's own trees.
         </div>
       )}
 
-      <div className="row" style={{ marginBottom: 12 }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-6)' }}>
         <input
           autoFocus={autoFocusSearch}
           placeholder="Search by name or rules text…"
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        <label className="row nowrap hint" style={{ gap: 6 }}>
+        <label className="row nowrap hint" style={{ gap: 'var(--sp-3)' }}>
           <input type="checkbox" checked={showIneligible} onChange={e => setShowIneligible(e.target.checked)} />
           Show unavailable
         </label>
@@ -253,7 +253,7 @@ export function FeaturePicker({
                           <span className="caret" aria-hidden="true">{shut ? '▸' : '▾'}</span>
                           {g.treeName}
                           <span className="faint"> · {g.entries.length}</span>
-                          {TALENT_TREES[g.treeId]?.incomplete && <span className="badge red" style={{ marginLeft: 6 }}>?</span>}
+                          {TALENT_TREES[g.treeId]?.incomplete && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>?</span>}
                         </button>
                         {!shut && g.entries.map(o => (
                           <OptionRow
@@ -296,7 +296,7 @@ export function FeaturePicker({
               />
 
               {needsSpec && (
-                <div className="panel" style={{ marginTop: 12, marginBottom: 0 }}>
+                <div className="panel" style={{ marginTop: 'var(--sp-6)', marginBottom: '0' }}>
                   <div className="field">
                     <label>{SPEC_LABELS[selected.specType!] ?? 'Option'}</label>
                     <select value={spec ?? ''} onChange={e => setSpec(e.target.value || undefined)}>
@@ -304,13 +304,13 @@ export function FeaturePicker({
                       {selectableSpecs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                     {selectableSpecs.length === 0 ? (
-                      <p className="hint err" style={{ marginTop: 6 }}>
+                      <p className="hint err" style={{ marginTop: 'var(--sp-3)' }}>
                         {specs.length === 0
                           ? 'There are no options to choose from yet.'
                           : `None of the ${specs.length} options meet this feat's prerequisites.`}
                       </p>
                     ) : hiddenSpecs > 0 && (
-                      <p className="hint" style={{ marginTop: 6 }}>
+                      <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
                         {hiddenSpecs} of {specs.length} options are not listed because they don't
                         meet the prerequisites.
                       </p>
@@ -329,7 +329,7 @@ export function FeaturePicker({
                         </div>
                       )
                       : (
-                        <p className="hint" style={{ marginTop: 10 }}>
+                        <p className="hint" style={{ marginTop: 'var(--sp-5)' }}>
                           Choose one to read what it does.
                         </p>
                       )
@@ -338,8 +338,8 @@ export function FeaturePicker({
               )}
 
               {finalResult && finalResult.checks.length > 0 && (
-                <div className="panel" style={{ marginTop: 12, marginBottom: 0 }}>
-                  <h3 style={{ marginBottom: 8 }}>
+                <div className="panel" style={{ marginTop: 'var(--sp-6)', marginBottom: '0' }}>
+                  <h3 style={{ marginBottom: 'var(--sp-4)' }}>
                     Requires
                     {needsSpec && !spec && selectableSpecs.length > 0 && (
                       <span className="faint" style={{ fontWeight: 400 }}>
@@ -348,7 +348,7 @@ export function FeaturePicker({
                     )}
                   </h3>
                   {needsSpec && !spec && selectableSpecs.length > 0 && (
-                    <p className="hint" style={{ marginBottom: 8 }}>
+                    <p className="hint" style={{ marginBottom: 'var(--sp-4)' }}>
                       Some of these depend on which option you pick.{' '}
                       {selectableSpecs.length} of {specs.length} qualify.
                     </p>
@@ -358,13 +358,13 @@ export function FeaturePicker({
               )}
 
               {finalResult?.duplicate && (
-                <div className="notice warn" style={{ marginTop: 12 }}>
+                <div className="notice warn" style={{ marginTop: 'var(--sp-6)' }}>
                   You already have this{selected.multiple ? ' the maximum number of times' : ''}.
                 </div>
               )}
 
               {treesFor.length > 0 && (
-                <p className="hint" style={{ marginTop: 12 }}>
+                <p className="hint" style={{ marginTop: 'var(--sp-6)' }}>
                   Talent tree{treesFor.length > 1 ? 's' : ''}: {treesFor.map(t => t.name).join(', ')}
                 </p>
               )}
@@ -435,7 +435,7 @@ export function FeatureBrowser({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal wide title="Rules compendium" onClose={onClose}>
-      <div className="row" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-6)', flexWrap: 'wrap' }}>
         <input placeholder="Search…" value={query} onChange={e => setQuery(e.target.value)} style={{ flex: 2, minWidth: 180 }} />
         <select value={type} onChange={e => setType(e.target.value)} style={{ flex: 1, minWidth: 130 }}>
           <option value="">All types</option>
@@ -451,13 +451,13 @@ export function FeatureBrowser({ onClose }: { onClose: () => void }) {
           <option value="">All books</option>
           {books.map(b => <option key={b} value={b}>{BOOK_NAMES[b] ?? b}</option>)}
         </select>
-        <label className="row nowrap hint" style={{ gap: 6 }}>
+        <label className="row nowrap hint" style={{ gap: 'var(--sp-3)' }}>
           <input type="checkbox" checked={showHidden} onChange={e => setShowHidden(e.target.checked)} />
           Unsupported ({hiddenCount})
         </label>
       </div>
       {showHidden && (
-        <div className="notice" style={{ marginBottom: 12 }}>
+        <div className="notice" style={{ marginBottom: 'var(--sp-6)' }}>
           Showing entries that depend on content this app doesn't model — Force traditions, droid
           characters and species outside the supported list. They are kept in the data and become
           selectable if that content is added.
@@ -497,10 +497,10 @@ export function ClassDetail({ classId }: { classId: string }) {
       {icon && (
         <img className="class-icon" src={icon} alt="" width={96} height={96} loading="lazy" />
       )}
-      <div className="grid g4" style={{ marginBottom: 12 }}>
+      <div className="grid g4" style={{ marginBottom: 'var(--sp-6)' }}>
         <div className="stat"><div className="label">Hit die</div><div className="value">d{cls.hitDie}</div></div>
-        <div className="stat"><div className="label">BAB</div><div className="value" style={{ fontSize: 18 }}>{cls.fullBaseAttackBonus ? 'Full' : '3/4'}</div></div>
-        <div className="stat"><div className="label">Ref / Fort / Will</div><div className="value" style={{ fontSize: 18 }}>+{cls.defenseBonuses.join(' / +')}</div></div>
+        <div className="stat"><div className="label">BAB</div><div className="value" style={{ fontSize: 'var(--fs-lg)' }}>{cls.fullBaseAttackBonus ? 'Full' : '3/4'}</div></div>
+        <div className="stat"><div className="label">Ref / Fort / Will</div><div className="value" style={{ fontSize: 'var(--fs-lg)' }}>+{cls.defenseBonuses.join(' / +')}</div></div>
         <div className="stat"><div className="label">Max level</div><div className="value">{cls.maxLevel}</div></div>
       </div>
       {!cls.prestige && (

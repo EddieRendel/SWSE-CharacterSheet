@@ -178,7 +178,7 @@ export function Attacks({
           the attack list as one undifferentiated block of buttons and rows. */}
       <div className="modifiers">
         <div className="modifiers-label">Modifiers</div>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 5 }}>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         {/* Two hands on one weapon and a weapon in each hand are mutually exclusive, so
             each toggle switches the other off rather than letting both look active. */}
         <Toggle
@@ -247,7 +247,7 @@ export function Attacks({
         })}
 
         {available.powerAttack && (
-          <span className="row" style={{ gap: 4 }}>
+          <span className="row" style={{ gap: 'var(--sp-2)' }}>
             <Tip content={toggleTip('power-attack',
               'Trade points of attack for damage, up to your base attack bonus. Melee only; a two-handed weapon gains double the traded amount.')}>
               <span className="hint nowrap breakdown">Power Attack</span>

@@ -456,7 +456,7 @@ export function Sheet({
           <span className={`v ${loadWord ? 'err' : ''}`}>
             {derived.carrying.weight.toFixed(1)} / {derived.carrying.heavy.toFixed(0)} kg
           </span>
-          {loadWord && <span className="badge red" style={{ marginLeft: 6 }}>{loadWord}</span>}
+          {loadWord && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>{loadWord}</span>}
         </span>
       </div>
 
@@ -497,7 +497,7 @@ export function Sheet({
               ))}
             </div>
             {(derived.languages.automatic.length > 0 || derived.languages.chosen.length > 0) && (
-              <div className="row" style={{ marginTop: 10, flexWrap: 'wrap', gap: 6 }}>
+              <div className="row" style={{ marginTop: 'var(--sp-5)', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
                 <span className="hint nowrap">Languages</span>
                 {[...derived.languages.automatic, ...derived.languages.chosen]
                   .map(l => <span key={l} className="chip">{l}</span>)}
@@ -591,10 +591,10 @@ export function Sheet({
                       On because you hold both feats. They cost no slot and were never chosen —
                       change either feat and its Combined Feat goes with it.
                     </p>
-                    <div className="col" style={{ gap: 8 }}>
+                    <div className="col" style={{ gap: 'var(--sp-4)' }}>
                       {derived.combos.map(combo => (
                         <div key={combo.id} className="combo on">
-                          <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                          <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
                             <span className="name grow">{combo.name}</span>
                             {combo.sources.map(source => (
                               <span key={source.book} className="badge">

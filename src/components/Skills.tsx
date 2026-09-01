@@ -25,7 +25,7 @@ export function Skills({
   return (
     <>
       <Panel collapseId="edit:skills" title="Trained skills" className="framed tint-green">
-        <div className={`notice ${used > allowed ? 'warn' : ''}`} style={{ marginBottom: 12 }}>
+        <div className={`notice ${used > allowed ? 'warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
           <strong>{used}</strong> of <strong>{allowed}</strong> trained skills chosen
           {' '}({derived.classLevels[0] ? `${derived.classLevels.find(c => c.cls.id === char.levels[0].classId)?.cls.baseSkills ?? 0} from class` : ''}
           {' '}{signed(derived.mods.int)} Int
@@ -74,16 +74,16 @@ export function Skills({
                     </td>
                     <td>
                       <strong className="skill-label">{sk.name}</strong>
-                      {sk.classSkill && <span className="badge accent" style={{ marginLeft: 6 }}>class</span>}
-                      {sk.focused && <span className="badge green" style={{ marginLeft: 6 }}>focus</span>}
-                      {granted && <span className="badge blue" style={{ marginLeft: 6 }}>granted</span>}
-                      {manual && !sk.classSkill && <span className="badge red" style={{ marginLeft: 6 }}>not a class skill</span>}
+                      {sk.classSkill && <span className="badge accent" style={{ marginLeft: 'var(--sp-3)' }}>class</span>}
+                      {sk.focused && <span className="badge green" style={{ marginLeft: 'var(--sp-3)' }}>focus</span>}
+                      {granted && <span className="badge blue" style={{ marginLeft: 'var(--sp-3)' }}>granted</span>}
+                      {manual && !sk.classSkill && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>not a class skill</span>}
                     </td>
                     <td className="faint">{RULES.abilities[sk.ability].name}</td>
-                    <td className="num" style={{ fontSize: 15, fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
+                    <td className="num" style={{ fontSize: 'var(--fs-md)', fontWeight: 700, color: sk.trained ? 'var(--accent)' : undefined }}>
                       {signed(sk.total)}
                     </td>
-                    <td className="faint" style={{ fontSize: 11 }}>{parts.join('  ')}</td>
+                    <td className="faint" style={{ fontSize: 'var(--fs-tiny)' }}>{parts.join('  ')}</td>
                   </tr>
                 );
               })}
@@ -149,7 +149,7 @@ function Languages({
       </div>
 
       {left > 0 && !adding && (
-        <p className="hint" style={{ marginTop: 8, marginBottom: 0 }}>
+        <p className="hint" style={{ marginTop: 'var(--sp-4)', marginBottom: '0' }}>
           Your Intelligence bonus is worth {allowed} language{allowed > 1 ? 's' : ''};
           {' '}{left} still to choose.
         </p>
