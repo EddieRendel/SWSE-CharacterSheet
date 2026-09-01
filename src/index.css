@@ -296,17 +296,17 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: 0.01em; }
-h1 { font-size: 20px; }
-h2 { font-size: 16px; }
-h3 { font-size: 14px; }
-p { margin: 0 0 8px; }
+h1 { font-size: var(--fs-xl); }
+h2 { font-size: var(--fs-lg); }
+h3 { font-size: var(--fs-md); }
+p { margin: 0 0 var(--sp-4); }
 a { color: var(--blue); }
 
 button {
@@ -314,8 +314,8 @@ button {
   color: var(--text);
   background: var(--bg-3);
   border: 1px solid var(--border-2);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-6);
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
@@ -346,15 +346,15 @@ button.danger { border-color: var(--red-edge); color: var(--red-soft); }
   button.danger:hover:not(:disabled) { background: var(--red-deep); border-color: var(--red); }
 }
 
-button.sm { padding: 3px 8px; font-size: 12px; }
+button.sm { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); }
 
 input, select, textarea {
   font: inherit;
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--border-2);
-  border-radius: 6px;
-  padding: 6px 9px;
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-5);
   width: 100%;
 }
 input:focus, select:focus, textarea:focus {
@@ -372,7 +372,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
    Inheriting the 14px body size was enough to trigger it, so on a touch screen the fields
    state their own. */
 @media (pointer: coarse) {
-  input, select, textarea { font-size: 16px; }
+  input, select, textarea { font-size: 16px; } /* literal: a threshold, not a step */
 }
 
 /* ---------- layout ---------- */
@@ -382,26 +382,26 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
 
 .topbar {
-  display: flex; align-items: center; gap: 14px;
-  padding: 10px 18px;
+  display: flex; align-items: center; gap: var(--sp-7);
+  padding: var(--sp-5) var(--sp-7);
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .brand {
   font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  font-size: 14px; color: var(--accent); cursor: pointer;
-  display: flex; align-items: center; gap: 8px;
+  font-size: var(--fs-md); color: var(--accent); cursor: pointer;
+  display: flex; align-items: center; gap: var(--sp-4);
 }
 .brand small {
-  color: var(--text-faint); letter-spacing: 0.08em; font-weight: 500; font-size: 10px;
+  color: var(--text-faint); letter-spacing: 0.08em; font-weight: 500; font-size: var(--fs-micro);
 }
 .spacer { flex: 1; }
 
 /* ---------- topbar actions: inline on wide screens, burger below 820px ---------- */
-.topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.topbar-actions { display: flex; align-items: center; gap: var(--sp-4); flex-shrink: 0; }
 .topbar-menu { display: none; position: relative; flex-shrink: 0; }
-.burger { font-size: 17px; line-height: 1; padding: 5px 10px; }
+.burger { font-size: var(--fs-lg); line-height: 1; padding: var(--sp-3) var(--sp-5); }
 
 /* The character summary is what gives up space first, truncating instead of
    pushing the buttons off the right edge. */
@@ -411,83 +411,83 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 .menu-pop {
   position: absolute; top: calc(100% + 7px); right: 0; z-index: 40;
-  min-width: 190px; padding: 6px;
-  display: flex; flex-direction: column; gap: 2px;
+  min-width: 190px; padding: var(--sp-3);
+  display: flex; flex-direction: column; gap: var(--sp-1);
   background: var(--bg-2); border: 1px solid var(--border-2);
-  border-radius: var(--radius); box-shadow: 0 14px 36px rgba(var(--shadow-rgb), 0.55);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
 }
 .menu-pop button {
-  background: none; border: none; border-radius: 6px;
-  padding: 9px 11px; text-align: left; white-space: nowrap; color: var(--text-dim);
+  background: none; border: none; border-radius: var(--radius-md);
+  padding: var(--sp-5) var(--sp-6); text-align: left; white-space: nowrap; color: var(--text-dim);
 }
 .menu-pop button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 
 .tab-short { display: none; }
 
 @media (max-width: 820px) {
-  .topbar { gap: 10px; padding: 10px 12px; }
-  .brand { font-size: 12px; letter-spacing: 0.10em; flex-shrink: 0; }
+  .topbar { gap: var(--sp-5); padding: var(--sp-5) var(--sp-6); }
+  .brand { font-size: var(--fs-sm); letter-spacing: 0.10em; flex-shrink: 0; }
   .brand small { display: none; }
   .topbar-actions { display: none; }
   .topbar-menu { display: block; }
-  .tabs { padding: 0 12px; }
+  .tabs { padding: 0 var(--sp-6); }
   .tab-full { display: none; }
   .tab-short { display: inline; }
 }
 
 .tabs {
-  display: flex; gap: 2px; padding: 0 18px;
+  display: flex; gap: var(--sp-1); padding: 0 var(--sp-7);
   background: var(--bg-2); border-bottom: 1px solid var(--border);
   overflow-x: auto; flex-shrink: 0;
 }
 .tabs button {
   background: none; border: none; border-bottom: 2px solid transparent;
-  border-radius: 0; padding: 9px 14px; color: var(--text-dim); white-space: nowrap;
+  border-radius: 0; padding: var(--sp-5) var(--sp-7); color: var(--text-dim); white-space: nowrap;
 }
 .tabs button:hover { background: rgba(var(--wash-rgb), 0.03); color: var(--text); }
 .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tabs .badge { margin-left: 6px; }
+.tabs .badge { margin-left: var(--sp-3); }
 
-.content { flex: 1; overflow-y: auto; padding: 20px; }
+.content { flex: 1; overflow-y: auto; padding: var(--sp-8); }
 .wrap { max-width: 1180px; margin: 0 auto; }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  padding: var(--sp-7);
+  margin-bottom: var(--sp-7);
 }
 .panel > header {
-  display: flex; align-items: center; gap: 10px;
-  margin: -16px -16px 14px; padding: 11px 16px;
+  display: flex; align-items: center; gap: var(--sp-5);
+  margin: calc(var(--sp-7) * -1) calc(var(--sp-7) * -1) var(--sp-7); padding: var(--sp-6) var(--sp-7);
   border-bottom: 1px solid var(--border);
   background: var(--bg-3);
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
-.panel > header h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-dim); }
+.panel > header h2 { font-size: var(--fs-body); text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-dim); }
 
 /* A collapsed panel is just its header bar, so the padding that framed the body goes away. */
 .panel.collapsed { padding: 0; }
-.panel.collapsed > header { margin: 0; border-bottom: none; border-radius: var(--radius); }
+.panel.collapsed > header { margin: 0; border-bottom: none; border-radius: var(--radius-lg); }
 .panel-toggle {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: var(--sp-4);
   background: none; border: none; padding: 0; cursor: pointer;
   min-width: 0; text-align: left;
 }
 .panel-toggle:hover:not(:disabled) { background: none; }
 .panel-toggle:hover h2 { color: var(--text); }
-.panel-toggle .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
+.panel-toggle .caret { color: var(--text-faint); font-size: var(--fs-tiny); line-height: 1; width: 9px; }
 .panel-toggle:hover .caret { color: var(--accent); }
 
 /* Each level inside the feats panel folds on its own. */
 .level-divider {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  background: none; border: none; border-radius: 5px;
-  padding: 3px 4px; margin-bottom: 6px; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: var(--sp-4); width: 100%;
+  background: none; border: none; border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-2); margin-bottom: var(--sp-3); cursor: pointer; text-align: left;
 }
 .level-divider:hover:not(:disabled) { background: var(--bg-3); }
-.level-divider .caret { color: var(--text-faint); font-size: 11px; line-height: 1; width: 9px; }
+.level-divider .caret { color: var(--text-faint); font-size: var(--fs-tiny); line-height: 1; width: 9px; }
 .level-divider:hover .caret { color: var(--accent); }
 .level-divider .rule { flex: 1; height: 1px; background: var(--border); }
 
@@ -495,13 +495,13 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
    than the screen — the sheet's Actions / Feats / Equipment switcher was the worst — so
    let the actions drop onto their own line. */
 @media (max-width: 560px) {
-  .panel > header { flex-wrap: wrap; row-gap: 8px; }
+  .panel > header { flex-wrap: wrap; row-gap: var(--sp-4); }
   .panel > header > .row { flex-wrap: wrap; }
 }
 
 /* minmax(0, 1fr) rather than 1fr: a bare 1fr floors each track at the widest child's
    min-content, so on a phone the stat tiles pushed the grid past the screen edge. */
-.grid { display: grid; gap: 12px; }
+.grid { display: grid; gap: var(--sp-6); }
 .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -511,18 +511,18 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   .g2 { grid-template-columns: minmax(0, 1fr); }
 }
 
-.row { display: flex; gap: 8px; align-items: center; }
-.col { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; gap: var(--sp-4); align-items: center; }
+.col { display: flex; flex-direction: column; gap: var(--sp-4); }
 
 .field label {
-  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--text-faint); margin-bottom: 4px; font-weight: 600;
+  display: block; font-size: var(--fs-tiny); text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-faint); margin-bottom: var(--sp-2); font-weight: 600;
 }
 
 /* ---------- pieces ---------- */
 .badge {
-  display: inline-block; padding: 1px 7px; border-radius: 20px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+  display: inline-block; padding: var(--sp-1) var(--sp-4); border-radius: var(--radius-pill);
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.05em;
   background: var(--bg-3); color: var(--text-dim); border: 1px solid var(--border-2);
   text-transform: uppercase;
 }
@@ -534,16 +534,16 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 .stat {
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 10px; text-align: center;
+  border-radius: var(--radius-lg); padding: var(--sp-5); text-align: center;
 }
 .stat .label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--text-faint); font-weight: 700;
 }
-.stat .value { font-size: 26px; font-weight: 700; font-family: var(--mono); line-height: 1.2; }
-.stat .sub { font-size: 11px; color: var(--text-faint); }
+.stat .value { font-size: var(--fs-num-md); font-weight: 700; font-family: var(--mono); line-height: 1.2; }
+.stat .sub { font-size: var(--fs-tiny); color: var(--text-faint); }
 
-.list { display: flex; flex-direction: column; gap: 6px; }
+.list { display: flex; flex-direction: column; gap: var(--sp-3); }
 
 /* One prerequisite: tick, what it wants, and the tag saying what kind of thing that is.
    The tag wraps to its own line on a narrow screen rather than squeezing the text. */
@@ -552,14 +552,14 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .req-row .tip-anchor { cursor: help; text-decoration: underline dotted var(--border-2); text-underline-offset: 3px; }
 
 .item {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: var(--sp-5);
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 9px 12px;
+  border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6);
 }
 .item:hover { border-color: var(--border-2); }
 .item .grow { flex: 1; min-width: 0; }
 .item .name { font-weight: 600; }
-.item .meta { font-size: 12px; color: var(--text-faint); }
+.item .meta { font-size: var(--fs-sm); color: var(--text-faint); }
 
 /* Duplicate / Export / Delete hold a fixed width, so on a phone they squeezed the name —
    the button you tap to open the character — down to nothing: 0px at 320, 10px at 360.
@@ -572,16 +572,16 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 /* One modification fitted to a carried item, in the equipment editor. The numbers sit in
    a grid that folds to two columns on a phone, so nothing here has a fixed width. */
 .upgrade {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: var(--sp-5);
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 10px 12px;
+  border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6);
 }
 
 .clickable { cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
 
 .empty {
-  text-align: center; padding: 28px 16px; color: var(--text-faint);
-  border: 1px dashed var(--border-2); border-radius: var(--radius);
+  text-align: center; padding: var(--sp-9) var(--sp-7); color: var(--text-faint);
+  border: 1px dashed var(--border-2); border-radius: var(--radius-lg);
 }
 
 .slot { border-left: 3px solid var(--border-2); }
@@ -589,25 +589,25 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .slot.unfilled { border-left-color: var(--amber); background: rgba(var(--amber-rgb), 0.04); }
 .slot.auto { border-left-color: var(--blue); }
 
-.hint { font-size: 12px; color: var(--text-faint); }
+.hint { font-size: var(--fs-sm); color: var(--text-faint); }
 .warn { color: var(--amber); }
 .err { color: var(--red-soft); }
 .ok { color: var(--green); }
 
-.rules-text p { margin: 0 0 8px; color: var(--text-dim); font-size: 13px; }
+.rules-text p { margin: 0 0 var(--sp-4); color: var(--text-dim); font-size: var(--fs-body); }
 .rules-text strong { color: var(--text); }
 /* The Benefit / Normal / Special headings. Siblings of .rules-text, not children of it —
    which is why the old `.rules-text .label` never matched and the styles had been copied
    inline onto all three headings instead. */
 .rules-section-label {
-  color: var(--accent); font-weight: 600; font-size: 12px;
-  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px;
+  color: var(--accent); font-weight: 600; font-size: var(--fs-sm);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-top: var(--sp-5);
 }
 
 /* ---------- modal ---------- */
 .overlay {
   position: fixed; inset: 0; background: rgba(var(--shadow-rgb), 0.66);
-  display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: var(--sp-8); z-index: 50;
   backdrop-filter: blur(2px);
 }
 /* Two things had the footer — Cancel, and the button that commits the choice — off the bottom
@@ -620,42 +620,42 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
    the `vh` line above it is the fallback for engines that predate it. */
 .modal {
   background: var(--panel); border: 1px solid var(--border-2);
-  border-radius: 10px; width: 100%; max-width: 860px;
+  border-radius: var(--radius-lg); width: 100%; max-width: 860px;
   max-height: min(88vh, 100vh - 40px);
   max-height: min(88dvh, 100dvh - 40px);
   display: flex; flex-direction: column;
-  box-shadow: 0 20px 60px rgba(var(--shadow-rgb), 0.55);
+  box-shadow: var(--shadow-lg);
 }
 .modal > header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 13px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; gap: var(--sp-5);
+  padding: var(--sp-6) var(--sp-7); border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
 /* `contain` so that flicking past the end of the dialog does not carry on into the page
    underneath it, which then has to be scrolled back when the dialog closes. */
-.modal > .body { padding: 16px; overflow-y: auto; overscroll-behavior: contain; flex: 1; }
+.modal > .body { padding: var(--sp-7); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .modal > footer {
-  padding: 12px 16px; border-top: 1px solid var(--border);
-  display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0;
+  padding: var(--sp-6) var(--sp-7); border-top: 1px solid var(--border);
+  display: flex; gap: var(--sp-4); justify-content: flex-end; flex-shrink: 0;
 }
 
 /* On a phone the 20px gutter each side was a tenth of the screen. Buy it back, and let
    the modal use the height too, since there is no room to centre it in. */
 @media (max-width: 520px) {
-  .overlay { padding: 8px; align-items: flex-start; }
+  .overlay { padding: var(--sp-4); align-items: flex-start; }
   /* 8px of overlay padding at each end and the 6px it is nudged down by — the same budget as
      above, counted for this gutter. */
-  .modal { max-height: min(96vh, 100vh - 22px); max-height: min(96dvh, 100dvh - 22px); margin-top: 6px; }
-  .modal > header, .modal > footer { padding: 11px 12px; }
-  .modal > .body { padding: 12px; }
+  .modal { max-height: min(96vh, 100vh - 22px); max-height: min(96dvh, 100dvh - 22px); margin-top: var(--sp-3); }
+  .modal > header, .modal > footer { padding: var(--sp-6) var(--sp-6); }
+  .modal > .body { padding: var(--sp-6); }
   .modal > footer { flex-wrap: wrap; }
 }
 
-.split { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 14px; min-height: 0; }
+.split { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: var(--sp-7); min-height: 0; }
 /* Both panes take their share of the viewport the same way the dialog around them does — see
    `.modal` — or they claim more of the screen than there is and push the footer off it. */
 .split .options {
   max-height: 56vh; max-height: 56dvh;
-  overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;
+  overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-2); padding-right: var(--sp-2);
 }
 .split .detail { max-height: 56vh; max-height: 56dvh; overflow-y: auto; }
 
@@ -671,12 +671,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 /* The rules of the talent or power being chosen, one level down from the feature that
    offers it. Ruled off so it reads as being about the choice, not about the feature. */
 .option-rules {
-  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  margin-top: var(--sp-6); padding-top: var(--sp-6); border-top: 1px solid var(--border);
 }
 
 .opt {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  padding: 7px 10px; border-radius: 6px; text-align: left;
+  display: flex; align-items: center; gap: var(--sp-4); width: 100%;
+  padding: var(--sp-4) var(--sp-5); border-radius: var(--radius-md); text-align: left;
   background: transparent; border: 1px solid transparent; color: var(--text-dim);
 }
 /* Guarded, because a touch screen has no pointer to take the hover away again: the style stays
@@ -700,22 +700,22 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .tree-category {
   position: sticky; top: 0; z-index: 1;
   background: var(--panel);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--accent); padding: 10px 4px 6px;
-  border-bottom: 1px solid var(--border-2); margin-bottom: 4px;
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); padding: var(--sp-5) var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-2); margin-bottom: var(--sp-2);
 }
-.tree-group { margin-bottom: 10px; }
+.tree-group { margin-bottom: var(--sp-5); }
 /* A button now, so it can fold the tree away — styled back down to the label it looks like. */
 .tree-name {
-  display: flex; align-items: center; gap: 6px; width: 100%;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
-  color: var(--text-dim); padding: 4px 10px 3px;
-  background: none; border: none; border-radius: 5px; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%;
+  font-size: var(--fs-tiny); font-weight: 700; letter-spacing: 0.05em;
+  color: var(--text-dim); padding: var(--sp-2) var(--sp-5) var(--sp-2);
+  background: none; border: none; border-radius: var(--radius-sm); text-align: left; cursor: pointer;
 }
 .tree-name:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
-.tree-name .caret { color: var(--text-faint); font-size: 10px; line-height: 1; width: 8px; }
+.tree-name .caret { color: var(--text-faint); font-size: var(--fs-micro); line-height: 1; width: 8px; }
 .tree-name:hover .caret { color: var(--accent); }
-.tree-group .opt { padding-left: 20px; }
+.tree-group .opt { padding-left: var(--sp-8); }
 
 table { width: 100%; border-collapse: collapse; }
 
@@ -723,9 +723,9 @@ table { width: 100%; border-collapse: collapse; }
    widening the page — the columns stay readable rather than being crushed. */
 .table-scroll { overflow-x: auto; }
 .table-scroll > table { width: auto; min-width: 100%; }
-th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th, td { padding: var(--sp-4) var(--sp-5); text-align: left; border-bottom: 1px solid var(--border); }
 th {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700;
 }
 td.num, th.num { text-align: right; font-family: var(--mono); }
@@ -737,13 +737,13 @@ tbody tr:hover { background: rgba(var(--wash-rgb), 0.02); }
 .center { text-align: center; }
 .nowrap { white-space: nowrap; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: var(--sp-3);
   background: var(--bg-3); border: 1px solid var(--border-2);
-  border-radius: 20px; padding: 3px 10px; font-size: 12px;
+  border-radius: var(--radius-pill); padding: var(--sp-2) var(--sp-5); font-size: var(--fs-sm);
 }
-.chip button { padding: 0 2px; background: none; border: none; color: var(--text-faint); font-size: 14px; line-height: 1; }
+.chip button { padding: 0 var(--sp-1); background: none; border: none; color: var(--text-faint); font-size: var(--fs-md); line-height: 1; }
 .chip button:hover { color: var(--red); background: none; }
 
 /* A chip that is itself a button opens the rules; give it the affordance to say so. */
@@ -753,7 +753,7 @@ button.chip:disabled { cursor: default; }
 
 .notice {
   background: rgba(var(--blue-rgb), 0.08); border: 1px solid var(--blue-edge);
-  border-radius: 6px; padding: 10px 12px; font-size: 12px; color: var(--text-dim);
+  border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6); font-size: var(--fs-sm); color: var(--text-dim);
 }
 .notice.warn { background: rgba(var(--amber-rgb), 0.07); border-color: var(--amber-dim); }
 /* Something already wrong, rather than something still to do — the same red as an
@@ -769,7 +769,7 @@ button.chip:disabled { cursor: default; }
 @media (pointer: fine) {
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 5px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: var(--radius-sm); border: 2px solid var(--bg); }
   ::-webkit-scrollbar-thumb:hover { background: var(--hover-border); }
 }
 
@@ -790,7 +790,7 @@ button.chip:disabled { cursor: default; }
 /* ---------- icons ---------- */
 .feature-icon {
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -798,8 +798,8 @@ button.chip:disabled { cursor: default; }
 .opt.ineligible .feature-icon { opacity: 0.4; filter: grayscale(0.7); }
 .class-icon {
   float: right;
-  margin: 0 0 10px 12px;
-  border-radius: 8px;
+  margin: 0 0 var(--sp-5) var(--sp-6);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-2);
   object-fit: cover;
 }
@@ -820,10 +820,10 @@ button.chip:disabled { cursor: default; }
 
 .portrait-choices {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
-  gap: 8px; max-height: 210px; overflow-y: auto; padding: 4px;
+  gap: var(--sp-4); max-height: 210px; overflow-y: auto; padding: var(--sp-2);
 }
 .portrait-choice {
-  padding: 4px; border-radius: 8px; background: var(--bg-2);
+  padding: var(--sp-2); border-radius: var(--radius-lg); background: var(--bg-2);
   border: 1px solid var(--border); cursor: pointer; line-height: 0;
 }
 /* Guarded, as with every hover that stands in for a selection. */
@@ -831,7 +831,7 @@ button.chip:disabled { cursor: default; }
   .portrait-choice:hover { border-color: var(--border-2); background: var(--bg-3); }
 }
 .portrait-choice.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15); }
-.portrait-choice img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 5px; }
+.portrait-choice img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); }
 
 .portrait-button {
   position: relative; padding: 0; border: none; background: none;
@@ -842,7 +842,7 @@ button.chip:disabled { cursor: default; }
   position: absolute; inset: 0; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: rgba(var(--shadow-rgb), 0.6); color: var(--accent);
-  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: var(--fs-tiny); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   opacity: 0; transition: opacity 0.12s;
 }
 .portrait-button:hover .portrait-overlay,
@@ -867,24 +867,24 @@ button.linklike.block { display: block; width: 100%; }
 /* ---------- compact attack rows ---------- */
 .attack-row {
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 7px 10px;
+  border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
 .attack-row:hover { border-color: var(--border-2); }
 .attack-name {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  font-weight: 600; margin-bottom: 2px;
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  font-weight: 600; margin-bottom: var(--sp-1);
 }
 .attack-nums {
-  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 13px;
+  display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; font-size: var(--fs-body);
 }
-.attack-nums .breakdown { font-size: 14px; }
+.attack-nums .breakdown { font-size: var(--fs-md); }
 .badge.warn-badge {
   background: rgba(var(--amber-rgb), 0.13); color: var(--amber);
   border-color: var(--amber-dim); cursor: help;
 }
 
 /* ---------- Force power uses ---------- */
-.uses { display: inline-flex; gap: 3px; align-items: center; }
+.uses { display: inline-flex; gap: var(--sp-2); align-items: center; }
 .pip {
   width: 9px; height: 9px; border-radius: 50%;
   border: 1px solid var(--border-2); background: transparent;
@@ -893,9 +893,9 @@ button.linklike.block { display: block; width: 100%; }
 .attack-row.exhausted { opacity: 0.5; }
 
 .fp-bar {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
   background: var(--bg-3); border: 1px solid var(--border);
-  border-radius: 6px; padding: 6px 10px; margin-bottom: 10px;
+  border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-5); margin-bottom: var(--sp-5);
 }
 
 /* ---------- hover cards ---------- */
@@ -906,38 +906,38 @@ button.linklike.block { display: block; width: 100%; }
   /* A card with nowhere to fit is clipped, not spilled off the edge of the window. */
   overflow: hidden;
   background: var(--bg-2); border: 1px solid var(--border-2);
-  border-radius: 8px; padding: 10px 12px;
-  box-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.55);
-  font-size: 13px; line-height: 1.45; pointer-events: none;
+  border-radius: var(--radius-lg); padding: var(--sp-5) var(--sp-6);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--fs-body); line-height: 1.45; pointer-events: none;
   transition: opacity 80ms ease-out;
 }
 .tip-card.wide { max-width: 460px; }
-.tip-body p { margin: 0 0 6px; color: var(--text-dim); }
+.tip-body p { margin: 0 0 var(--sp-3); color: var(--text-dim); }
 .tip-body p:last-child { margin-bottom: 0; }
 .tip-body strong { color: var(--text); }
 .tip-head {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 2px;
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-1);
 }
-.tip-head strong { font-size: 14px; color: var(--accent); }
+.tip-head strong { font-size: var(--fs-md); color: var(--accent); }
 .tip-source {
-  color: var(--text-faint); font-size: 11px; text-transform: uppercase;
-  letter-spacing: 0.05em; margin-bottom: 6px;
+  color: var(--text-faint); font-size: var(--fs-tiny); text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: var(--sp-3);
 }
 .tip-label {
-  color: var(--accent); font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.06em; margin: 8px 0 3px;
+  color: var(--accent); font-size: var(--fs-tiny); font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; margin: var(--sp-4) 0 var(--sp-2);
 }
 .tip-note {
   color: var(--text); background: var(--bg-3); border: 1px solid var(--border);
-  border-radius: 5px; padding: 4px 7px; margin-bottom: 6px; font-size: 12px;
+  border-radius: var(--radius-sm); padding: var(--sp-2) var(--sp-4); margin-bottom: var(--sp-3); font-size: var(--fs-sm);
 }
 .tip-rows { width: 100%; border-collapse: collapse; }
-.tip-rows td { padding: 1px 0; color: var(--text-dim); vertical-align: baseline; }
+.tip-rows td { padding: var(--sp-1) 0; color: var(--text-dim); vertical-align: baseline; }
 .tip-rows td:first-child {
-  width: 1%; padding-right: 8px; text-align: right;
+  width: 1%; padding-right: var(--sp-4); text-align: right;
   color: var(--text); font-weight: 600; white-space: nowrap;
 }
-.tip-total td { border-top: 1px solid var(--border); padding-top: 3px; }
+.tip-total td { border-top: 1px solid var(--border); padding-top: var(--sp-2); }
 .tip-total td:first-child { color: var(--accent); }
 @media print { .tip-card { display: none; } }
 .tip-anchor.block > .stat { height: 100%; cursor: help; }
@@ -953,9 +953,9 @@ button.linklike.block { display: block; width: 100%; }
    under it, a lit top edge and a bracket at two corners. */
 .level-bar {
   position: relative;
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: var(--sp-7); flex-wrap: wrap;
   background: var(--bg-3); border: 1px solid var(--border-2);
-  border-radius: 3px; padding: 13px 17px; margin-bottom: 16px;
+  border-radius: var(--radius-sharp); padding: var(--sp-6) var(--sp-7); margin-bottom: var(--sp-7);
   box-shadow: inset 0 2px 0 var(--sheet-accent);
 }
 .level-bar::before, .level-bar::after {
@@ -967,15 +967,15 @@ button.linklike.block { display: block; width: 100%; }
 .level-bar::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
 .level-bar::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
 .level-bar .label {
-  color: var(--text-faint); font-size: 10px; text-transform: uppercase;
+  color: var(--text-faint); font-size: var(--fs-micro); text-transform: uppercase;
   letter-spacing: 0.09em; font-weight: 700;
 }
 /* The one number the page is about, at the size the sheet gives its hit points. */
 .level-number {
-  font-family: var(--mono); font-size: 32px; font-weight: 700;
+  font-family: var(--mono); font-size: var(--fs-num-lg); font-weight: 700;
   color: var(--sheet-accent); line-height: 1.05; letter-spacing: -0.02em;
 }
-.todo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.todo { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
 .todo-chip {
   background: rgba(var(--amber-rgb), 0.12); border-color: var(--amber-dim); color: var(--amber);
 }
@@ -987,7 +987,7 @@ button.linklike.block { display: block; width: 100%; }
 }
 .todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
 
-.edit-section { margin-bottom: 4px; }
+.edit-section { margin-bottom: var(--sp-2); }
 /* Whatever a new level still owes you is lifted to the top and outlined. The outline and the
    header above it are the whole signal: the panel keeps its own colour, because straight
    after a level-up every section owes something and taking all four tones over turned the
@@ -1009,8 +1009,8 @@ button.linklike.block { display: block; width: 100%; }
 .skill-row.trained > td { background: var(--bg-3); }
 .skill-row.trained .skill-label { font-weight: 700; }
 .needs-header {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 6px; color: var(--amber); font-size: 13px;
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  margin-bottom: var(--sp-3); color: var(--amber); font-size: var(--fs-body);
 }
 .needs-header.conflict { color: var(--red-soft); }
 @media print { .level-bar, .needs-header { display: none; } }
@@ -1034,10 +1034,10 @@ button.linklike.block { display: block; width: 100%; }
   position: relative;
   background: var(--panel);
   border: 1px solid var(--border-2);
-  border-radius: 3px;
-  margin-bottom: 14px;
+  border-radius: var(--radius-sharp);
+  margin-bottom: var(--sp-7);
 }
-.frame > .frame-body { padding: 14px 16px; }
+.frame > .frame-body { padding: var(--sp-7) var(--sp-7); }
 .frame::before, .frame::after {
   content: ''; position: absolute;
   width: 13px; height: 13px;
@@ -1061,15 +1061,15 @@ button.linklike.block { display: block; width: 100%; }
 .frame.lit-red::before, .frame.lit-red::after { border-color: var(--red); }
 
 /* ---------- identity ---------- */
-.identity { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.identity { display: flex; align-items: center; gap: var(--sp-7); flex-wrap: wrap; }
 .identity .grow { flex: 1; min-width: 0; }
 .identity h1 {
-  color: var(--sheet-accent); font-size: 22px; letter-spacing: 0.02em;
+  color: var(--sheet-accent); font-size: var(--fs-xl); letter-spacing: 0.02em;
   overflow-wrap: anywhere;
 }
 .identity-line {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin-top: 3px; font-size: 12px; color: var(--text-dim);
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--text-dim);
 }
 .identity-line .sep { color: var(--text-faint); }
 .identity-level {
@@ -1081,7 +1081,7 @@ button.linklike.block { display: block; width: 100%; }
 .vitals-frame { background: var(--bg-3); }
 .vitals-frame > .frame-body { padding: 0; }
 .vitals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.vital { padding: 12px 16px; min-width: 0; }
+.vital { padding: var(--sp-6) var(--sp-7); min-width: 0; }
 .vital + .vital { border-left: 1px solid var(--border); }
 
 /* Stacked, a left edge would rule off the wrong side. */
@@ -1091,20 +1091,20 @@ button.linklike.block { display: block; width: 100%; }
 }
 
 .vital-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
-  color: var(--text-faint); font-weight: 700; margin-bottom: 3px;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-2);
 }
 .vital-value {
-  font-family: var(--mono); font-size: 34px; font-weight: 700; line-height: 1.05;
+  font-family: var(--mono); font-size: var(--fs-num-lg); font-weight: 700; line-height: 1.05;
   letter-spacing: -0.02em;
 }
-.vital-value .of { font-size: 17px; color: var(--text-faint); font-weight: 600; }
+.vital-value .of { font-size: var(--fs-lg); color: var(--text-faint); font-weight: 600; }
 
 /* Hit points, the one number read most often, so it is the largest thing on the page and
    the only one with a filled bar behind it. */
 .hp-bar {
-  height: 7px; margin: 7px 0 8px;
-  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  height: 7px; margin: var(--sp-4) 0 var(--sp-4);
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
   overflow: hidden;
 }
 .hp-fill {
@@ -1114,25 +1114,25 @@ button.linklike.block { display: block; width: 100%; }
 .hp-fill.hurt { background: var(--amber); }
 .hp-fill.bad { background: var(--red); }
 .vital.hp.bad .vital-value { color: var(--red); }
-.hp-controls { flex-wrap: wrap; gap: 5px; }
+.hp-controls { flex-wrap: wrap; gap: var(--sp-3); }
 .hp-controls input { width: 56px; }
 
 /* The condition track is a track: five steps down to unconscious, each one a segment you
    can drop to. The old row of six identical buttons said none of that. */
-.ctrack { display: flex; gap: 3px; margin: 8px 0 6px; }
+.ctrack { display: flex; gap: var(--sp-2); margin: var(--sp-4) 0 var(--sp-3); }
 .ctrack-step {
   flex: 1; min-width: 0;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: none; border: none; border-radius: 4px;
-  padding: 3px 1px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
+  background: none; border: none; border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-1); cursor: pointer;
 }
 .ctrack-step:hover:not(:disabled) { background: rgba(var(--wash-rgb), 0.04); }
 .ctrack-mark {
-  width: 100%; height: 5px; border-radius: 2px;
+  width: 100%; height: 5px; border-radius: var(--radius-sharp);
   background: var(--border-2); transition: background 0.12s;
 }
 .ctrack-name {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--text-faint); white-space: nowrap;
 }
 /* Every step you have already dropped through stays lit, so the depth of the fall is the
@@ -1144,49 +1144,49 @@ button.linklike.block { display: block; width: 100%; }
 .ctrack-step.out.here .ctrack-name { color: var(--red); }
 
 /* Force points, destiny and the dark side share the third cell. */
-.vital .uses { flex-wrap: wrap; gap: 4px; margin: 7px 0 4px; }
+.vital .uses { flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-4) 0 var(--sp-2); }
 .vital .pip { width: 11px; height: 11px; }
 /* Including the pair in the Actions tab, so the whole page turns together. */
 .sheet .pip.full { background: var(--sheet-accent); border-color: var(--sheet-accent); }
-.mini-fields { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.mini-fields { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-4); }
 .mini-field { flex: 1 1 78px; min-width: 0; }
 .mini-field.wide { flex: 1 1 130px; }
 .mini-field label {
-  display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--text-faint); font-weight: 700; margin-bottom: 3px;
+  display: block; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-2);
 }
-.mini-field input { padding: 3px 7px; font-size: 12px; }
+.mini-field input { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); }
 
 /* How near the dark side score is to Wisdom — the roll you are one bad choice away from
    failing. Empty at zero, full at the score that turns you. */
 .fall-bar {
-  height: 4px; margin-top: 6px;
-  background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+  height: 4px; margin-top: var(--sp-3);
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sharp); overflow: hidden;
 }
 .fall-fill { height: 100%; background: var(--purple); transition: width 0.18s, background 0.18s; }
 .fall-fill.near { background: var(--red); }
 
 /* ---------- tier two: what you are rolled against ---------- */
 .defenses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 0.85fr; }
-.def-cell { padding: 2px 14px; min-width: 0; text-align: center; }
+.def-cell { padding: var(--sp-1) var(--sp-7); min-width: 0; text-align: center; }
 .def-cell + .def-cell { border-left: 1px solid var(--border); }
-.def-cell .vital-label { margin-bottom: 1px; }
+.def-cell .vital-label { margin-bottom: var(--sp-1); }
 .def-value {
-  font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1.15;
+  font-family: var(--mono); font-size: var(--fs-num-md); font-weight: 700; line-height: 1.15;
   color: var(--blue);
 }
 /* Reserved even when empty, so Fortitude and Will do not sit a line higher than Reflex. */
-.def-cell .sub { font-size: 11px; color: var(--text-faint); min-height: 16px; }
+.def-cell .sub { font-size: var(--fs-tiny); color: var(--text-faint); min-height: 16px; }
 /* Damage threshold is a consequence of Fortitude rather than a fourth defense, so it is
    attached to the group but drawn a size down. */
-.def-cell.minor .def-value { font-size: 22px; color: var(--text); }
+.def-cell.minor .def-value { font-size: var(--fs-num-sm); color: var(--text); }
 .def-cell .tip-anchor.block { display: block; cursor: help; }
 .def-cell:hover .def-value { color: var(--sheet-accent); }
 
 @media (max-width: 700px) {
   .defenses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .def-cell:nth-child(odd) { border-left: none; }
-  .def-cell:nth-child(n + 3) { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 8px; }
+  .def-cell:nth-child(n + 3) { border-top: 1px solid var(--border); padding-top: var(--sp-5); margin-top: var(--sp-4); }
 }
 
 /* ---------- tier three: what is simply true ---------- */
@@ -1194,20 +1194,20 @@ button.linklike.block { display: block; width: 100%; }
    from. The old tiles had that the other way round. */
 .abil-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .abil-strip.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.abil { text-align: center; padding: 0 6px; min-width: 0; }
+.abil { text-align: center; padding: 0 var(--sp-3); min-width: 0; }
 .abil + .abil { border-left: 1px solid var(--border); }
 .abil-name {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-faint);
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.1em; color: var(--text-faint);
 }
 .abil-mod {
-  font-family: var(--mono); font-size: 24px; font-weight: 700; line-height: 1.15;
+  font-family: var(--mono); font-size: var(--fs-num-sm); font-weight: 700; line-height: 1.15;
   color: var(--sheet-accent);
 }
-.abil-score { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+.abil-score { font-size: var(--fs-tiny); color: var(--text-faint); font-family: var(--mono); }
 
 @media (max-width: 620px) {
   .abil-strip, .abil-strip.five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .abil { padding: 6px 4px; }
+  .abil { padding: var(--sp-3) var(--sp-2); }
   .abil:nth-child(3n + 1) { border-left: none; }
   .abil:nth-child(n + 4) { border-top: 1px solid var(--border); }
 }
@@ -1215,14 +1215,14 @@ button.linklike.block { display: block; width: 100%; }
 /* Base attack bonus, speed and size are set at level-up and read once a session. One line,
    not four tiles the size of your hit points. */
 .factline {
-  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
-  padding: 9px 16px; margin-bottom: 14px;
-  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius);
-  font-size: 13px;
+  display: flex; align-items: center; gap: var(--sp-4) var(--sp-7); flex-wrap: wrap;
+  padding: var(--sp-5) var(--sp-7); margin-bottom: var(--sp-7);
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  font-size: var(--fs-body);
 }
 .factline .k {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--text-faint); font-weight: 700; margin-right: 5px;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700; margin-right: var(--sp-3);
 }
 .factline .v { font-family: var(--mono); font-weight: 700; }
 .factline .fact { display: inline-flex; align-items: baseline; white-space: nowrap; }
@@ -1246,7 +1246,7 @@ button.linklike.block { display: block; width: 100%; }
    created a stacking context here would trap them. */
 .panel.framed {
   position: relative;
-  border-radius: 3px;
+  border-radius: var(--radius-sharp);
   border-color: var(--border-2);
 }
 .panel.framed::before, .panel.framed::after {
@@ -1258,10 +1258,10 @@ button.linklike.block { display: block; width: 100%; }
 .panel.framed::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
 .panel.framed::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
 .panel.framed > header {
-  border-radius: 3px 3px 0 0;
+  border-radius: var(--radius-sharp) var(--radius-sharp) 0 0;
   box-shadow: inset 0 2px 0 var(--border-2);
 }
-.panel.framed.collapsed > header { border-radius: 3px; }
+.panel.framed.collapsed > header { border-radius: var(--radius-sharp); }
 .panel.framed > header h2 { color: var(--tone, var(--text-dim)); }
 /* Back to the sheet's accent. It was the panel's own tone while the frame was coloured too,
    so that the two agreed; with the frame neutral, a green or purple filled tab is the only
@@ -1278,11 +1278,11 @@ button.linklike.block { display: block; width: 100%; }
 .panel.tint-blue { --tone: var(--blue); }
 
 /* ---------- the theme picker ---------- */
-.theme-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.theme-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
 @media (min-width: 620px) { .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .theme-option {
-  display: flex; align-items: center; gap: 11px; text-align: left;
-  padding: 9px 11px; border-radius: 6px;
+  display: flex; align-items: center; gap: var(--sp-6); text-align: left;
+  padding: var(--sp-5) var(--sp-6); border-radius: var(--radius-md);
   background: var(--bg-2); border: 1px solid var(--border);
 }
 /* Guarded: .selected below fills with the same --bg-3, and a palette you merely tapped past
@@ -1293,12 +1293,12 @@ button.linklike.block { display: block; width: 100%; }
 .theme-option.selected { border-color: var(--accent-dim); background: var(--bg-3); }
 .theme-option .grow { flex: 1; min-width: 0; display: block; }
 .theme-name { display: block; font-weight: 600; }
-.theme-blurb { display: block; font-size: 12px; color: var(--text-faint); }
+.theme-blurb { display: block; font-size: var(--fs-sm); color: var(--text-faint); }
 /* Three bands — page, panel, accent — which is the whole palette at a glance. Literal
    colours on purpose: a swatch has to show the theme it offers, not the one in use. */
 .theme-swatch {
   display: flex; flex-shrink: 0; width: 44px; height: 30px;
-  border-radius: 4px; overflow: hidden; border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-2);
 }
 .theme-swatch > span { flex: 1; }
 
@@ -1307,49 +1307,49 @@ button.linklike.block { display: block; width: 100%; }
    fourteen ticked checkboxes on the least interesting panel. */
 
 /* Who this is: the portrait at a size worth looking at, the name at the size of a name. */
-.identity-edit { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+.identity-edit { display: flex; align-items: flex-start; gap: var(--sp-7); flex-wrap: wrap; }
 .identity-edit > .grow { flex: 1 1 320px; min-width: 0; }
 .identity-edit .name-field input {
-  font-size: 20px; font-weight: 600; letter-spacing: 0.01em;
-  color: var(--sheet-accent); padding: 8px 11px;
+  font-size: var(--fs-xl); font-weight: 600; letter-spacing: 0.01em;
+  color: var(--sheet-accent); padding: var(--sp-4) var(--sp-6);
 }
 /* The same line the sheet leads with, so the two pages agree about who is being edited. */
 .identity-summary {
-  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-  margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--border);
-  font-size: 12px; color: var(--text-dim);
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  margin-top: var(--sp-6); padding-top: var(--sp-6); border-top: 1px solid var(--border);
+  font-size: var(--fs-sm); color: var(--text-dim);
 }
 .identity-summary .sep { color: var(--text-faint); }
 .identity-summary strong { color: var(--sheet-accent); font-family: var(--mono); }
 
 /* What the species gives you, as numbers rather than as a sentence in grey 12px. A bonus
    and a penalty are not the same news, so they are not the same colour. */
-.species-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.species-name { font-size: 17px; font-weight: 600; }
-.species-mods { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.species-head { display: flex; align-items: baseline; gap: var(--sp-5); flex-wrap: wrap; }
+.species-name { font-size: var(--fs-lg); font-weight: 600; }
+.species-mods { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-5); }
 .species-mod {
-  display: inline-flex; align-items: baseline; gap: 6px;
+  display: inline-flex; align-items: baseline; gap: var(--sp-3);
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 5px; padding: 3px 9px;
+  border-radius: var(--radius-sm); padding: var(--sp-2) var(--sp-5);
 }
 .species-mod .k {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-faint);
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.08em; color: var(--text-faint);
 }
-.species-mod .v { font-family: var(--mono); font-weight: 700; font-size: 14px; }
+.species-mod .v { font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
 .species-mod .v.up { color: var(--green); }
 .species-mod .v.down { color: var(--red); }
 .species-facts {
-  display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 10px; font-size: 13px;
+  display: flex; gap: var(--sp-3) var(--sp-7); flex-wrap: wrap; margin-top: var(--sp-5); font-size: var(--fs-body);
 }
 .species-facts .k {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--text-faint); font-weight: 700; margin-right: 5px;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); font-weight: 700; margin-right: var(--sp-3);
 }
 .species-facts .v { font-family: var(--mono); font-weight: 700; }
 /* Nothing chosen yet is the one thing on this page worth interrupting for. */
 .species-empty {
   display: block; width: 100%; text-align: left;
-  padding: 14px 16px; border-radius: 6px;
+  padding: var(--sp-7) var(--sp-7); border-radius: var(--radius-md);
   background: rgba(var(--amber-rgb), 0.05);
   border: 1px dashed var(--amber-dim); color: var(--amber);
   font-weight: 600; cursor: pointer;
@@ -1359,9 +1359,9 @@ button.linklike.block { display: block; width: 100%; }
 /* A rule with a name on it, for splitting one long panel into the things it is actually
    about — the description panel was twelve identical boxes in a row. */
 .group-rule {
-  display: flex; align-items: center; gap: 10px;
-  margin: 18px 0 10px;
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em;
+  display: flex; align-items: center; gap: var(--sp-5);
+  margin: var(--sp-7) 0 var(--sp-5);
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--text-faint); font-weight: 700;
 }
 .group-rule::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -1369,8 +1369,8 @@ button.linklike.block { display: block; width: 100%; }
 
 /* Fourteen checkbox rows read as the most important thing on the page purely by taking up
    the most of it. As toggles they are a third of the height and stop shouting. */
-.book-toggles { display: flex; flex-wrap: wrap; gap: 5px; }
-.book-toggles button { font-size: 12px; padding: 4px 10px; }
+.book-toggles { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.book-toggles button { font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-5); }
 /* Every book is in play unless you say otherwise, so being on is the quiet state and what
    you have ruled out is what wants marking. Filling all fourteen instead made the least
    interesting panel on the page the brightest thing on it. */
@@ -1387,17 +1387,17 @@ button.linklike.block { display: block; width: 100%; }
 /* One switcher, not three loose buttons that happened to sit in a panel header. */
 .seg {
   display: inline-flex;
-  border: 1px solid var(--border-2); border-radius: 5px; overflow: hidden;
+  border: 1px solid var(--border-2); border-radius: var(--radius-sm); overflow: hidden;
 }
 .seg button {
   background: none; border: none; border-radius: 0;
-  padding: 4px 11px; font-size: 12px; color: var(--text-dim); white-space: nowrap;
+  padding: var(--sp-2) var(--sp-6); font-size: var(--fs-sm); color: var(--text-dim); white-space: nowrap;
 }
 .seg button + button { border-left: 1px solid var(--border-2); }
 .seg button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 .seg button.on { background: var(--sheet-accent); color: var(--bg); font-weight: 700; }
 .seg button.on:hover:not(:disabled) { background: var(--sheet-accent); color: var(--bg); }
-.seg .count { opacity: 0.6; margin-left: 5px; }
+.seg .count { opacity: 0.6; margin-left: var(--sp-3); }
 
 /* Twenty-four rows drawn identically, alphabetical, with the three you are actually good at
    buried among them. Trained skills are lifted out with an edge and a brighter row, the
@@ -1409,12 +1409,12 @@ button.linklike.block { display: block; width: 100%; }
    wrapped name in one column padded out whatever sat beside it in the other. */
 .skill-cols { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 1180px) {
-  .skill-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+  .skill-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-7); }
 }
-.skill-col { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.skill-col { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
 .skill {
-  display: flex; align-items: center; gap: 7px;
-  padding: 4px 8px; border-radius: 4px;
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm);
   min-width: 0;
 }
 /* Guarded: this is the same --bg-3 as .skill.trained on the line below, so a hover left
@@ -1426,37 +1426,37 @@ button.linklike.block { display: block; width: 100%; }
 /* Trained or not is the ● / ○ it always was; the brighter row is what carries it now that
    the modifier beside it is the thing you actually read. */
 .skill > .pip { flex-shrink: 0; }
-.skill-name { flex: 1; min-width: 0; font-size: 13px; }
+.skill-name { flex: 1; min-width: 0; font-size: var(--fs-body); }
 .skill.trained .skill-name { font-weight: 600; }
 .skill-ability {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-faint);
+  font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.06em; color: var(--text-faint);
   flex-shrink: 0;
 }
 .skill-total {
-  font-family: var(--mono); font-weight: 700; font-size: 14px;
+  font-family: var(--mono); font-weight: 700; font-size: var(--fs-md);
   /* Fixed, so the larger number on a trained row does not make that row taller than the
      ones around it — the emphasis is in the size of the glyphs, not in the spacing. */
   line-height: 20px;
   min-width: 32px; text-align: right; flex-shrink: 0;
 }
-.skill.trained .skill-total { color: var(--sheet-accent); font-size: 16px; }
+.skill.trained .skill-total { color: var(--sheet-accent); font-size: var(--fs-lg); }
 .skill .badge { flex-shrink: 0; }
 
 /* The switches that change the numbers below them, ruled off from the numbers themselves —
    they used to run straight into the attack list as one undifferentiated block. */
 .modifiers {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-  padding: 7px 9px; margin-bottom: 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-5);
 }
 .modifiers .modifiers-label {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.09em;
-  color: var(--text-faint); font-weight: 700; margin-bottom: 6px;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-3);
 }
 
 /* An attack leads with the roll, because that is what you reach for first. The damage is
    the consequence, so it sits below at reading size. The left edge says which kind of thing
    the row is without spending a word on it. */
-.attack-row { display: flex; align-items: center; gap: 11px; border-left: 3px solid var(--border-2); }
+.attack-row { display: flex; align-items: center; gap: var(--sp-6); border-left: 3px solid var(--border-2); }
 .attack-row.melee { border-left-color: var(--sheet-accent); }
 .attack-row.ranged { border-left-color: var(--blue); }
 /* Green, with the Force powers everywhere else on the sheet. */
@@ -1469,20 +1469,20 @@ button.linklike.block { display: block; width: 100%; }
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.attack-roll .breakdown { font-size: 19px; line-height: 1.15; }
+.attack-roll .breakdown { font-size: var(--fs-xl); line-height: 1.15; }
 .attack-roll .k {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700;
 }
 .attack-row > .grow { min-width: 0; flex: 1; }
-.attack-row .attack-name { margin-bottom: 1px; }
+.attack-row .attack-name { margin-bottom: var(--sp-1); }
 
 /* Feats, talents and powers were one undifferentiated drift of chips. Each kind now carries
    its own tone, and its heading carries the same one, so the groups separate at a glance. */
-.feature-group { margin-bottom: 12px; }
+.feature-group { margin-bottom: var(--sp-6); }
 .feature-group h3 {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 7px;
+  display: flex; align-items: center; gap: var(--sp-4);
+  font-size: var(--fs-tiny); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-4);
 }
 .feature-group h3 .rule { flex: 1; height: 1px; background: var(--border); }
 .tone-accent { color: var(--sheet-accent); }
@@ -1505,10 +1505,10 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
 .combo {
   background: var(--bg-2); border: 1px solid var(--border);
   border-left: 3px solid var(--border-2);
-  border-radius: 6px; padding: 8px 10px;
+  border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
 .combo.on { border-left-color: var(--green); background: rgba(var(--green-rgb), 0.05); }
-.combo .name { font-size: 13px; font-weight: 600; }
+.combo .name { font-size: var(--fs-body); font-weight: 600; }
 /* The last line of the effect sits on the card's own padding. */
 .combo .rules-text p:last-child { margin-bottom: 0; }
 
@@ -1527,14 +1527,14 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
     var(--bg-2);
   border: 1px solid var(--border);
   border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17));
-  border-radius: 6px; padding: 8px 10px;
+  border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
-.turn-action .name { font-size: 13px; font-weight: 600; }
+.turn-action .name { font-size: var(--fs-body); font-weight: 600; }
 /* What a turn holds, above the kind being read rather than inside it: the allowance and the
    trades are true of all six, so they must not move or vanish when the switcher does. Ruled
    off below so the constant part and the part that changes do not read as one passage. */
 .turn-economy {
-  padding-bottom: 10px; margin-bottom: 12px;
+  padding-bottom: var(--sp-5); margin-bottom: var(--sp-6);
   border-bottom: 1px solid var(--border);
 }
 .turn-economy .rules-text p:last-child { margin-bottom: 0; }
@@ -1549,33 +1549,33 @@ button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(-
    rather than `.tip-rows`, which is a tooltip's table and puts the value first. */
 /* `width: auto` and the border reset are both against the global `table` and `th, td` rules
    above — this is a short ladder read down, not one of the page's full-width tables. */
-.size-mods { width: auto; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.size-mods { width: auto; border-collapse: collapse; margin-top: var(--sp-4); font-size: var(--fs-sm); }
 .size-mods th {
-  padding: 0 16px 3px 0; text-align: left;
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0 var(--sp-7) var(--sp-2) 0; text-align: left;
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700;
   border-bottom: 1px solid var(--border-2);
 }
-.size-mods td { padding: 1px 16px 1px 0; border-bottom: none; color: var(--text-dim); }
+.size-mods td { padding: var(--sp-1) var(--sp-7) var(--sp-1) 0; border-bottom: none; color: var(--text-dim); }
 .size-mods tr > :first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
-.size-mods tbody tr:first-child td { padding-top: 4px; }
+.size-mods tbody tr:first-child td { padding-top: var(--sp-2); }
 
 /* One table for everything carried, with the category as a rule across it — three tables
    each repeating WORN / ITEM / QTY / WEIGHT was more chrome than cargo. */
 .kit-head td {
-  padding: 12px 10px 4px;
-  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  padding: var(--sp-6) var(--sp-5) var(--sp-2);
+  font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700;
   border-bottom: 1px solid var(--border-2);
 }
-.kit-head:first-child td { padding-top: 2px; }
+.kit-head:first-child td { padding-top: var(--sp-1); }
 /* Worn or wielded is the distinction that matters in play, so it is an edge on the row
    rather than a tick you have to go looking for. */
 .kit-row td:first-child { border-left: 3px solid transparent; }
 .kit-row.worn td:first-child { border-left-color: var(--sheet-accent); }
 .kit-row.worn .item-name { font-weight: 600; }
 .kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
-.kit-actions { display: flex; gap: 2px; justify-content: flex-end; }
+.kit-actions { display: flex; gap: var(--sp-1); justify-content: flex-end; }
 
 /* Kept out of the screen sheet and put back for print. On screen it is a wall of the
    player's own prose under everything they came to the page to read, and it is already on the
