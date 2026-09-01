@@ -278,8 +278,20 @@ export function Modal({
           ) ?? [])].filter(el => el.offsetParent !== null);
           if (!inside.length) return;
           const first = inside[0], last = inside[inside.length - 1];
-          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+          // The dialog itself counts as standing just before its first control. It holds the
+          // focus on open whenever nothing inside claimed it — which is every dialog without
+          // a search field, and every dialog at all on a touch screen — and it is not in
+          // `inside`, being `tabindex="-1"`. So neither edge matched, and a Shift+Tab as the
+          // first keystroke walked backwards out of the dialog and into the page behind it.
+          const atStart = document.activeElement === dialog.current || document.activeElement === first;
+          if (e.shiftKey && atStart) { e.preventDefault(); last.focus(); }
+          // Forward from the container lands on `first` by default, the container being its
+          // parent — but only while nothing tabbable sits between them, so it is said rather
+          // than relied on.
+          else if (!e.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) {
+            e.preventDefault();
+            first.focus();
+          }
         }}
       >
         {/* The grab handle. Shown only where the dialog is a bottom sheet — see index.css;

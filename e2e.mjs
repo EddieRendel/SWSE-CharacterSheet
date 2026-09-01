@@ -593,6 +593,57 @@ await step('closing a dialog hands focus back to whatever opened it', async () =
   }
 });
 
+// A dialog without a search field to autofocus holds the focus on the container itself —
+// which is every dialog on a touch screen, and the detail and rules dialogs everywhere. The
+// container is `tabindex="-1"` so it is not one of the controls the trap knows about, and a
+// Shift+Tab as the first keystroke used to walk straight out of the dialog into the page
+// behind it, which is inert to the eye and unreachable to the mouse but still tabbable.
+await step('tabbing cannot leave a dialog, in either direction', async () => {
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+  await panel.locator('.turn-actions button:has-text("Standard")').click();
+  await page.waitForSelector('.modal');
+
+  const focused = () => page.evaluate(() => {
+    const a = document.activeElement;
+    return {
+      inModal: !!a?.closest('.modal'),
+      what: `${a?.tagName}.${a?.className || '(none)'} "${(a?.textContent ?? '').trim().slice(0, 18)}"`,
+    };
+  });
+
+  const onOpen = await focused();
+  if (!onOpen.what.startsWith('DIV.modal')) {
+    throw new Error(`expected the dialog itself to hold focus, got ${onOpen.what}`);
+  }
+
+  // Backwards from the container is the case that escaped.
+  await page.keyboard.press('Shift+Tab');
+  const back = await focused();
+  if (!back.inModal) throw new Error(`Shift+Tab left the dialog for ${back.what}`);
+
+  // Forwards from it lands on the first control rather than relying on document order.
+  await page.evaluate(() => document.querySelector('.modal').focus());
+  await page.keyboard.press('Tab');
+  const fwd = await focused();
+  if (!fwd.inModal) throw new Error(`Tab left the dialog for ${fwd.what}`);
+
+  // And the far edge still wraps.
+  await page.evaluate(() => {
+    const els = [...document.querySelectorAll('.modal a[href], .modal button:not(:disabled), .modal input:not(:disabled), .modal select:not(:disabled), .modal textarea:not(:disabled), .modal [tabindex]:not([tabindex="-1"])')]
+      .filter(el => el.offsetParent !== null);
+    els[els.length - 1].focus();
+  });
+  await page.keyboard.press('Tab');
+  const wrapped = await focused();
+  if (!wrapped.inModal) throw new Error(`Tab off the last control left the dialog for ${wrapped.what}`);
+
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
+
 // The number fields commit every keystroke, so the sheet keeps up while a value is typed.
 // That makes Escape a restore rather than a cancel: without one it silently kept the edit
 // it claimed to undo, and clamped it on the way out.
