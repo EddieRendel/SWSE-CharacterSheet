@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import type { Feature, ResolvedItem } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
-import { useDismissLayer } from '../dismiss';
+import { focusIsBeingRestored, useDismissLayer } from '../dismiss';
 import { descriptorsOf, itemStatRows, talentSources, upgradeEffects } from './labels';
 
 const GAP = 8;
@@ -111,7 +111,9 @@ export function Tip({
         className={`tip-anchor${className ? ` ${className}` : ''}`}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => { setOpen(false); setStyle(HIDDEN); }}
-        onFocus={() => setOpen(true)}
+        // Focus is the keyboard's way of asking for the card, but not when it is only
+        // being handed back by a dialog that closed — see `restoreFocus` in dismiss.ts.
+        onFocus={() => { if (!focusIsBeingRestored()) setOpen(true); }}
         onBlur={() => setOpen(false)}
       >
         {children}

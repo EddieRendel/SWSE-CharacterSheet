@@ -4,7 +4,7 @@ import { CLASSES, TALENT_TREES, DROIDS, classIcon } from '../data';
 import { defaultHitDieValue, isBookAllowed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { checkClassRequirements } from '../rules/prereqs';
-import { Panel, Modal } from './ui';
+import { Panel, Modal, NumberField } from './ui';
 import { ReqList } from './Requirements';
 import { ClassDetail } from './FeaturePicker';
 
@@ -43,8 +43,10 @@ export function Levels({
       delete c.abilityIncreases[String(removed + 1)];
     });
 
-  const setHp = (index: number, hp: number) =>
-    update(c => { c.levels[index].hitPoints = Math.max(0, hp || 0); });
+  // Left unset rather than zeroed when the box is cleared: `hitPoints` is optional, and
+  // "not rolled yet" is a different thing from "rolled a nought", which no die does.
+  const setHp = (index: number, hp: number | undefined) =>
+    update(c => { c.levels[index].hitPoints = hp; });
 
   return (
     <>
@@ -98,11 +100,14 @@ export function Levels({
                           </span>
                         ) : (
                           <div className="row" style={{ justifyContent: 'flex-end', gap: 'var(--sp-3)' }}>
-                            <input
+                            <NumberField
                               className="mono center"
                               style={{ width: 56, padding: 'var(--sp-1) var(--sp-2)' }}
-                              value={entry.hitPoints ?? ''}
-                              onChange={e => setHp(i, parseInt(e.target.value, 10))}
+                              ariaLabel={`Hit points rolled at level ${i + 1}`}
+                              value={entry.hitPoints}
+                              onChange={hp => setHp(i, hp)}
+                              min={0}
+                              optional
                             />
                             <span className="faint nowrap">→ {hp?.gained}</span>
                           </div>

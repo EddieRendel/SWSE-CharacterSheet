@@ -4,7 +4,7 @@ import { ABILITY_IDS } from '../types';
 import { RULES } from '../data';
 import { abilityMod, signed, abilityIncreaseLevels } from '../rules/engine';
 import type { Derived } from '../rules/engine';
-import { Panel } from './ui';
+import { Panel, NumberField } from './ui';
 
 /** Saga Edition point-buy costs, from a base score of 8. */
 const POINT_COST: Record<number, number> = {
@@ -22,8 +22,14 @@ export function Abilities({
   const spent = ABILITY_IDS.reduce((s, a) => s + costOf(char.baseAbilities[a]), 0);
   const remaining = POINT_BUDGET - spent;
 
-  const setBase = (a: AbilityId, v: number) =>
-    update(c => { c.baseAbilities[a] = Math.max(1, Math.min(30, v || 0)); });
+  // The box clamps itself on blur, so this holds whatever it is handed — clamping on every
+  // keystroke is what stopped the field being typed into. The steppers go through `step`,
+  // which does clamp: an arithmetic result is not something half-typed.
+  const setBase = (a: AbilityId, v: number | undefined) =>
+    update(c => { c.baseAbilities[a] = v ?? 0; });
+
+  const step = (a: AbilityId, by: number) =>
+    update(c => { c.baseAbilities[a] = Math.max(1, Math.min(30, c.baseAbilities[a] + by)); });
 
   // Levels 4, 8, 12, 16 and 20 each grant +1 to two different abilities.
   const increaseLevels = abilityIncreaseLevels(derived.level);
@@ -76,14 +82,17 @@ export function Abilities({
                 </div>
 
                 <div className="row" style={{ marginTop: 'var(--sp-5)', gap: 'var(--sp-2)', justifyContent: 'center' }}>
-                  <button className="sm" onClick={() => setBase(a, base - 1)} disabled={base <= 1}>−</button>
-                  <input
+                  <button className="sm" aria-label={`Lower ${RULES.abilities[a].name}`} onClick={() => step(a, -1)} disabled={base <= 1}>−</button>
+                  <NumberField
                     className="mono center"
                     style={{ width: 52, padding: 'var(--sp-2) var(--sp-2)' }}
+                    ariaLabel={`${RULES.abilities[a].name} base score`}
                     value={base}
-                    onChange={e => setBase(a, parseInt(e.target.value, 10))}
+                    onChange={v => setBase(a, v)}
+                    min={1}
+                    max={30}
                   />
-                  <button className="sm" onClick={() => setBase(a, base + 1)} disabled={base >= 30}>+</button>
+                  <button className="sm" aria-label={`Raise ${RULES.abilities[a].name}`} onClick={() => step(a, 1)} disabled={base >= 30}>+</button>
                 </div>
 
                 <div className="stat-sub" style={{ marginTop: 'var(--sp-3)', lineHeight: 1.6 }}>

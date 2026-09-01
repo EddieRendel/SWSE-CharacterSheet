@@ -2885,6 +2885,16 @@ console.log('\n▸ Equipment customized copy by copy');
     stacked('combat-jumpsuit', 2).filter(e => e.equipped).length, 1);
   // Gear is genuinely countable — three medpacs are three medpacs, on one row.
   check('gear keeps its count', stacked('medpac', 3).map(e => e.quantity), [3]);
+  // A stack the player has emptied is a real state, not a corrupt one: the quantity box goes
+  // to none and the row stays on the sheet, weighing nothing, until it is restocked. The
+  // load-time clamp used to floor this at 1 and quietly put the copy back on the next reload,
+  // which is what made 0 unreachable however the box behaved.
+  check('gear can hold none', stacked('medpac', 0).map(e => e.quantity), [0]);
+  check('and an emptied stack is still a row', stacked('medpac', 0).length, 1);
+  // Splitting by count must not turn a count of none into no rows at all, which would drop
+  // the item from the character rather than empty it.
+  check('an emptied weapon is kept, not dropped', stacked('blaster-rifle', 0).map(e => e.quantity), [0]);
+
   // An item the catalogue has never heard of carries no category to judge by, so it is
   // left exactly as found rather than guessed at.
   check('an unknown item is left alone', stacked('not-a-real-item', 4).map(e => e.quantity), [4]);
