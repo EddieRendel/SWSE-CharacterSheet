@@ -130,10 +130,15 @@ function migrateEntry(raw: InventoryEntry): InventoryEntry {
  * that is loaded and never saved does not come back with different ones each time.
  */
 function splitStack(entry: InventoryEntry, category: string | undefined): InventoryEntry[] {
-  const n = Math.max(1, Math.floor(entry.quantity) || 1);
+  // Floor of 0, not 1: a stack the player has emptied is a real state, and clamping it back
+  // up here would undo the quantity box on the next load. `|| 0` still catches a NaN out of
+  // a hand-edited or truncated save.
+  const n = Math.max(0, Math.floor(entry.quantity) || 0);
   // Unknown items are left exactly as they are: without a category there is no telling
   // whether the stack means three of a thing or one thing weighing triple.
-  if (n === 1 || (category !== 'weapon' && category !== 'armor')) {
+  // `<= 1` rather than `=== 1`: a zero-quantity weapon is not split into no rows at all,
+  // which would drop it from the character entirely.
+  if (n <= 1 || (category !== 'weapon' && category !== 'armor')) {
     return [{ ...entry, quantity: n }];
   }
   return Array.from({ length: n }, (_, i) => ({

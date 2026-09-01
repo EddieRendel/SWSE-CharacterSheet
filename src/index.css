@@ -414,6 +414,19 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   input, select, textarea { font-size: 16px; } /* literal: a threshold, not a step */
 }
 
+/* The two smallest steps go up one on a touch screen. A phone is held further from the eye
+   than a monitor, and these steps carry ~30 labels that are also --text-faint, uppercase and
+   letter-spaced — the same pile-up that got the 9px step deleted (see the note above the
+   ladder), one size further down.
+
+   The colour is deliberately left alone. --text-faint sits at 4.83-4.87 against --panel in
+   every one of the seven palettes, which is seven authors landing just over the 4.5 floor on
+   purpose, not an accident to correct. That ratio is quoted against ~16px body text, so the
+   fault is the size it is set at, and the size is what moves. */
+@media (pointer: coarse) {
+  :root { --fs-micro: 11px; --fs-tiny: 12px; --fs-sm: 13px; }
+}
+
 /* ---------- layout ---------- */
 /* `dvh` rather than a bare percentage of the viewport: a phone browser draws its URL bar and
    its toolbar over the box the page is laid out in, so a full-height column ends with its last
@@ -459,7 +472,10 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: none; border: none; border-radius: var(--radius-md);
   padding: var(--sp-5) var(--sp-6); text-align: left; white-space: nowrap; color: var(--text-dim);
 }
-.topbar-menu-pop button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .topbar-menu-pop button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+}
 
 .tab-short { display: none; }
 
@@ -483,7 +499,10 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: none; border: none; border-bottom: 2px solid transparent;
   border-radius: 0; padding: var(--sp-5) var(--sp-7); color: var(--text-dim); white-space: nowrap;
 }
-.tabs button:hover { background: rgba(var(--wash-rgb), 0.03); color: var(--text); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .tabs button:hover { background: rgba(var(--wash-rgb), 0.03); color: var(--text); }
+}
 .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tabs .badge { margin-left: var(--sp-3); }
 
@@ -514,10 +533,13 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: none; border: none; padding: 0; cursor: pointer;
   min-width: 0; text-align: left;
 }
-.panel-toggle:hover:not(:disabled) { background: none; }
-.panel-toggle:hover h2 { color: var(--text); }
 .panel-toggle .caret { color: var(--text-faint); font-size: var(--fs-tiny); line-height: 1; width: 9px; }
-.panel-toggle:hover .caret { color: var(--accent); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .panel-toggle:hover:not(:disabled) { background: none; }
+  .panel-toggle:hover h2 { color: var(--text); }
+  .panel-toggle:hover .caret { color: var(--accent); }
+}
 
 /* Each level inside the feats panel folds on its own. */
 .level-divider {
@@ -525,9 +547,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: none; border: none; border-radius: var(--radius-sm);
   padding: var(--sp-2) var(--sp-2); margin-bottom: var(--sp-3); cursor: pointer; text-align: left;
 }
-.level-divider:hover:not(:disabled) { background: var(--bg-3); }
 .level-divider .caret { color: var(--text-faint); font-size: var(--fs-tiny); line-height: 1; width: 9px; }
-.level-divider:hover .caret { color: var(--accent); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .level-divider:hover:not(:disabled) { background: var(--bg-3); }
+  .level-divider:hover .caret { color: var(--accent); }
+}
 .level-divider .rule { flex: 1; height: 1px; background: var(--border); }
 
 /* Panel headers pair a title with action buttons. On a phone the two together were wider
@@ -614,7 +639,10 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6);
 }
-.item:hover { border-color: var(--border-2); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .item:hover { border-color: var(--border-2); }
+}
 .item .grow { flex: 1; min-width: 0; }
 .item-name { font-weight: 600; }
 .item-meta { font-size: var(--fs-sm); color: var(--text-faint); }
@@ -697,22 +725,65 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 }
 /* `contain` so that flicking past the end of the dialog does not carry on into the page
    underneath it, which then has to be scrolled back when the dialog closes. */
+/* The dialog takes focus on open so Tab starts inside it; that is plumbing, not something
+   to draw a ring around. Everything within it still shows its own focus ring. */
+.modal:focus { outline: none; }
 .modal-body { padding: var(--sp-7); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .modal > footer {
   padding: var(--sp-6) var(--sp-7); border-top: 1px solid var(--border);
   display: flex; gap: var(--sp-4); justify-content: flex-end; flex-shrink: 0;
 }
 
-/* On a phone the 20px gutter each side was a tenth of the screen. Buy it back, and let
-   the modal use the height too, since there is no room to centre it in. */
+/* Nothing to pull on where there is a pointer to click a ✕ with. Shown only at the width
+   the dialog becomes a sheet, below. */
+.modal-grab { display: none; }
+
+/* On a phone the dialog comes up from the bottom instead of floating in the middle. That is
+   where a thumb reaches, it gives the dialog an edge to be pulled back down by, and it buys
+   back the 20px gutter each side, which was a tenth of the screen. */
 @media (max-width: 520px) {
-  .overlay { padding: var(--sp-4); align-items: flex-start; }
-  /* 8px of overlay padding at each end and the 6px it is nudged down by — the same budget as
-     above, counted for this gutter. */
-  .modal { max-height: min(96vh, 100vh - 22px); max-height: min(96dvh, 100dvh - 22px); margin-top: var(--sp-3); }
+  .overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    width: 100%;
+    max-height: min(92vh, 100vh - 22px);
+    max-height: min(92dvh, 100dvh - 22px);
+    border-bottom: none;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    /* Springs back when a pull is let go short of dismissing it. The drag itself sets
+       `transition: none` inline, so the sheet tracks the finger rather than chasing it. */
+    transition: transform 0.18s ease-out;
+  }
   .modal > header, .modal > footer { padding: var(--sp-6) var(--sp-6); }
   .modal-body { padding: var(--sp-6); }
   .modal > footer { flex-wrap: wrap; }
+
+  /* A 4px bar with 20px of grabbable height around it — the bar is the affordance, the
+     padding is the target. `touch-action: none` or the browser takes the drag for a scroll
+     before the handler ever sees it. */
+  .modal-grab {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+    height: 20px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .modal-grab::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 2px;
+    background: var(--border-2);
+  }
+}
+
+/* A sheet that slides away under a finger is the one animation here worth suppressing. */
+@media (prefers-reduced-motion: reduce) {
+  .modal { transition: none; }
 }
 
 .split { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: var(--sp-7); min-height: 0; }
@@ -777,9 +848,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   color: var(--text-dim); padding: var(--sp-2) var(--sp-5) var(--sp-2);
   background: none; border: none; border-radius: var(--radius-sm); text-align: left; cursor: pointer;
 }
-.tree-name:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 .tree-name .caret { color: var(--text-faint); font-size: var(--fs-micro); line-height: 1; width: 8px; }
-.tree-name:hover .caret { color: var(--accent); }
+/* Guarded: --bg-3 again, which is what .opt.selected paints inside the very same list. */
+@media (hover: hover) {
+  .tree-name:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+  .tree-name:hover .caret { color: var(--accent); }
+}
 .tree-group .opt { padding-left: var(--sp-8); }
 
 table { width: 100%; border-collapse: collapse; }
@@ -794,7 +868,10 @@ th {
   color: var(--text-faint); font-weight: 700;
 }
 td.num, th.num { text-align: right; font-family: var(--mono); }
-tbody tr:hover { background: rgba(var(--wash-rgb), 0.02); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  tbody tr:hover { background: rgba(var(--wash-rgb), 0.02); }
+}
 
 .mono { font-family: var(--mono); }
 .dim { color: var(--text-dim); }
@@ -809,11 +886,17 @@ tbody tr:hover { background: rgba(var(--wash-rgb), 0.02); }
   border-radius: var(--radius-pill); padding: var(--sp-2) var(--sp-5); font-size: var(--fs-sm);
 }
 .chip button { padding: 0 var(--sp-1); background: none; border: none; color: var(--text-faint); font-size: var(--fs-md); line-height: 1; }
-.chip button:hover { color: var(--red); background: none; }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .chip button:hover { color: var(--red); background: none; }
+}
 
 /* A chip that is itself a button opens the rules; give it the affordance to say so. */
 button.chip { cursor: pointer; color: var(--text); }
-button.chip:hover:not(:disabled) { border-color: var(--accent-dim); color: var(--accent); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  button.chip:hover:not(:disabled) { border-color: var(--accent-dim); color: var(--accent); }
+}
 button.chip:disabled { cursor: default; }
 
 .notice {
@@ -910,22 +993,47 @@ button.chip:disabled { cursor: default; }
   font-size: var(--fs-tiny); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   opacity: 0; transition: opacity 0.12s;
 }
-.portrait-button:hover .portrait-overlay,
+/* "Change" is the only thing that says the portrait can be tapped, and it was revealed on
+   hover — which a touch screen never does, so on a phone the portrait looked inert. Shown
+   outright there instead, and left as a reveal where there is a pointer to reveal it with. */
 .portrait-button:focus-visible .portrait-overlay { opacity: 1; }
-.portrait-button:hover .portrait { border-color: var(--accent-dim); }
+@media (hover: hover) {
+  .portrait-button:hover .portrait-overlay { opacity: 1; }
+  .portrait-button:hover .portrait { border-color: var(--accent-dim); }
+}
+@media (pointer: coarse) {
+  /* Shown outright, since there is no hover to reveal it with — but as a strip along the
+     bottom rather than a lid over the whole thing, or the portrait it is offering to change
+     is the one thing you cannot see. */
+  .portrait-overlay {
+    opacity: 1;
+    inset: auto 0 0;
+    height: 40%;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    align-items: flex-end;
+    padding-bottom: 6%;
+    font-size: var(--fs-micro);
+  }
+}
 @media print { .portrait-overlay { display: none; } }
 
 .g5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 @media (max-width: 900px) { .g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .breakdown { cursor: help; border-bottom: 1px dotted var(--border-2); }
-.breakdown:hover { border-bottom-color: var(--accent); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .breakdown:hover { border-bottom-color: var(--accent); }
+}
 
 button.linklike {
   background: none; border: none; padding: 0; font: inherit; color: inherit;
   cursor: pointer; text-align: left;
 }
-button.linklike:hover { color: var(--accent); background: none; }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  button.linklike:hover { color: var(--accent); background: none; }
+}
 /* Fills its row, so the whole name-and-meta block is a target rather than just the text. */
 button.linklike.block { display: block; width: 100%; }
 
@@ -939,7 +1047,10 @@ button.linklike.block { display: block; width: 100%; }
   border-left: 3px solid var(--border-2);
   border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
-.attack-row:hover { border-color: var(--border-2); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .attack-row:hover { border-color: var(--border-2); }
+}
 .attack-name {
   display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
   font-weight: 600; margin-bottom: var(--sp-1);
@@ -1006,8 +1117,12 @@ button.linklike.block { display: block; width: 100%; }
 .tip-total td:first-child { color: var(--accent); }
 @media print { .tip-card { display: none; } }
 .tip-anchor.block > .stat { height: 100%; cursor: help; }
-.tip-anchor.block:hover > .stat { border-color: var(--border-2); }
-.tip-anchor.block:hover > .stat-value { color: var(--accent); }
+/* Guarded: same reason as .def-cell — the accent on a stat value reads as "this one",
+   and on a touch screen nothing takes it off again. */
+@media (hover: hover) {
+  .tip-anchor.block:hover > .stat { border-color: var(--border-2); }
+  .tip-anchor.block:hover > .stat-value { color: var(--accent); }
+}
 /* Long flavour text is clipped rather than allowed to fill the screen. */
 .tip-clamp {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
@@ -1044,13 +1159,19 @@ button.linklike.block { display: block; width: 100%; }
 .level-todo-chip {
   background: rgba(var(--amber-rgb), 0.12); border-color: var(--amber-dim); color: var(--amber);
 }
-.level-todo-chip:hover { background: rgba(var(--amber-rgb), 0.2); }
+/* Guarded: a tap on one of these scrolls to the section it names and leaves the hover
+   behind, so the chip for a job already done goes on looking like the one being pointed at. */
+@media (hover: hover) {
+  .level-todo-chip:hover { background: rgba(var(--amber-rgb), 0.2); }
+}
 
 /* Having more than you are entitled to reads as a fault, not as a choice still to make. */
 .level-todo-chip.over {
   background: rgba(var(--red-rgb), 0.12); border-color: var(--red-edge); color: var(--red-soft);
 }
-.level-todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
+@media (hover: hover) {
+  .level-todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
+}
 
 .edit-section { margin-bottom: var(--sp-2); }
 /* Whatever a new level still owes you is lifted to the top and outlined. The outline and the
@@ -1191,7 +1312,10 @@ button.linklike.block { display: block; width: 100%; }
   background: none; border: none; border-radius: var(--radius-sm);
   padding: var(--sp-2) var(--sp-1); cursor: pointer;
 }
-.ctrack-step:hover:not(:disabled) { background: rgba(var(--wash-rgb), 0.04); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .ctrack-step:hover:not(:disabled) { background: rgba(var(--wash-rgb), 0.04); }
+}
 .ctrack-mark {
   width: 100%; height: 5px; border-radius: var(--radius-sharp);
   background: var(--border-2); transition: background 0.12s;
@@ -1246,7 +1370,11 @@ button.linklike.block { display: block; width: 100%; }
    attached to the group but drawn a size down. */
 .def-cell.minor .def-value { font-size: var(--fs-num-sm); color: var(--text); }
 .def-cell .tip-anchor.block { display: block; cursor: help; }
-.def-cell:hover .def-value { color: var(--sheet-accent); }
+/* Guarded: --sheet-accent is the colour the sheet uses for what is live and chosen, so a
+   hover left on a defense by a tap makes that one number look singled out for a reason. */
+@media (hover: hover) {
+  .def-cell:hover .def-value { color: var(--sheet-accent); }
+}
 
 @media (max-width: 700px) {
   .defenses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1420,7 +1548,10 @@ button.linklike.block { display: block; width: 100%; }
   border: 1px dashed var(--amber-dim); color: var(--amber);
   font-weight: 600; cursor: pointer;
 }
-.species-empty:hover:not(:disabled) { background: rgba(var(--amber-rgb), 0.11); border-color: var(--amber); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .species-empty:hover:not(:disabled) { background: rgba(var(--amber-rgb), 0.11); border-color: var(--amber); }
+}
 
 /* A rule with a name on it, for splitting one long panel into the things it is actually
    about — the description panel was twelve identical boxes in a row. */
@@ -1460,7 +1591,10 @@ button.linklike.block { display: block; width: 100%; }
   padding: var(--sp-2) var(--sp-6); font-size: var(--fs-sm); color: var(--text-dim); white-space: nowrap;
 }
 .seg button + button { border-left: 1px solid var(--border-2); }
-.seg button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .seg button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+}
 .seg button.on { background: var(--sheet-accent); color: var(--bg); font-weight: 700; }
 .seg button.on:hover:not(:disabled) { background: var(--sheet-accent); color: var(--bg); }
 .seg .count { opacity: 0.6; margin-left: var(--sp-3); }
@@ -1555,10 +1689,14 @@ button.chip.text-tone-accent { background: rgba(var(--sheet-accent-rgb), 0.09); 
 button.chip.text-tone-blue { background: rgba(var(--blue-rgb), 0.09); border-color: var(--blue-edge); color: var(--text); }
 button.chip.text-tone-purple { background: rgba(var(--purple-rgb), 0.09); border-color: var(--purple-edge); color: var(--text); }
 button.chip.text-tone-green { background: rgba(var(--green-rgb), 0.09); border-color: var(--green-edge); color: var(--text); }
-button.chip.text-tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
-button.chip.text-tone-blue:hover:not(:disabled) { border-color: var(--blue); }
-button.chip.text-tone-purple:hover:not(:disabled) { border-color: var(--purple); }
-button.chip.text-tone-green:hover:not(:disabled) { border-color: var(--green); }
+/* Guarded: the full-strength border is how one of these says it is being pointed at, and
+   a latched hover hands that to whichever feat the finger last passed over. */
+@media (hover: hover) {
+  button.chip.text-tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
+  button.chip.text-tone-blue:hover:not(:disabled) { border-color: var(--blue); }
+  button.chip.text-tone-purple:hover:not(:disabled) { border-color: var(--purple); }
+  button.chip.text-tone-green:hover:not(:disabled) { border-color: var(--green); }
+}
 
 /* A feat combo: not a chip, because it has rules text to read rather than a name to
    recognise, and not a .notice, because several stack and a run of blue boxes down the panel
@@ -1638,13 +1776,144 @@ button.sm.kind { border-left: 3px solid rgba(var(--sheet-accent-rgb), calc(0.3 +
 .kit-row td:first-child { border-left: 3px solid transparent; }
 .kit-row.worn td:first-child { border-left-color: var(--sheet-accent); }
 .kit-row.worn .linklike { font-weight: 600; }
-.kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
+/* Guarded on touch — see the note above `button:hover`. */
+@media (hover: hover) {
+  .kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
+}
 .kit-actions { display: flex; gap: var(--sp-1); justify-content: flex-end; }
 
 /* Kept out of the screen sheet and put back for print. On screen it is a wall of the
    player's own prose under everything they came to the page to read, and it is already on the
    Character page where it is written; on paper it is what the back of a sheet is for. */
 .print-only { display: none; }
+
+/* ---------- touch ---------- */
+/* The document is the scroller on a phone, and the app shell is only for pointers.
+   `100dvh` above measures the viewport live, toolbars included, which is right — but a
+   mobile browser only retracts those toolbars when the *document* scrolls, and the document
+   never did: `.content` is an inner `overflow-y: auto` box, so the page itself sat still at
+   exactly one screen tall forever. The toolbars stayed out, and about 130px of a phone was
+   permanently spent on browser chrome no matter how far down the sheet you were.
+
+   So on touch the shell is unpicked: the column grows past the screen, `.content` stops
+   being a scroller, and the page scrolls the way a page does. `.tabs` is the exception and
+   sticks, being the only way between the three pages — the topbar is what scrolls away,
+   which is the space this buys back. Its z-index stays under the overlay's 50 and the hover
+   card's 200. */
+@media (pointer: coarse) {
+  html, body, #root { height: auto; min-height: 100%; }
+  .app { height: auto; min-height: 100dvh; }
+
+  /* The insets keep the last row of the sheet and a dialog's buttons clear of the home
+     indicator and the notch, now that the page runs under the browser's own furniture.
+     They are zero on a device with neither, so this is the old rule on everything else. */
+  .topbar {
+    padding-top: calc(var(--sp-5) + env(safe-area-inset-top));
+    padding-left: calc(var(--sp-7) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-7) + env(safe-area-inset-right));
+  }
+  .content {
+    flex: none;
+    overflow: visible;
+    padding-bottom: calc(var(--sp-8) + env(safe-area-inset-bottom));
+    padding-left: calc(var(--sp-8) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-8) + env(safe-area-inset-right));
+  }
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding-left: calc(var(--sp-7) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-7) + env(safe-area-inset-right));
+  }
+  .modal > footer { padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom)); }
+}
+
+/* The dialog has to clear the cutout as well as the shell does, and landscape is where that
+   bites: the notch moves to one side, and the side insets are zero in portrait so nothing
+   above showed it. Note which rules apply — a phone turned on its side is *wider* than the
+   520px sheet breakpoint, so what is on screen there is the centred dialog with the
+   overlay's 20px gutter, and 20px does not clear an inset of forty-odd. */
+@media (pointer: coarse) and (min-width: 521px) {
+  .overlay {
+    padding-left: calc(var(--sp-8) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-8) + env(safe-area-inset-right));
+  }
+}
+
+/* And the sheet, for a device that carries a side inset in portrait too. It is the padding
+   inside that moves rather than the sheet, which stays edge to edge. */
+@media (pointer: coarse) and (max-width: 520px) {
+  .modal > header, .modal > footer, .modal-body {
+    padding-left: calc(var(--sp-6) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-6) + env(safe-area-inset-right));
+  }
+}
+
+/* The 820px block above retunes the topbar and tabs gutters, and lands after this one, so
+   the inset has to be restated there or a narrow phone loses it. */
+@media (pointer: coarse) and (max-width: 820px) {
+  .topbar {
+    padding-left: calc(var(--sp-6) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-6) + env(safe-area-inset-right));
+  }
+  .tabs {
+    padding-left: calc(var(--sp-6) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-6) + env(safe-area-inset-right));
+  }
+}
+
+/* A fingertip is not a cursor. 44px is the point below which a tap starts landing on the
+   neighbour often enough to notice — the figure `.opt` has carried on its own since the
+   picker rows were found to be too small. Everything here is a control that was under it.
+
+   Height only, not width, on anything with a word in it: the six ability-increase buttons
+   sit in one row, and at 44px wide apiece they would be 264px before gaps and would take
+   the layout past the 320px floor. Icon-only buttons get both, having no text to widen them. */
+@media (pointer: coarse) {
+  /* Every button, rather than a list of the ones noticed so far — the ones that were under
+     44px ran from `button.sm` at 24px to plain `button` at 35px, and a list would go stale
+     the first time a control was added. `.ctrack-step` is one of these too: a row of ten
+     cannot have 44px of width each, so it takes the height and lets the width fall out. */
+  button,
+  .skill { min-height: 44px; }
+
+  /* A field is tapped to put a caret in it. It already carries 16px text from the rule
+     above, so this only rounds the box up. The checkbox is sized separately below — it is
+     the one control that cannot grow to 44 without looking wrong. */
+  input:not([type="checkbox"]), select { min-height: 44px; }
+
+  /* A name that opens a dialog is a control however much it reads as text. Only the block
+     form: the inline ones sit inside a sentence, where a height of their own would space
+     the prose out. */
+  button.linklike.block { min-height: 44px; }
+
+  /* Icon-only, so there is no text to widen them to a thumb. */
+  .chip button,
+  .kit-actions button,
+  .topbar-burger,
+  .modal > header .ghost { min-width: 44px; }
+
+  /* Unsized, so it rendered at the browser default of ~13px: these are the skill-training
+     and worn ticks, the smallest targets on the sheet. The box cannot go to 44 without
+     looking absurd, so it grows to 22 and the row around it carries the rest of the target. */
+  input[type="checkbox"] { width: 22px; height: 22px; }
+
+  /* The default flash is a grey-blue rectangle that ignores the border radius. */
+  * { -webkit-tap-highlight-color: rgba(var(--accent-rgb), 0.15); }
+
+  /* An option row is where a name is being chosen from, so truncating it there hides the
+     one thing being read. Let it wrap.
+
+     Not `.topbar-name`, which was tried and is worse: it is a status line, the sheet below
+     states the name far more clearly, and wrapping it stood the topbar three lines tall —
+     spending exactly the space the scrolling change is here to buy back. */
+  .opt .grow { overflow: visible; text-overflow: clip; white-space: normal; }
+}
+
+/* Belt and braces for engines that predate the double-tap-zoom delay being dropped for
+   width=device-width pages, which Chrome and Safari both did years ago. */
+button, .chip, .seg button, .ctrack-step, [role="button"] { touch-action: manipulation; }
 
 @media print {
   /* `.turn-actions` for the same reason as `.attack-modifiers`: print hides every button, and both

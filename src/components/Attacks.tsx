@@ -8,7 +8,7 @@ import {
   defaultAttackOptions, SITUATIONAL, twoWeaponPenalty, dualWeaponMasteryId,
 } from '../rules/attacks';
 import type { AttackOptions, AttackProfile } from '../rules/attacks';
-import { Panel, Modal, ItemDetail } from './ui';
+import { Panel, Modal, ItemDetail, NumberField } from './ui';
 import { Tip, FeatureTip, FeatureTipBody, ItemTipBody, TipRows } from './Tip';
 import { TurnActions } from './TurnActions';
 import { FEATURES } from '../data';
@@ -239,10 +239,26 @@ export function Attacks({
           });
           const label = tier && m.tiers ? `${m.label} ${m.tiers[tier - 1].label}` : m.label;
           return (
-            <Toggle key={m.id} on={tier > 0} onChange={cycle} label={label}
-              tip={toggleTip(m.id, m.tiers
-                ? `${m.hint}. Click to cycle through ${m.tiers.map(t => t.label).join(', ')}.`
-                : m.hint)} />
+            <span key={m.id} className="row" style={{ gap: 'var(--sp-2)' }}>
+              <Toggle on={tier > 0} onChange={cycle} label={label}
+                tip={toggleTip(m.id, m.tiers
+                  ? `${m.hint}. Tap to step through ${m.tiers.map(t => t.label).join(', ')}.`
+                  : m.hint)} />
+              {/* Stepping forward off the last tier costs three more taps on a three-tier
+                  modifier, and each one rewrites the attack line on the way past as though
+                  it had been chosen. One tap turns it off from wherever it reached.
+                  Only the tiered ones need it — an untiered toggle is already its own off. */}
+              {tier > 0 && m.tiers && (
+                <button
+                  className="sm ghost"
+                  title={`Turn off ${m.label}`}
+                  aria-label={`Turn off ${m.label}`}
+                  onClick={() => set('situational', { ...opts.situational, [m.id]: 0 })}
+                >
+                  ✕
+                </button>
+              )}
+            </span>
           );
         })}
 
@@ -254,7 +270,17 @@ export function Attacks({
             </Tip>
             <button className="sm" disabled={opts.powerAttack <= 0}
               onClick={() => set('powerAttack', opts.powerAttack - 1)}>−</button>
-            <span className="mono" style={{ minWidth: 14, textAlign: 'center' }}>{opts.powerAttack}</span>
+            {/* Typed as well as stepped: at a high base attack bonus, trading the lot was
+                as many taps as the bonus itself. */}
+            <NumberField
+              className="mono center"
+              style={{ width: 44, padding: 'var(--sp-1) var(--sp-2)' }}
+              ariaLabel="Points of attack traded for damage"
+              value={opts.powerAttack}
+              onChange={v => set('powerAttack', v ?? 0)}
+              min={0}
+              max={derived.baseAttackBonus}
+            />
             <button className="sm" disabled={opts.powerAttack >= derived.baseAttackBonus}
               onClick={() => set('powerAttack', opts.powerAttack + 1)}>+</button>
           </span>

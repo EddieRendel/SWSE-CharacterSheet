@@ -8,7 +8,7 @@ import { EQUIPMENT, WEAPON_GROUPS, damageLabel } from '../data';
 import { getItem, carriedItems, signed, upgradeTotal } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { uid } from '../storage';
-import { Panel, Modal, Field, ItemDetail } from './ui';
+import { Panel, Modal, Field, ItemDetail, NumberField } from './ui';
 import { autoFocusSearch } from '../pointer';
 import { Tip, ItemTipBody, TipRows } from './Tip';
 
@@ -78,10 +78,13 @@ export function Equipment({
   const remove = (entryUid: string) =>
     update(c => { c.inventory = c.inventory.filter(e => e.uid !== entryUid); });
 
-  const setQty = (entryUid: string, q: number) =>
+  // A stack of none is a real answer — the row stays on the sheet and its weight and cost
+  // fall out of the totals until it is restocked — so the floor is 0 rather than 1. It has to
+  // agree with the one in `splitStack`, which re-clamps on load and would put the 1 back.
+  const setQty = (entryUid: string, q: number | undefined) =>
     update(c => {
       const e = c.inventory.find(x => x.uid === entryUid);
-      if (e) e.quantity = Math.max(1, q || 1);
+      if (e) e.quantity = Math.max(0, q ?? 0);
     });
 
   const toggleEquip = (entryUid: string) =>
@@ -157,10 +160,12 @@ export function Equipment({
           <div className="row" style={{ marginBottom: 'var(--sp-5)', flexWrap: 'wrap', gap: 'var(--sp-4)' }}>
             <span className="row" style={{ gap: 'var(--sp-2)' }} title="Credits on hand">
               <button className="sm ghost" onClick={() => spendCredits(-100)} disabled={char.credits <= 0}>−100</button>
-              <input
+              <NumberField
                 className="mono center" style={{ width: 88, padding: 'var(--sp-1) var(--sp-2)' }}
+                ariaLabel="Credits on hand"
                 value={char.credits}
-                onChange={e => update(c => { c.credits = Math.max(0, parseInt(e.target.value, 10) || 0); })}
+                onChange={v => update(c => { c.credits = v ?? 0; })}
+                min={0}
               />
               <button className="sm ghost" onClick={() => spendCredits(100)}>+100</button>
               <span className="hint">credits</span>
@@ -186,11 +191,13 @@ export function Equipment({
         <div className="grid g4" style={{ marginBottom: 'var(--sp-7)' }}>
           <div className="stat">
             <div className="stat-label">Credits</div>
-            <input
+            <NumberField
               className="mono center"
               style={{ fontSize: 'var(--fs-lg)', marginTop: 'var(--sp-2)' }}
+              ariaLabel="Credits on hand"
               value={char.credits}
-              onChange={e => update(c => { c.credits = parseInt(e.target.value, 10) || 0; })}
+              onChange={v => update(c => { c.credits = v ?? 0; })}
+              min={0}
             />
           </div>
           <div className="stat">
@@ -295,11 +302,13 @@ export function Equipment({
                               things that each need their own worn tick. */}
                           <td className="num">
                             {cat === 'gear' && (
-                              <input
+                              <NumberField
                                 className="mono center"
                                 style={{ width: 50, padding: 'var(--sp-1) var(--sp-2)' }}
+                                ariaLabel={`Quantity of ${item.name}`}
                                 value={entry.quantity}
-                                onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
+                                onChange={q => setQty(entry.uid, q)}
+                                min={0}
                               />
                             )}
                           </td>
@@ -468,10 +477,10 @@ function ItemStatFields({
           </Field>
         )}
         <Field label="Weight (kg)">
-          <input type="number" step="0.1" value={draft.weight} onChange={e => set({ weight: parseFloat(e.target.value) || 0 })} />
+          <NumberField decimal min={0} value={draft.weight} onChange={v => set({ weight: v ?? 0 })} />
         </Field>
         <Field label="Cost (credits)">
-          <input type="number" value={draft.cost} onChange={e => set({ cost: parseInt(e.target.value, 10) || 0 })} />
+          <NumberField min={0} value={draft.cost} onChange={v => set({ cost: v ?? 0 })} />
         </Field>
 
         {draft.category === 'weapon' && (
@@ -522,13 +531,13 @@ function ItemStatFields({
               </select>
             </Field>
             <Field label="Reflex Defense bonus">
-              <input type="number" value={draft.reflex ?? 0} onChange={e => set({ reflex: parseInt(e.target.value, 10) || 0 })} />
+              <NumberField min={0} value={draft.reflex ?? 0} onChange={v => set({ reflex: v ?? 0 })} />
             </Field>
             <Field label="Fortitude Defense bonus">
-              <input type="number" value={draft.fortitude ?? 0} onChange={e => set({ fortitude: parseInt(e.target.value, 10) || 0 })} />
+              <NumberField min={0} value={draft.fortitude ?? 0} onChange={v => set({ fortitude: v ?? 0 })} />
             </Field>
             <Field label="Maximum Dexterity bonus">
-              <input type="number" value={draft.maxDex ?? 0} onChange={e => set({ maxDex: parseInt(e.target.value, 10) || 0 })} />
+              <NumberField min={0} value={draft.maxDex ?? 0} onChange={v => set({ maxDex: v ?? 0 })} />
             </Field>
           </>
         )}

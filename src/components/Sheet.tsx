@@ -6,7 +6,7 @@ import { RULES, SPECIES, FEATURES, BOOK_NAMES, groupRefs } from '../data';
 import { signed } from '../rules/engine';
 import type { Derived } from '../rules/engine';
 import { forcePointDice } from '../rules/attacks';
-import { Panel, PortraitButton, Modal, FeatureDetail, RulesText } from './ui';
+import { Panel, PortraitButton, Modal, FeatureDetail, RulesText, NumberField } from './ui';
 import { Tip, FeatureTip, TipRows } from './Tip';
 import type { TipRow } from './Tip';
 import { Attacks } from './Attacks';
@@ -337,16 +337,18 @@ export function Sheet({
             <div className="mini-fields">
               <div className="mini-field">
                 <label htmlFor="destiny-points">Destiny pts</label>
-                <input
+                <NumberField
                   id="destiny-points" className="mono" value={char.destinyPoints}
-                  onChange={e => update(c => { c.destinyPoints = parseInt(e.target.value, 10) || 0; })}
+                  onChange={v => update(c => { c.destinyPoints = v ?? 0; })}
+                  min={0}
                 />
               </div>
               <div className="mini-field">
                 <label htmlFor="dark-side">Dark side</label>
-                <input
+                <NumberField
                   id="dark-side" className="mono" value={char.darkSideScore}
-                  onChange={e => update(c => { c.darkSideScore = parseInt(e.target.value, 10) || 0; })}
+                  onChange={v => update(c => { c.darkSideScore = v ?? 0; })}
+                  min={0}
                 />
                 <div
                   className="fall-bar"

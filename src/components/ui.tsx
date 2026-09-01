@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Character, FeatCombo, Feature, FeatureRef, ResolvedItem } from '../types';
 import { BOOK_NAMES, CLASSES, specName, featureName, featureIcon, portraitUrl, classIcon, combosForFeature } from '../data';
 import { combosForFeatureState, isSameHalf } from '../rules/engine';
 import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
-import { useDismissLayer } from '../dismiss';
+import { restoreFocus, useDismissLayer } from '../dismiss';
+import { useScrollLock } from '../scrolllock';
 import { descriptorsOf, itemStatRows, prerequisiteText, readDescription, upgradeEffects } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -14,6 +15,109 @@ export function Field({ label, children }: { label: string; children: ReactNode 
       <label>{label}</label>
       {children}
     </div>
+  );
+}
+
+/**
+ * A number the player types.
+ *
+ * The draft is held as a string, because a number cannot represent a box being emptied.
+ * `parseInt('')` is `NaN`, and the `parseInt(…) || 0` this replaces wrote that fallback
+ * straight back into state, so backspacing over a gear quantity left a 1 in the box and the
+ * next digit typed landed beside it rather than replacing it. The box was unclearable, and
+ * on a stack of one, 0 was unreachable.
+ *
+ * Nothing is clamped until blur. Mid-typing, `1` on the way to `18` is not an out-of-range
+ * value, it is an unfinished one, and clamping it on every keystroke is what made the old
+ * fields impossible to type into.
+ */
+export function NumberField({
+  value, onChange, min, max, decimal, optional, id, className, style, title, ariaLabel,
+}: {
+  value: number | undefined;
+  /** The parsed value, or what `optional` says an empty box means. Never `NaN`. */
+  onChange: (v: number | undefined) => void;
+  /** Applied on blur only. */
+  min?: number;
+  max?: number;
+  /** Allows a separator, and raises the keypad that has one. */
+  decimal?: boolean;
+  /** An empty box means "not set" rather than zero — see `LevelEntry.hitPoints`. */
+  optional?: boolean;
+  id?: string;
+  className?: string;
+  style?: CSSProperties;
+  title?: string;
+  ariaLabel?: string;
+}) {
+  // `null` means "show what is stored"; a string means the player is mid-edit and the box
+  // shows exactly what they typed, empty included.
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? (value === undefined ? '' : String(value));
+  const blank = optional ? undefined : 0;
+
+  // What the box held when the player started typing. Every keystroke is already written
+  // through to the character — that is what keeps the sheet in step while a number is being
+  // typed — so undoing one has to put the old value back, not merely stop writing new ones.
+  const entryValue = useRef<number | undefined>(value);
+  // Set while Escape is doing that, so the blur it triggers does not commit the very draft
+  // it is discarding. `setDraft` has not re-rendered by then, so `shown` is still the draft.
+  const reverting = useRef(false);
+
+  // Filtered here rather than with `type="number"`, which drops what it cannot parse before
+  // React sees it — taking the draft with it — and hides the caret behind its spinners.
+  const strip = (raw: string) => raw.replace(decimal ? /[^0-9.-]/g : /[^0-9-]/g, '');
+  const read = (raw: string) => (decimal ? parseFloat(raw) : parseInt(raw, 10));
+
+  const commit = (raw: string, clamp: boolean) => {
+    // Blurring out of an empty required box settles it at its floor — an ability score
+    // cannot be nothing. While typing it stays empty, which is what makes it clearable.
+    if (raw.trim() === '') return onChange(clamp && !optional ? (min ?? 0) : blank);
+    const n = read(raw);
+    if (Number.isNaN(n)) return;
+    if (!clamp) return onChange(n);
+    onChange(Math.min(max ?? Infinity, Math.max(min ?? -Infinity, n)));
+  };
+
+  return (
+    <input
+      id={id}
+      className={className}
+      style={style}
+      title={title}
+      aria-label={ariaLabel}
+      value={shown}
+      inputMode={decimal ? 'decimal' : 'numeric'}
+      enterKeyHint="done"
+      // A tap otherwise puts the caret where the finger landed and the next digit joins the
+      // number already there. Selecting means typing replaces it, which is what tapping a
+      // stat box is asking to do.
+      onFocus={e => { entryValue.current = value; e.currentTarget.select(); }}
+      onChange={e => {
+        const raw = strip(e.target.value);
+        setDraft(raw);
+        commit(raw, false);
+      }}
+      onBlur={() => {
+        if (reverting.current) { reverting.current = false; setDraft(null); return; }
+        commit(shown, true);
+        setDraft(null);
+      }}
+      onKeyDown={e => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape' && draft !== null) {
+          // Escape over an edit in progress means "undo what I typed", not "close the dialog
+          // I am typing in", so it is kept off the dismiss stack — but only while there is
+          // an edit to undo, so an Escape with nothing to take back still closes the dialog.
+          // See dismiss.ts.
+          e.stopPropagation();
+          reverting.current = true;
+          setDraft(null);
+          onChange(entryValue.current);
+          e.currentTarget.blur();
+        }
+      }}
+    />
   );
 }
 
@@ -84,19 +188,144 @@ export function RulesText({ lines }: { lines?: string[] }) {
   );
 }
 
+/** How far a finger may travel and still count as a tap rather than the start of a scroll. */
+const SLOP = 10;
+/** Past a quarter of the dialog's own height, letting go closes it. */
+const DISMISS_FRACTION = 0.25;
+/** Or a flick, in px per millisecond — a short pull thrown down rather than dragged far. */
+const DISMISS_SPEED = 0.5;
+/** But a flick still has to travel: a fast twitch on the handle is not a dismissal. */
+const DISMISS_MIN_FLICK = 40;
+
 export function Modal({
   title, onClose, children, footer, wide,
 }: { title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
   // Escape closes the topmost layer only, and hover cards share that stack — see dismiss.ts.
   useDismissLayer(true, onClose);
+  useScrollLock(true);
+
+  const titleId = useId();
+  const dialog = useRef<HTMLDivElement>(null);
+
+  // Whichever control opened the dialog, so closing it puts the caret back where it was
+  // rather than at the top of the page.
+  //
+  // Read during render, not from an effect. A picker autofocuses its search field while
+  // React commits the dialog, and every effect — layout ones included — runs after that
+  // commit, by which point `document.activeElement` is the search field itself. Restoring
+  // to that on close aimed at a node the dialog had just taken with it, so focus landed on
+  // the body and the keyboard lost its place entirely.
+  const openedFrom = useRef<HTMLElement | null>(null);
+  if (openedFrom.current === null) openedFrom.current = document.activeElement as HTMLElement | null;
+  // Where a press that might become a backdrop click began, and null when it did not begin
+  // on the backdrop at all.
+  const pressedAt = useRef<{ x: number; y: number } | null>(null);
+
+  // How far the sheet has been dragged down, and where the drag began. Only the grab handle
+  // starts one — the body below it has its own scroller, and a drag that could mean either
+  // would have to guess which.
+  const [pulled, setPulled] = useState(0);
+  const pullFrom = useRef<{ y: number; at: number } | null>(null);
+
+  useEffect(() => {
+    // Only when nothing inside has claimed focus already: on a pointer device the pickers
+    // autofocus their search field, and stealing that back would undo it. See pointer.ts.
+    if (!dialog.current?.contains(document.activeElement)) dialog.current?.focus();
+    // Unconditionally, without checking that the dialog still holds focus: by the time this
+    // runs React has already detached the subtree, so that check reads false and the restore
+    // never happens. `restoreFocus` guards the case that actually matters — an opener that
+    // has itself gone away.
+    return () => restoreFocus(openedFrom.current);
+  }, []);
 
   return (
-    <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" style={wide ? { maxWidth: 1040 } : undefined}>
+    <div
+      className="overlay"
+      // A tap, rather than a press. Closing on `mousedown` meant a flick to scroll the page
+      // dismissed the dialog the moment the finger landed, before it had moved. So both ends
+      // have to be on the backdrop — which also stops a desktop text selection that starts
+      // inside the dialog and is released outside it from closing the thing being read —
+      // and the pointer has to have stayed put, which is what separates a tap from the
+      // start of a drag that happens to begin and end over the same patch of backdrop.
+      onPointerDown={e => {
+        pressedAt.current = e.target === e.currentTarget ? { x: e.clientX, y: e.clientY } : null;
+      }}
+      onPointerUp={e => {
+        const from = pressedAt.current;
+        pressedAt.current = null;
+        if (!from || e.target !== e.currentTarget) return;
+        if (Math.hypot(e.clientX - from.x, e.clientY - from.y) > SLOP) return;
+        onClose();
+      }}
+    >
+      <div
+        ref={dialog}
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        style={{
+          ...(wide ? { maxWidth: 1040 } : null),
+          ...(pulled ? { transform: `translateY(${pulled}px)`, transition: 'none' } : null),
+        }}
+        onKeyDown={e => {
+          if (e.key !== 'Tab') return;
+          // Without this, Tab walks out of the dialog and into the page behind it, which is
+          // inert to the eye and unreachable to the mouse but still in the tab order.
+          const inside = [...(dialog.current?.querySelectorAll<HTMLElement>(
+            'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+          ) ?? [])].filter(el => el.offsetParent !== null);
+          if (!inside.length) return;
+          const first = inside[0], last = inside[inside.length - 1];
+          // The dialog itself counts as standing just before its first control. It holds the
+          // focus on open whenever nothing inside claimed it — which is every dialog without
+          // a search field, and every dialog at all on a touch screen — and it is not in
+          // `inside`, being `tabindex="-1"`. So neither edge matched, and a Shift+Tab as the
+          // first keystroke walked backwards out of the dialog and into the page behind it.
+          const atStart = document.activeElement === dialog.current || document.activeElement === first;
+          if (e.shiftKey && atStart) { e.preventDefault(); last.focus(); }
+          // Forward from the container lands on `first` by default, the container being its
+          // parent — but only while nothing tabbable sits between them, so it is said rather
+          // than relied on.
+          else if (!e.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }}
+      >
+        {/* The grab handle. Shown only where the dialog is a bottom sheet — see index.css;
+            above that breakpoint it is display:none and takes no pointer events. */}
+        <div
+          className="modal-grab"
+          aria-hidden="true"
+          onPointerDown={e => {
+            pullFrom.current = { y: e.clientY, at: performance.now() };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={e => {
+            if (pullFrom.current) setPulled(Math.max(0, e.clientY - pullFrom.current.y));
+          }}
+          onPointerUp={e => {
+            const from = pullFrom.current;
+            pullFrom.current = null;
+            if (!from) return;
+            const dy = Math.max(0, e.clientY - from.y);
+            const speed = dy / Math.max(1, performance.now() - from.at);
+            const height = dialog.current?.getBoundingClientRect().height ?? 0;
+            // Far enough, or thrown hard enough having gone at least some way. Speed alone
+            // would let a twitch on the handle — a few pixels in a few milliseconds — read
+            // as a fling and drop the dialog out from under the player.
+            const flicked = speed > DISMISS_SPEED && dy > DISMISS_MIN_FLICK;
+            if (dy > height * DISMISS_FRACTION || flicked) onClose();
+            else setPulled(0);
+          }}
+          onPointerCancel={() => { pullFrom.current = null; setPulled(0); }}
+        />
         <header>
-          <h2 style={{ fontSize: 'var(--fs-md)' }}>{title}</h2>
+          <h2 id={titleId} style={{ fontSize: 'var(--fs-md)' }}>{title}</h2>
           <div className="spacer" />
-          <button className="ghost" onClick={onClose}>✕</button>
+          <button className="ghost" aria-label="Close" onClick={onClose}>✕</button>
         </header>
         <div className="modal-body">{children}</div>
         {footer && <footer>{footer}</footer>}

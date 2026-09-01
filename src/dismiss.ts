@@ -12,6 +12,32 @@ import { useEffect, useRef } from 'react';
 const stack: object[] = [];
 
 /**
+ * Whether focus is being handed back rather than sought.
+ *
+ * A dialog closing returns focus to whatever opened it, which is very often a chip or a stat
+ * carrying a hover card. Focus is how the keyboard asks for that card, so the card opened —
+ * and, being the newest layer on the stack above, it then swallowed the next Escape, leaving
+ * the dialog underneath needing two presses to close. Focus arriving because a layer went
+ * away is not the player asking for anything, and the surfaces that open on focus sit this
+ * one out.
+ */
+let restoring = false;
+
+/** Hand focus back to `el` without it reading as the player pointing at it. */
+export function restoreFocus(el: HTMLElement | null | undefined) {
+  // `isConnected` because the thing that opened a layer is not always still there when it
+  // closes — a row removed by the very choice the dialog was making, say. Focusing a
+  // detached node silently drops focus on the body, which is worse than leaving it alone.
+  if (typeof el?.focus !== 'function' || !el.isConnected) return;
+  restoring = true;
+  // Focus events are dispatched synchronously from `.focus()`, so everything that was going
+  // to react to this has already done so by the time the flag comes down.
+  try { el.focus(); } finally { restoring = false; }
+}
+
+export const focusIsBeingRestored = () => restoring;
+
+/**
  * Register as the top dismissable layer while `active`, and call `onDismiss` when Escape is
  * pressed with nothing newer on top.
  */
