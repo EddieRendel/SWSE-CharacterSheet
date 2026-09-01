@@ -700,6 +700,9 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 /* ---------- modal ---------- */
 .overlay {
   position: fixed; inset: 0; background: rgba(var(--shadow-rgb), 0.66);
+  /* A flick that runs past the end of anything in here stops here, rather than carrying on
+     into the page underneath and taking the browser's own pull-to-refresh with it. */
+  overscroll-behavior: none;
   display: flex; align-items: center; justify-content: center; padding: var(--sp-8); z-index: 50;
   backdrop-filter: blur(2px);
 }
@@ -736,6 +739,8 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 /* Nothing to pull on where there is a pointer to click a ✕ with. Shown only at the width
    the dialog becomes a sheet, below. */
+/* Nothing to pull on where there is a pointer to click a ✕ with, and nothing to pull with
+   either — the gesture is only wired up on a touch screen. See `pull` in ui.tsx. */
 .modal-grab { display: none; }
 
 /* On a phone the dialog comes up from the bottom instead of floating in the middle. That is
@@ -758,10 +763,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   .modal > footer { flex-wrap: wrap; }
 
   /* A 4px bar with 20px of grabbable height around it — the bar is the affordance, the
-     padding is the target. `touch-action: none` or the browser takes the drag for a scroll
-     before the handler ever sees it. */
+     padding is the target. The header pulls the sheet down as well: 20px is a thin thing to
+     find with a thumb, and a drag that started anywhere else fell through to the browser,
+     which took it for a pull-to-refresh and reloaded the page out from under the dialog.
+     `touch-action: none` on both is what stops it doing that. */
+  .modal > header { touch-action: none; }
   .modal-grab {
-    display: block;
     position: relative;
     flex-shrink: 0;
     height: 20px;
@@ -779,6 +786,13 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
     border-radius: 2px;
     background: var(--border-2);
   }
+}
+
+/* Shown only where the pull is wired up, which is a touch screen — see `pull` in ui.tsx.
+   A narrow window on a desktop still gets the sheet, because that is a shape thing, but it
+   gets it without a bar inviting a drag that would do nothing. */
+@media (pointer: coarse) and (max-width: 520px) {
+  .modal-grab { display: block; }
 }
 
 /* A sheet that slides away under a finger is the one animation here worth suppressing. */
@@ -1078,7 +1092,11 @@ button.linklike.block { display: block; width: 100%; }
 .tip-anchor { display: inline-flex; align-items: center; gap: inherit; }
 .tip-anchor.block { display: block; }
 .tip-card {
-  position: fixed; z-index: 200; max-width: 340px; width: max-content;
+  position: fixed; z-index: 200; width: max-content;
+  /* Never wider than the window, whatever the step says: the placement below will put a card
+     beside its anchor when there is no room above or below, and a 340px card on a 390px
+     phone had nowhere to go sideways without hanging off the edge. */
+  max-width: min(340px, calc(100vw - 16px));
   /* A card with nowhere to fit is clipped, not spilled off the edge of the window. */
   overflow: hidden;
   background: var(--bg-2); border: 1px solid var(--border-2);
@@ -1087,7 +1105,7 @@ button.linklike.block { display: block; width: 100%; }
   font-size: var(--fs-body); line-height: 1.45; pointer-events: none;
   transition: opacity 80ms ease-out;
 }
-.tip-card.wide { max-width: 460px; }
+.tip-card.wide { max-width: min(460px, calc(100vw - 16px)); }
 .tip-body p { margin: 0 0 var(--sp-3); color: var(--text-dim); }
 .tip-body p:last-child { margin-bottom: 0; }
 .tip-body strong { color: var(--text); }
@@ -1171,6 +1189,27 @@ button.linklike.block { display: block; width: 100%; }
 }
 @media (hover: hover) {
   .level-todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
+}
+
+/* On a phone the bar reads down rather than across. Side by side, the level number, the
+   button that adds one and "Still to do:" were three things sharing one line and wrapping
+   into each other — the button landing beside the number, the label stranded at the end of a
+   row with its chips folded under it, and nothing starting from the same edge. Stacked, each
+   begins at the left and the button is a full-width target. */
+@media (max-width: 560px) {
+  .level-bar { flex-direction: column; align-items: stretch; gap: var(--sp-5); }
+  .level-todo { align-items: flex-start; }
+  /* "Still to do:" takes a line of its own, so every chip under it starts flush left
+     instead of the first one being indented by the width of the label. */
+  .level-todo > .hint { flex-basis: 100%; }
+}
+
+/* Six abilities across a phone fit five on the first line and leave the sixth alone on the
+   second, which reads as something gone wrong rather than as a set of six. Three and three
+   is the same two lines, evenly, and the grid keeps the buttons a common width. */
+.abil-choices { flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .abil-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 .edit-section { margin-bottom: var(--sp-2); }

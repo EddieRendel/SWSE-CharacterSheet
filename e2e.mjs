@@ -1262,10 +1262,14 @@ await step('a dialog can be pulled shut, and springs back if the pull is short',
   };
   // Driven with the mouse rather than synthesised PointerEvents: the handler takes a real
   // pointer capture, which only a genuine pointer can be given.
-  const pull = async (dy) => {
-    const grab = await phone.locator('.modal-grab').boundingBox();
-    if (!grab) throw new Error('the sheet has no grab handle at this width');
-    const x = grab.x + grab.width / 2, y = grab.y + grab.height / 2;
+  // From the header, not the bar. 20px is a thin thing to find with a thumb, and a drag
+  // that started anywhere else used to fall through to the browser, which took it for a
+  // pull-to-refresh and reloaded the page out from under the dialog.
+  const pull = async (dy, from = '.modal > header') => {
+    const grab = await phone.locator(from).boundingBox();
+    if (!grab) throw new Error(`nothing to pull the sheet by at ${from}`);
+    // Left of centre, clear of the ✕, which has a job of its own.
+    const x = grab.x + grab.width * 0.25, y = grab.y + grab.height / 2;
     await phone.mouse.move(x, y);
     await phone.mouse.down();
     for (let i = 1; i <= 5; i++) await phone.mouse.move(x, y + (dy * i) / 5);
@@ -1279,6 +1283,71 @@ await step('a dialog can be pulled shut, and springs back if the pull is short',
 
   await pull(400);
   await phone.waitForSelector('.modal', { state: 'detached' });
+
+  // The bar still works, and is still the thing that says the gesture is there.
+  await open();
+  await pull(400, '.modal-grab');
+  await phone.waitForSelector('.modal', { state: 'detached' });
+});
+
+// What a tap means depends on what it lands on. A control has a job of its own — the toggle
+// toggles, the chip opens its rules — and a card over the top of that is a second thing the
+// player never asked for and then has to put away. A bare anchor has no other job, so there
+// the tap is the only way to ask for the working, and a span cannot take focus to ask with.
+await step('a tap shows the working behind a number, but not over a control', async () => {
+  await phone.locator('.tabs button').nth(2).tap();
+  await phone.waitForTimeout(300);
+
+  const defence = phone.locator('.def-cell .tip-anchor').first();
+  await defence.scrollIntoViewIfNeeded();
+  await defence.tap();
+  await phone.waitForTimeout(300);
+  if (await phone.locator('.tip-card').count() !== 1) {
+    throw new Error('tapping a defence gave no card, and nothing else carries that working');
+  }
+  // And it has to be readable where it landed — see the next step for why that is not free.
+  const box = await phone.evaluate(() => {
+    const r = document.querySelector('.tip-card').getBoundingClientRect();
+    return { left: Math.round(r.left), right: Math.round(r.right), vw: window.innerWidth };
+  });
+  if (box.left < 0 || box.right > box.vw) {
+    throw new Error(`the card runs from ${box.left} to ${box.right} on a ${box.vw}px screen`);
+  }
+
+  // Nothing to aim at to close it: the next touch anywhere else does.
+  await phone.locator('.sheet-frame').first().tap({ position: { x: 5, y: 5 } });
+  await phone.waitForTimeout(300);
+  if (await phone.locator('.tip-card').count() !== 0) throw new Error('the card stayed up');
+
+  // A chip opens its rules. That is what the tap was for; the card would be noise on top.
+  await phone.locator('.panel header button:has-text("Feats & powers")').tap();
+  await phone.waitForTimeout(300);
+  const chip = phone.locator('.feature-group button.chip').first();
+  if (await chip.count()) {
+    await chip.tap();
+    await phone.waitForTimeout(400);
+    const cards = await phone.locator('.tip-card').count();
+    const dialogs = await phone.locator('.modal').count();
+    if (dialogs !== 1) throw new Error('the chip did not open its rules');
+    if (cards !== 0) throw new Error('the hover card came up alongside the dialog saying the same thing');
+    await phone.keyboard.press('Escape').catch(() => {});
+    await phone.locator('.modal header button[aria-label="Close"]').tap().catch(() => {});
+    await phone.waitForSelector('.modal', { state: 'detached' });
+  }
+});
+
+// Three things were sharing one row and wrapping into each other — the level, the button
+// that adds one, and what the level still owes you — so none of them began where the eye
+// expects. Stacked, they all start from the same edge.
+await step('the level bar reads down the page, flush left', async () => {
+  await phone.locator('.tabs button').nth(1).tap();
+  await phone.waitForSelector('.level-bar');
+  const rows = await phone.evaluate(() => [...document.querySelector('.level-bar').children]
+    .map(c => { const r = c.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y) }; }));
+  const lefts = new Set(rows.map(r => r.x));
+  if (lefts.size !== 1) throw new Error(`its rows start at ${[...lefts].join(', ')} rather than one edge`);
+  const ys = rows.map(r => r.y);
+  if (new Set(ys).size !== ys.length) throw new Error('two of them are still sharing a line');
 });
 
 // Held here rather than by review, which is where it sat before. A tap latches :hover onto
@@ -1301,6 +1370,13 @@ await step('a dialog clears a side cutout, not just the shell', async () => {
   ];
   const missing = wants.filter(([re]) => !re.test(css)).map(([, what]) => what);
   if (missing.length) throw new Error(`no safe-area inset on ${missing.join('; ')}`);
+
+  // Six abilities across a phone fit five and then one, which reads as a fault rather than a
+  // set. Asserted here because it only shows on a character far enough along to have earned
+  // an increase, which is a long way to build for one line of layout.
+  if (!/\.abil-choices\s*\{[^}]*grid-template-columns:\s*repeat\(3/.test(css)) {
+    throw new Error('the ability choices are not laid out three to a row on a narrow screen');
+  }
 });
 
 await step('every :hover is behind a guard, in the stylesheet itself', async () => {

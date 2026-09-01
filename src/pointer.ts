@@ -15,3 +15,10 @@
  * Pointer rather than width: a narrow window on a desktop still has the keyboard for it.
  */
 export const autoFocusSearch = window.matchMedia('(pointer: fine)').matches;
+
+/**
+ * A touch screen, where focus is a side effect of tapping rather than a thing asked for.
+ * Read once: a device does not grow a mouse mid-session, and the surfaces that care about
+ * this are deciding what a tap meant, not re-laying themselves out.
+ */
+export const isTouch = window.matchMedia('(pointer: coarse)').matches;
