@@ -1459,6 +1459,15 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
   border-radius: 6px; padding: 8px 10px;
 }
 .turn-action .name { font-size: 13px; font-weight: 600; }
+/* What a turn holds, above the kind being read rather than inside it: the allowance and the
+   trades are true of all six, so they must not move or vanish when the switcher does. Ruled
+   off below so the constant part and the part that changes do not read as one passage. */
+.turn-economy {
+  padding-bottom: 10px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.turn-economy .rules-text p:last-child { margin-bottom: 0; }
+
 /* The buttons that open a kind, and the switcher inside, carry the same edge at the same
    weight — so the row doubles as the legend for what the shading in the dialog means, and
    these read as reference rather than as more of the modifier toggles above them. */

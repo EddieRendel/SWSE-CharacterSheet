@@ -189,7 +189,13 @@ export const RULES = rulesJson as unknown as {
    * repeating the citation on twenty entries would be noise. The page still rides on each,
    * which is what makes a quotation checkable without the book in hand.
    */
-  actions: { book: string; kinds: TurnActionKind[]; list: TurnAction[] };
+  actions: {
+    book: string;
+    /** How a turn is spent, which is true whichever kind you are reading. */
+    description: string[];
+    kinds: TurnActionKind[];
+    list: TurnAction[];
+  };
 };
 
 /** Every language a character can speak, from the sourcebooks and the species list. */

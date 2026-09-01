@@ -3659,9 +3659,9 @@ console.log('\n▸ Actions in combat');
   // rules.json reaches the app through an `as unknown as` cast, so the compiler checks none
   // of this: a misspelt key is `undefined` at runtime and a clean build. These assertions are
   // the only guard on the block, not a second one.
-  const { book, kinds, list } = RULES.actions;
+  const { book, description: turn, kinds, list } = RULES.actions;
   const kindIds = new Set(kinds.map(k => k.id));
-  const every = [...kinds, ...list];
+  const every = [{ id: 'the turn itself', description: turn }, ...kinds, ...list];
 
   check('the six kinds, in the order the buttons take from them',
     kinds.map(k => k.id),
@@ -3681,11 +3681,18 @@ console.log('\n▸ Actions in combat');
   check('and no kind id collides with an action id',
     kinds.map(k => k.id).filter(id => list.some(a => a.id === id)), []);
 
-  // A button that opens an empty dialog is worse than no button. Free Actions and Reactions
-  // have no list of their own — the book describes the kind and stops — so what each kind
-  // owes is *something* to read, not necessarily entries.
-  check('every kind has something to show',
-    kinds.filter(k => !k.description.length && !list.some(a => a.kinds.includes(k.id))).map(k => k.id), []);
+  // The question this is on the sheet to answer is how much a turn holds, so the framing is
+  // not optional on any kind: an entry list says what a Standard Action can be and never that
+  // you get one, alongside a move and a swift. An earlier form of this check passed a kind
+  // that had entries *or* text, which is how four of them shipped with no framing at all.
+  check('every kind says how much of it a turn holds',
+    kinds.filter(k => !k.description.length).map(k => k.id), []);
+  check('and the turn states its own allowance and trades once, above them',
+    turn.length > 0, true);
+  // Free Actions and Reactions have no entries — the book describes the kind and stops — so
+  // an empty list is only allowed where the kind's own text carries the whole rule.
+  check('a kind with no entries is one whose text stands alone',
+    kinds.filter(k => !list.some(a => a.kinds.includes(k.id))).map(k => k.id), ['free', 'reaction']);
 
   check('the book they are quoted from is one the app can name', BOOK_NAMES[book] !== undefined, true);
 

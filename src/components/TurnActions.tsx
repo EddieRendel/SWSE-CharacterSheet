@@ -6,7 +6,7 @@ import { RULES, BOOK_NAMES, FEATURES } from '../data';
 import { Modal, RulesText, FeatureDetail } from './ui';
 import { Tip, FeatureTip } from './Tip';
 
-const { book: BOOK, kinds: KINDS, list: ACTIONS } = RULES.actions;
+const { book: BOOK, description: TURN, kinds: KINDS, list: ACTIONS } = RULES.actions;
 const BOOK_NAME = BOOK_NAMES[BOOK] ?? BOOK;
 const cite = (page?: number) => `${BOOK_NAME}${page ? ` p.${page}` : ''}`;
 const actionsOf = (kindId: string) => ACTIONS.filter(a => a.kinds.includes(kindId));
@@ -110,9 +110,7 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
                   {/* One paragraph, the way a feature's tip shows four: the card is a peek,
                       and the whole of it is one click away. A kind with no framing text of
                       its own says what it holds instead of showing an empty card. */}
-                  {k.description.length > 0
-                    ? <p dangerouslySetInnerHTML={{ __html: k.description[0] }} />
-                    : <p>{count} {count === 1 ? 'action' : 'actions'}.</p>}
+                  <p dangerouslySetInnerHTML={{ __html: k.description[0] }} />
                   {k.description.length > 1 && <p className="faint">…</p>}
                 </div>
               }
@@ -150,6 +148,14 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
                 {k.name}
               </button>
             ))}
+          </div>
+
+          {/* What a turn holds, and what may be traded for what. It stands above the
+              switcher's choice because it is true of all six, and because "can I do that and
+              still move?" is the question this dialog was built to answer — a reader who gets
+              only the entries for one kind never finds out how many of it they get. */}
+          <div className="turn-economy">
+            <RulesText lines={TURN} />
           </div>
 
           <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
