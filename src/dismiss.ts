@@ -25,7 +25,10 @@ let restoring = false;
 
 /** Hand focus back to `el` without it reading as the player pointing at it. */
 export function restoreFocus(el: HTMLElement | null | undefined) {
-  if (typeof el?.focus !== 'function') return;
+  // `isConnected` because the thing that opened a layer is not always still there when it
+  // closes — a row removed by the very choice the dialog was making, say. Focusing a
+  // detached node silently drops focus on the body, which is worse than leaving it alone.
+  if (typeof el?.focus !== 'function' || !el.isConnected) return;
   restoring = true;
   // Focus events are dispatched synchronously from `.focus()`, so everything that was going
   // to react to this has already done so by the time the flag comes down.

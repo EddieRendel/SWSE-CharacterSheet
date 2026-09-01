@@ -1829,6 +1829,27 @@ button.sm.kind { border-left: 3px solid rgba(var(--sheet-accent-rgb), calc(0.3 +
   .modal > footer { padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom)); }
 }
 
+/* The dialog has to clear the cutout as well as the shell does, and landscape is where that
+   bites: the notch moves to one side, and the side insets are zero in portrait so nothing
+   above showed it. Note which rules apply — a phone turned on its side is *wider* than the
+   520px sheet breakpoint, so what is on screen there is the centred dialog with the
+   overlay's 20px gutter, and 20px does not clear an inset of forty-odd. */
+@media (pointer: coarse) and (min-width: 521px) {
+  .overlay {
+    padding-left: calc(var(--sp-8) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-8) + env(safe-area-inset-right));
+  }
+}
+
+/* And the sheet, for a device that carries a side inset in portrait too. It is the padding
+   inside that moves rather than the sheet, which stays edge to edge. */
+@media (pointer: coarse) and (max-width: 520px) {
+  .modal > header, .modal > footer, .modal-body {
+    padding-left: calc(var(--sp-6) + env(safe-area-inset-left));
+    padding-right: calc(var(--sp-6) + env(safe-area-inset-right));
+  }
+}
+
 /* The 820px block above retunes the topbar and tabs gutters, and lands after this one, so
    the inset has to be restated there or a narrow phone loses it. */
 @media (pointer: coarse) and (max-width: 820px) {

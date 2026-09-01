@@ -56,6 +56,14 @@ export function NumberField({
   const shown = draft ?? (value === undefined ? '' : String(value));
   const blank = optional ? undefined : 0;
 
+  // What the box held when the player started typing. Every keystroke is already written
+  // through to the character — that is what keeps the sheet in step while a number is being
+  // typed — so undoing one has to put the old value back, not merely stop writing new ones.
+  const entryValue = useRef<number | undefined>(value);
+  // Set while Escape is doing that, so the blur it triggers does not commit the very draft
+  // it is discarding. `setDraft` has not re-rendered by then, so `shown` is still the draft.
+  const reverting = useRef(false);
+
   // Filtered here rather than with `type="number"`, which drops what it cannot parse before
   // React sees it — taking the draft with it — and hides the caret behind its spinners.
   const strip = (raw: string) => raw.replace(decimal ? /[^0-9.-]/g : /[^0-9-]/g, '');
@@ -84,21 +92,28 @@ export function NumberField({
       // A tap otherwise puts the caret where the finger landed and the next digit joins the
       // number already there. Selecting means typing replaces it, which is what tapping a
       // stat box is asking to do.
-      onFocus={e => e.currentTarget.select()}
+      onFocus={e => { entryValue.current = value; e.currentTarget.select(); }}
       onChange={e => {
         const raw = strip(e.target.value);
         setDraft(raw);
         commit(raw, false);
       }}
-      onBlur={() => { commit(shown, true); setDraft(null); }}
+      onBlur={() => {
+        if (reverting.current) { reverting.current = false; setDraft(null); return; }
+        commit(shown, true);
+        setDraft(null);
+      }}
       onKeyDown={e => {
         if (e.key === 'Enter') e.currentTarget.blur();
         if (e.key === 'Escape' && draft !== null) {
-          // Escape over an edit in progress means "undo what I typed", not "close the
-          // dialog I am typing in", so it is kept off the dismiss stack — but only while
-          // there is an edit to undo. See dismiss.ts.
+          // Escape over an edit in progress means "undo what I typed", not "close the dialog
+          // I am typing in", so it is kept off the dismiss stack — but only while there is
+          // an edit to undo, so an Escape with nothing to take back still closes the dialog.
+          // See dismiss.ts.
           e.stopPropagation();
+          reverting.current = true;
           setDraft(null);
+          onChange(entryValue.current);
           e.currentTarget.blur();
         }
       }}
@@ -191,9 +206,17 @@ export function Modal({
 
   const titleId = useId();
   const dialog = useRef<HTMLDivElement>(null);
+
   // Whichever control opened the dialog, so closing it puts the caret back where it was
   // rather than at the top of the page.
+  //
+  // Read during render, not from an effect. A picker autofocuses its search field while
+  // React commits the dialog, and every effect — layout ones included — runs after that
+  // commit, by which point `document.activeElement` is the search field itself. Restoring
+  // to that on close aimed at a node the dialog had just taken with it, so focus landed on
+  // the body and the keyboard lost its place entirely.
   const openedFrom = useRef<HTMLElement | null>(null);
+  if (openedFrom.current === null) openedFrom.current = document.activeElement as HTMLElement | null;
   // Where a press that might become a backdrop click began, and null when it did not begin
   // on the backdrop at all.
   const pressedAt = useRef<{ x: number; y: number } | null>(null);
@@ -205,10 +228,13 @@ export function Modal({
   const pullFrom = useRef<{ y: number; at: number } | null>(null);
 
   useEffect(() => {
-    openedFrom.current = document.activeElement as HTMLElement | null;
     // Only when nothing inside has claimed focus already: on a pointer device the pickers
     // autofocus their search field, and stealing that back would undo it. See pointer.ts.
     if (!dialog.current?.contains(document.activeElement)) dialog.current?.focus();
+    // Unconditionally, without checking that the dialog still holds focus: by the time this
+    // runs React has already detached the subtree, so that check reads false and the restore
+    // never happens. `restoreFocus` guards the case that actually matters — an opener that
+    // has itself gone away.
     return () => restoreFocus(openedFrom.current);
   }, []);
 

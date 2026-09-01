@@ -570,6 +570,54 @@ await step('a feat named by an action opens its rules, and Escape closes only th
   await page.waitForSelector('.modal', { state: 'detached' });
 });
 
+// A dialog takes the keyboard while it is open, so it has to give it back — otherwise the
+// next Tab starts from the top of the page rather than from the control you just used.
+// The catch is that a picker autofocuses its search field while React commits the dialog,
+// before any effect can look, so "what was focused before" has to be read during render.
+await step('closing a dialog hands focus back to whatever opened it', async () => {
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+  const opener = panel.locator('.turn-actions button:has-text("Standard")');
+  await opener.click();
+  await page.waitForSelector('.modal');
+  await page.locator('.modal header button[aria-label="Close"]').click();
+  await page.waitForSelector('.modal', { state: 'detached' });
+  const landed = await page.evaluate(() => {
+    const a = document.activeElement;
+    return { tag: a?.tagName, text: (a?.textContent ?? '').trim().slice(0, 20) };
+  });
+  if (landed.tag !== 'BUTTON' || !landed.text.startsWith('Standard')) {
+    throw new Error(`focus went to ${landed.tag} "${landed.text}" rather than the button that opened it`);
+  }
+});
+
+// The number fields commit every keystroke, so the sheet keeps up while a value is typed.
+// That makes Escape a restore rather than a cancel: without one it silently kept the edit
+// it claimed to undo, and clamped it on the way out.
+await step('Escape puts a half-typed number back, and otherwise closes the dialog', async () => {
+  const box = page.locator('.panel').filter({ has: page.locator('header button:has-text("Actions")') });
+  await box.locator('header button:has-text("Equipment")').click();
+  const quantity = box.locator('tbody input.mono').last();
+  const before = await quantity.inputValue();
+
+  await quantity.click();
+  await quantity.pressSequentially('9');
+  if (await quantity.inputValue() === before) throw new Error('the field never took the edit');
+  await quantity.press('Escape');
+  await page.waitForTimeout(200);
+  const after = await quantity.inputValue();
+  if (after !== before) throw new Error(`Escape left "${after}" rather than restoring "${before}"`);
+
+  // And with nothing to take back it is not swallowed: the dialog it is typed in still goes.
+  await box.locator('header button:has-text("Actions")').click();
+  await box.locator('.turn-actions button:has-text("Standard")').click();
+  await page.waitForSelector('.modal');
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
+
 // The one thing the wrapping row buys over a `.seg`: six labels run past a phone's width, and
 // a `.seg` hides its overflow rather than scrolling it, so the last two would be unreachable
 // with nothing on screen to say they were there.
@@ -1186,6 +1234,24 @@ await step('a dialog can be pulled shut, and springs back if the pull is short',
 // whatever it lands on and nothing takes it off again, so an unguarded rule leaves a row the
 // finger merely passed over looking exactly like the one that was chosen — and several of
 // these paint the very colour that means "selected".
+// env() cannot be emulated — a headless run has no notch — so this is read out of the
+// stylesheet the way the :hover guard is. Landscape is the case: a phone turned on its side
+// is wider than the 520px sheet breakpoint, so what is on screen is the centred dialog whose
+// only horizontal gutter is the overlay's, and the cutout is on one side.
+await step('a dialog clears a side cutout, not just the shell', async () => {
+  const css = readFileSync(new URL('./src/index.css', import.meta.url), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const wants = [
+    // `[^;}]` rather than `[^)]`: the value is calc(var(--sp-8) + env(...)), so stopping at
+    // the first bracket stops inside the var() and never reaches the inset.
+    [/\.overlay\s*\{[^}]*padding-left:\s*calc\([^;}]*safe-area-inset-left/, 'the overlay, for the centred dialog'],
+    [/\.modal-body\s*\{[^}]*padding-left:\s*calc\([^;}]*safe-area-inset-left/, 'the sheet body'],
+    [/\.modal > footer\s*\{[^}]*safe-area-inset-bottom/, 'the footer, for the home indicator'],
+  ];
+  const missing = wants.filter(([re]) => !re.test(css)).map(([, what]) => what);
+  if (missing.length) throw new Error(`no safe-area inset on ${missing.join('; ')}`);
+});
+
 await step('every :hover is behind a guard, in the stylesheet itself', async () => {
   const css = readFileSync(new URL('./src/index.css', import.meta.url), 'utf8')
     // Blanked rather than removed, so the line numbers still point at the file.
