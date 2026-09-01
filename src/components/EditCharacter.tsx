@@ -160,7 +160,7 @@ export function EditCharacter({
     <>
       <div className="level-bar">
         <div>
-          <div className="label">Character level</div>
+          <div className="level-bar-label">Character level</div>
           <div className="level-number">{derived.level || '—'}</div>
         </div>
         <button className="primary" onClick={() => setAdding(true)}>

@@ -39,7 +39,7 @@ export function Abilities({
     <>
       <Panel
         collapseId="edit:abilities"
-        className="framed tint-accent"
+        className="framed panel-tone-accent"
         title="Ability scores"
         actions={
           <div className="row">
@@ -55,7 +55,7 @@ export function Abilities({
           </div>
         )}
         {mode === 'point-buy' && (
-          <div className={`notice ${remaining < 0 ? 'warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
+          <div className={`notice ${remaining < 0 ? 'notice-warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
             <strong>{remaining}</strong> of {POINT_BUDGET} points remaining ({spent} spent).
             Scores run 8–18 before species modifiers. {remaining < 0 && ' You are over budget.'}
           </div>
@@ -69,8 +69,8 @@ export function Abilities({
             const total = derived.abilities[a];
             return (
               <div key={a} className="stat" style={{ padding: 'var(--sp-6)' }}>
-                <div className="label">{RULES.abilities[a].name}</div>
-                <div className="value" style={{ color: 'var(--accent)' }}>{total}</div>
+                <div className="stat-label">{RULES.abilities[a].name}</div>
+                <div className="stat-value" style={{ color: 'var(--accent)' }}>{total}</div>
                 <div className="sub mono" style={{ fontSize: 'var(--fs-md)', color: 'var(--text)' }}>
                   {signed(abilityMod(total))}
                 </div>
@@ -86,7 +86,7 @@ export function Abilities({
                   <button className="sm" onClick={() => setBase(a, base + 1)} disabled={base >= 30}>+</button>
                 </div>
 
-                <div className="sub" style={{ marginTop: 'var(--sp-3)', lineHeight: 1.6 }}>
+                <div className="stat-sub" style={{ marginTop: 'var(--sp-3)', lineHeight: 1.6 }}>
                   base {base}
                   {speciesMod !== 0 && <><br /><span style={{ color: speciesMod > 0 ? 'var(--green)' : 'var(--red)' }}>{signed(speciesMod)} species</span></>}
                   {levelBonus > 0 && <><br /><span style={{ color: 'var(--blue)' }}>+{levelBonus} level</span></>}
@@ -98,7 +98,7 @@ export function Abilities({
         </div>
       </Panel>
 
-      <Panel collapseId="edit:ability-increases" title="Level-based increases" className="framed tint-accent">
+      <Panel collapseId="edit:ability-increases" title="Level-based increases" className="framed panel-tone-accent">
         {increaseLevels.length === 0 ? (
           <div className="empty">
             At 4th level and every four levels after, you raise two different ability scores by 1.

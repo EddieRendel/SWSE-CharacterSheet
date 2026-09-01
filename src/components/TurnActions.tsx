@@ -159,7 +159,7 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
           </div>
 
           <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-3)' }}>
-            <h3 className="tone-accent" style={{ fontSize: 'var(--fs-lg)' }}>{kind.name}</h3>
+            <h3 className="text-tone-accent" style={{ fontSize: 'var(--fs-lg)' }}>{kind.name}</h3>
             <span className="badge accent">{cite(kind.page)}</span>
           </div>
           <RulesText lines={kind.description} />
@@ -174,7 +174,7 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
             {actionsOf(kind.id).map(a => (
               <div key={a.id} className="turn-action">
                 <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
-                  <span className="name grow">{a.name}</span>
+                  <span className="turn-action-name grow">{a.name}</span>
                   {/* An action the book files under two headings says so, rather than reading
                       as a duplicate of one already met under the other. */}
                   {a.kinds.filter(k => k !== kind.id).map(k => (

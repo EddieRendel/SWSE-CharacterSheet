@@ -66,7 +66,7 @@ function AttackRow({ a }: { a: AttackProfile }) {
           matters once it has landed. */}
       <div className="attack-roll">
         <Breakdown title="Attack roll" rows={a.attackParts} total={signed(a.attack)} />
-        <span className="k">hit</span>
+        <span className="attack-roll-key">hit</span>
       </div>
       <div className="grow">
       <div className="attack-name">
@@ -94,7 +94,7 @@ function AttackRow({ a }: { a: AttackProfile }) {
               {warnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           }>
-            <span className="badge warn-badge">!</span>
+            <span className="badge badge-warn">!</span>
           </Tip>
         )}
       </div>
@@ -290,7 +290,7 @@ export function Attacks({
                   <div className="attack-roll">
                     <Breakdown title="Use the Force" rows={p.checkParts ?? []} total={signed(p.useTheForce)}
                       footer={`Rolled against the target's ${p.versus ?? 'defense'}.`} />
-                    <span className="k">use</span>
+                    <span className="attack-roll-key">use</span>
                   </div>
                   <div className="grow">
                   <div className="attack-name">

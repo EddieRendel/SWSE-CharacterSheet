@@ -536,12 +536,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: var(--sp-5); text-align: center;
 }
-.stat .label {
+.stat-label {
   font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--text-faint); font-weight: 700;
 }
-.stat .value { font-size: var(--fs-num-md); font-weight: 700; font-family: var(--mono); line-height: 1.2; }
-.stat .sub { font-size: var(--fs-tiny); color: var(--text-faint); }
+.stat-value { font-size: var(--fs-num-md); font-weight: 700; font-family: var(--mono); line-height: 1.2; }
+.stat-sub { font-size: var(--fs-tiny); color: var(--text-faint); }
 
 .list { display: flex; flex-direction: column; gap: var(--sp-3); }
 
@@ -558,8 +558,8 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 }
 .item:hover { border-color: var(--border-2); }
 .item .grow { flex: 1; min-width: 0; }
-.item .name { font-weight: 600; }
-.item .meta { font-size: var(--fs-sm); color: var(--text-faint); }
+.item-name { font-weight: 600; }
+.item-meta { font-size: var(--fs-sm); color: var(--text-faint); }
 
 /* Duplicate / Export / Delete hold a fixed width, so on a phone they squeezed the name —
    the button you tap to open the character — down to nothing: 0px at 320, 10px at 360.
@@ -596,6 +596,13 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 .rules-text p { margin: 0 0 var(--sp-4); color: var(--text-dim); font-size: var(--fs-body); }
 .rules-text strong { color: var(--text); }
+/* The lead-in on the prerequisites line. It was a bare `.label`, which is the class the
+   `.stat` tiles use for their caption — it matched nothing here and the text had simply been
+   rendering unstyled ever since. Named for where it lives, so it cannot silently miss again. */
+.prereq-label {
+  color: var(--text-dim); font-weight: 600;
+}
+
 /* The Benefit / Normal / Special headings. Siblings of .rules-text, not children of it —
    which is why the old `.rules-text .label` never matched and the styles had been copied
    inline onto all three headings instead. */
@@ -632,7 +639,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 }
 /* `contain` so that flicking past the end of the dialog does not carry on into the page
    underneath it, which then has to be scrolled back when the dialog closes. */
-.modal > .body { padding: var(--sp-7); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
+.modal-body { padding: var(--sp-7); overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .modal > footer {
   padding: var(--sp-6) var(--sp-7); border-top: 1px solid var(--border);
   display: flex; gap: var(--sp-4); justify-content: flex-end; flex-shrink: 0;
@@ -646,7 +653,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
      above, counted for this gutter. */
   .modal { max-height: min(96vh, 100vh - 22px); max-height: min(96dvh, 100dvh - 22px); margin-top: var(--sp-3); }
   .modal > header, .modal > footer { padding: var(--sp-6) var(--sp-6); }
-  .modal > .body { padding: var(--sp-6); }
+  .modal-body { padding: var(--sp-6); }
   .modal > footer { flex-wrap: wrap; }
 }
 
@@ -755,7 +762,7 @@ button.chip:disabled { cursor: default; }
   background: rgba(var(--blue-rgb), 0.08); border: 1px solid var(--blue-edge);
   border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6); font-size: var(--fs-sm); color: var(--text-dim);
 }
-.notice.warn { background: rgba(var(--amber-rgb), 0.07); border-color: var(--amber-dim); }
+.notice.notice-warn { background: rgba(var(--amber-rgb), 0.07); border-color: var(--amber-dim); }
 /* Something already wrong, rather than something still to do — the same red as an
    over-spent skill allowance. */
 .notice.conflict { background: rgba(var(--red-rgb), 0.07); border-color: var(--red-edge); }
@@ -878,7 +885,7 @@ button.linklike.block { display: block; width: 100%; }
   display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; font-size: var(--fs-body);
 }
 .attack-nums .breakdown { font-size: var(--fs-md); }
-.badge.warn-badge {
+.badge.badge-warn {
   background: rgba(var(--amber-rgb), 0.13); color: var(--amber);
   border-color: var(--amber-dim); cursor: help;
 }
@@ -942,7 +949,7 @@ button.linklike.block { display: block; width: 100%; }
 @media print { .tip-card { display: none; } }
 .tip-anchor.block > .stat { height: 100%; cursor: help; }
 .tip-anchor.block:hover > .stat { border-color: var(--border-2); }
-.tip-anchor.block:hover > .stat .value { color: var(--accent); }
+.tip-anchor.block:hover > .stat-value { color: var(--accent); }
 /* Long flavour text is clipped rather than allowed to fill the screen. */
 .tip-clamp {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
@@ -966,7 +973,7 @@ button.linklike.block { display: block; width: 100%; }
 }
 .level-bar::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
 .level-bar::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
-.level-bar .label {
+.level-bar-label {
   color: var(--text-faint); font-size: var(--fs-micro); text-transform: uppercase;
   letter-spacing: 0.09em; font-weight: 700;
 }
@@ -1098,7 +1105,7 @@ button.linklike.block { display: block; width: 100%; }
   font-family: var(--mono); font-size: var(--fs-num-lg); font-weight: 700; line-height: 1.05;
   letter-spacing: -0.02em;
 }
-.vital-value .of { font-size: var(--fs-lg); color: var(--text-faint); font-weight: 600; }
+.vital-value-of { font-size: var(--fs-lg); color: var(--text-faint); font-weight: 600; }
 
 /* Hit points, the one number read most often, so it is the largest thing on the page and
    the only one with a filled bar behind it. */
@@ -1176,7 +1183,7 @@ button.linklike.block { display: block; width: 100%; }
   color: var(--blue);
 }
 /* Reserved even when empty, so Fortitude and Will do not sit a line higher than Reflex. */
-.def-cell .sub { font-size: var(--fs-tiny); color: var(--text-faint); min-height: 16px; }
+.def-cell-sub { font-size: var(--fs-tiny); color: var(--text-faint); min-height: 16px; }
 /* Damage threshold is a consequence of Fortitude rather than a fourth defense, so it is
    attached to the group but drawn a size down. */
 .def-cell.minor .def-value { font-size: var(--fs-num-sm); color: var(--text); }
@@ -1220,12 +1227,12 @@ button.linklike.block { display: block; width: 100%; }
   background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg);
   font-size: var(--fs-body);
 }
-.factline .k {
+.factline-key {
   font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700; margin-right: var(--sp-3);
 }
-.factline .v { font-family: var(--mono); font-weight: 700; }
-.factline .fact { display: inline-flex; align-items: baseline; white-space: nowrap; }
+.factline-value { font-family: var(--mono); font-weight: 700; }
+.factline-fact { display: inline-flex; align-items: baseline; white-space: nowrap; }
 .factline > * { min-width: 0; }
 
 /* A reference panel — Skills, Notes — sits flatter than the live surfaces above it, so the
@@ -1269,13 +1276,14 @@ button.linklike.block { display: block; width: 100%; }
 .panel.framed .seg button.on,
 .panel.framed .seg button.on:hover:not(:disabled) { background: var(--sheet-accent); }
 
-/* Deliberately not named .tone-*: those are text-colour utilities used by the feature
-   groups, and putting one on the panel itself would repaint every name inside it by
-   inheritance. These only set the variable the heading reads. */
-.panel.tint-green { --tone: var(--green); }
-.panel.tint-purple { --tone: var(--purple); }
-.panel.tint-accent { --tone: var(--sheet-accent); }
-.panel.tint-blue { --tone: var(--blue); }
+/* panel-tone-*, not text-tone-*: the two were .tint-* and .tone-* before, near-identical
+   names for opposite mechanics — one sets a colour variable the panel's heading reads, the
+   other sets a text colour directly. Putting a text-tone-* on the panel itself would repaint
+   every name inside it by inheritance, which is exactly the mistake the old pair invited. */
+.panel.panel-tone-green { --tone: var(--green); }
+.panel.panel-tone-purple { --tone: var(--purple); }
+.panel.panel-tone-accent { --tone: var(--sheet-accent); }
+.panel.panel-tone-blue { --tone: var(--blue); }
 
 /* ---------- the theme picker ---------- */
 .theme-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
@@ -1332,20 +1340,20 @@ button.linklike.block { display: block; width: 100%; }
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: var(--sp-2) var(--sp-5);
 }
-.species-mod .k {
+.species-mod-key {
   font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.08em; color: var(--text-faint);
 }
-.species-mod .v { font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
-.species-mod .v.up { color: var(--green); }
-.species-mod .v.down { color: var(--red); }
+.species-mod-value { font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
+.species-mod-value.up { color: var(--green); }
+.species-mod-value.down { color: var(--red); }
 .species-facts {
   display: flex; gap: var(--sp-3) var(--sp-7); flex-wrap: wrap; margin-top: var(--sp-5); font-size: var(--fs-body);
 }
-.species-facts .k {
+.species-facts-key {
   font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700; margin-right: var(--sp-3);
 }
-.species-facts .v { font-family: var(--mono); font-weight: 700; }
+.species-facts-value { font-family: var(--mono); font-weight: 700; }
 /* Nothing chosen yet is the one thing on this page worth interrupting for. */
 .species-empty {
   display: block; width: 100%; text-align: left;
@@ -1470,7 +1478,7 @@ button.linklike.block { display: block; width: 100%; }
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .attack-roll .breakdown { font-size: var(--fs-xl); line-height: 1.15; }
-.attack-roll .k {
+.attack-roll-key {
   font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-faint); font-weight: 700;
 }
@@ -1485,18 +1493,18 @@ button.linklike.block { display: block; width: 100%; }
   font-size: var(--fs-tiny); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-4);
 }
 .feature-group h3 .rule { flex: 1; height: 1px; background: var(--border); }
-.tone-accent { color: var(--sheet-accent); }
-.tone-blue { color: var(--blue); }
-.tone-purple { color: var(--purple); }
-.tone-green { color: var(--green); }
-button.chip.tone-accent { background: rgba(var(--accent-rgb), 0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
-button.chip.tone-blue { background: rgba(var(--blue-rgb), 0.09); border-color: var(--blue-edge); color: var(--text); }
-button.chip.tone-purple { background: rgba(var(--purple-rgb), 0.09); border-color: var(--purple-edge); color: var(--text); }
-button.chip.tone-green { background: rgba(var(--green-rgb), 0.09); border-color: var(--green-edge); color: var(--text); }
-button.chip.tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
-button.chip.tone-blue:hover:not(:disabled) { border-color: var(--blue); }
-button.chip.tone-purple:hover:not(:disabled) { border-color: var(--purple); }
-button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
+.text-tone-accent { color: var(--sheet-accent); }
+.text-tone-blue { color: var(--blue); }
+.text-tone-purple { color: var(--purple); }
+.text-tone-green { color: var(--green); }
+button.chip.text-tone-accent { background: rgba(var(--accent-rgb), 0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
+button.chip.text-tone-blue { background: rgba(var(--blue-rgb), 0.09); border-color: var(--blue-edge); color: var(--text); }
+button.chip.text-tone-purple { background: rgba(var(--purple-rgb), 0.09); border-color: var(--purple-edge); color: var(--text); }
+button.chip.text-tone-green { background: rgba(var(--green-rgb), 0.09); border-color: var(--green-edge); color: var(--text); }
+button.chip.text-tone-accent:hover:not(:disabled) { border-color: var(--sheet-accent); }
+button.chip.text-tone-blue:hover:not(:disabled) { border-color: var(--blue); }
+button.chip.text-tone-purple:hover:not(:disabled) { border-color: var(--purple); }
+button.chip.text-tone-green:hover:not(:disabled) { border-color: var(--green); }
 
 /* A feat combo: not a chip, because it has rules text to read rather than a name to
    recognise, and not a .notice, because several stack and a run of blue boxes down the panel
@@ -1508,7 +1516,7 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
   border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
 .combo.on { border-left-color: var(--green); background: rgba(var(--green-rgb), 0.05); }
-.combo .name { font-size: var(--fs-body); font-weight: 600; }
+.combo-name { font-size: var(--fs-body); font-weight: 600; }
 /* The last line of the effect sits on the card's own padding. */
 .combo .rules-text p:last-child { margin-bottom: 0; }
 
@@ -1529,7 +1537,7 @@ button.chip.tone-green:hover:not(:disabled) { border-color: var(--green); }
   border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17));
   border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
-.turn-action .name { font-size: var(--fs-body); font-weight: 600; }
+.turn-action-name { font-size: var(--fs-body); font-weight: 600; }
 /* What a turn holds, above the kind being read rather than inside it: the allowance and the
    trades are true of all six, so they must not move or vanish when the switcher does. Ruled
    off below so the constant part and the part that changes do not read as one passage. */

@@ -82,7 +82,7 @@ await step('bump Strength', async () => {
   for (let i = 0; i < 4; i++) await plus.click();
 });
 await step('Wookiee +4 Str applied', async () => {
-  const val = await page.locator('.stat:has-text("Strength") .value').first().textContent();
+  const val = await page.locator('.stat:has-text("Strength") .stat-value').first().textContent();
   if (val.trim() !== '18') throw new Error(`expected 18, got ${val}`);
 });
 
@@ -350,7 +350,7 @@ await step('a heavy load slows you down and is explained on hover', async () => 
   await page.waitForSelector('.modal', { state: 'detached' });
   const load = box.locator('.hint.breakdown').first();
   const before = await load.textContent();
-  const unloadedSpeed = parseInt((await page.locator('.factline .fact:has-text("Speed") .v').textContent()).trim(), 10);
+  const unloadedSpeed = parseInt((await page.locator('.factline .factline-fact:has-text("Speed") .factline-value').textContent()).trim(), 10);
   const unloadedStealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
 
   const quantity = box.locator('tbody input.mono').last();
@@ -374,7 +374,7 @@ await step('a heavy load slows you down and is explained on hover', async () => 
   await card.waitFor({ state: 'detached' }).catch(() => {});
 
   // Speed and the affected skills must move with it.
-  const speed = parseInt((await page.locator('.factline .fact:has-text("Speed") .v').textContent()).trim(), 10);
+  const speed = parseInt((await page.locator('.factline .factline-fact:has-text("Speed") .factline-value').textContent()).trim(), 10);
   if (!(speed < unloadedSpeed)) throw new Error(`speed did not drop: ${unloadedSpeed} -> ${speed}`);
   const stealth = parseInt((await page.locator('.skill:has-text("Stealth") .skill-total').first().textContent()).trim(), 10);
   if (!(stealth < unloadedStealth)) throw new Error(`Stealth did not drop: ${unloadedStealth} -> ${stealth}`);
@@ -602,7 +602,7 @@ await step('the sheet reads in three tiers', async () => {
     ['vitals', '.vitals .vital'],
     ['defenses', '.defenses .def-cell'],
     ['abilities', '.abil-strip .abil'],
-    ['the fact line', '.factline .fact'],
+    ['the fact line', '.factline .factline-fact'],
   ]) {
     if (await page.locator(sel).count() === 0) missing.push(what);
   }
@@ -788,7 +788,7 @@ await step('a talent that grants a choice offers it, and records what was chosen
     localStorage.setItem(key, JSON.stringify([...all.filter(x => x.id !== c.id), c]));
   }, sith);
   await page.reload({ waitUntil: 'networkidle' });
-  await page.click('.item .name:has-text("Darth Test")');
+  await page.click('.item .item-name:has-text("Darth Test")');
   await page.click('.tabs button:has-text("Edit character")');
 
   const slot = page.locator('.item.slot.unfilled').filter({ hasText: 'Sith Apprentice talent' }).first();
@@ -830,12 +830,12 @@ await step('a talent that grants a choice offers it, and records what was chosen
 
 await step('character persists across reload', async () => {
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForSelector('.item .name:has-text("Kira Vess")');
+  await page.waitForSelector('.item .item-name:has-text("Kira Vess")');
 });
 await page.screenshot({ path: 'screenshot-list.png' });
 
 await step('reopen and check sheet survived', async () => {
-  await page.click('.item .name:has-text("Kira Vess")');
+  await page.click('.item .item-name:has-text("Kira Vess")');
   await page.click('.tabs button:has-text("Sheet")');
   await page.waitForSelector('.def-cell:has-text("Reflex")');
 });

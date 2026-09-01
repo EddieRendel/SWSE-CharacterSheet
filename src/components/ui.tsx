@@ -65,9 +65,9 @@ export function Stat({
 }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
     <div className="stat">
-      <div className="label">{label}</div>
-      <div className="value">{value}</div>
-      {sub && <div className="sub">{sub}</div>}
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value}</div>
+      {sub && <div className="stat-sub">{sub}</div>}
     </div>
   );
 }
@@ -98,7 +98,7 @@ export function Modal({
           <div className="spacer" />
           <button className="ghost" onClick={onClose}>✕</button>
         </header>
-        <div className="body">{children}</div>
+        <div className="modal-body">{children}</div>
         {footer && <footer>{footer}</footer>}
       </div>
     </div>
@@ -363,7 +363,7 @@ function ComboBlock({
           return (
             <div key={combo.id} className={`combo${active ? ' on' : ''}`}>
               <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
-                <span className="name grow">{combo.name}</span>
+                <span className="combo-name grow">{combo.name}</span>
                 {active && <span className="badge green">active</span>}
                 {completes && <span className="badge accent">completes this</span>}
                 {known && !active && !completes && <span className="badge">inactive</span>}
@@ -436,7 +436,7 @@ export function FeatureDetail({
       </div>
 
       {feature.hidden && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-5)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-5)' }}>
           Hidden from the pickers: {feature.hiddenReason}. It stays in the data and becomes
           selectable if that content is added.
         </div>
@@ -450,7 +450,7 @@ export function FeatureDetail({
       )}
 
       {feature.incomplete && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-5)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-5)' }}>
           The rules data references this entry but never defines it. You can still select it —
           look the full text up in your sourcebook.
         </div>
@@ -464,7 +464,7 @@ export function FeatureDetail({
 
       {feature.prerequisites && (
         <p className="hint">
-          <span className="label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
+          <span className="prereq-label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
         </p>
       )}
       {feature.unparsedPrerequisites?.length && (

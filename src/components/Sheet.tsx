@@ -69,7 +69,7 @@ function DefCell({
         <div>
           <div className="vital-label">{label}</div>
           <div className="def-value">{value}</div>
-          <div className="sub">{sub}</div>
+          <div className="def-cell-sub">{sub}</div>
         </div>
       </StatTip>
     </div>
@@ -213,7 +213,7 @@ export function Sheet({
             >
               <div>
                 <div className="vital-value">
-                  {currentHp}<span className="of">/{derived.maxHitPoints}</span>
+                  {currentHp}<span className="vital-value-of">/{derived.maxHitPoints}</span>
                 </div>
                 <div className="hp-bar">
                   <div className={`hp-fill ${hpState}`} style={{ width: `${hpFraction * 100}%` }} />
@@ -292,7 +292,7 @@ export function Sheet({
                 >
                   <div>
                     <div className="vital-value">
-                      {fpLeft}<span className="of">/{derived.forcePoints}</span>
+                      {fpLeft}<span className="vital-value-of">/{derived.forcePoints}</span>
                     </div>
                     <span className="uses">
                       {Array.from({ length: Math.min(derived.forcePoints, 12) }, (_, i) => (
@@ -421,9 +421,9 @@ export function Sheet({
             footer="Every class contributes; multiclass characters add them together."
           />
         }>
-          <span className="fact">
-            <span className="k">Base attack</span>
-            <span className="v breakdown">{signed(derived.baseAttackBonus)}</span>
+          <span className="factline-fact">
+            <span className="factline-key">Base attack</span>
+            <span className="factline-value breakdown">{signed(derived.baseAttackBonus)}</span>
           </span>
         </Tip>
         <Tip content={
@@ -442,18 +442,18 @@ export function Sheet({
                   : derived.carrying.level === 'strained' ? 'you can move one square a turn.' : 'you cannot move.')}
           />
         }>
-          <span className="fact">
-            <span className="k">Speed</span>
-            <span className="v breakdown">{derived.speed} sq</span>
+          <span className="factline-fact">
+            <span className="factline-key">Speed</span>
+            <span className="factline-value breakdown">{derived.speed} sq</span>
           </span>
         </Tip>
-        <span className="fact">
-          <span className="k">Size</span>
-          <span className="v">{derived.size}</span>
+        <span className="factline-fact">
+          <span className="factline-key">Size</span>
+          <span className="factline-value">{derived.size}</span>
         </span>
-        <span className="fact">
-          <span className="k">Carrying</span>
-          <span className={`v ${loadWord ? 'err' : ''}`}>
+        <span className="factline-fact">
+          <span className="factline-key">Carrying</span>
+          <span className={`factline-value ${loadWord ? 'err' : ''}`}>
             {derived.carrying.weight.toFixed(1)} / {derived.carrying.heavy.toFixed(0)} kg
           </span>
           {loadWord && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>{loadWord}</span>}
@@ -464,7 +464,7 @@ export function Sheet({
         <div>
           <Panel
             title="Skills"
-            className="reference framed tint-green"
+            className="reference framed panel-tone-green"
             actions={<span className="hint nowrap">{trainedCount} trained</span>}
           >
             {/* Two columns on a wide screen. The list is the longest thing on the page and
@@ -508,7 +508,7 @@ export function Sheet({
 
         <div>
           <Panel
-            className="framed tint-purple"
+            className="framed panel-tone-purple"
             title={SHEET_TABS.find(t => t.id === tab)!.label}
             actions={
               <div className="seg">
@@ -535,7 +535,7 @@ export function Sheet({
             {tab === 'features' && featureCount > 0 && (
               <>
                 {featureGroups.map(([title, items]) => {
-                  const tone = FEATURE_TONES[title] ? `tone-${FEATURE_TONES[title]}` : '';
+                  const tone = FEATURE_TONES[title] ? `text-tone-${FEATURE_TONES[title]}` : '';
                   return (
                   <div key={title} className="feature-group">
                     <h3 className={tone}>
@@ -583,7 +583,7 @@ export function Sheet({
                     not a thing you hold: the benefit is simply on while both feats are. */}
                 {derived.combos.length > 0 && (
                   <div className="feature-group">
-                    <h3 className="tone-accent">
+                    <h3 className="text-tone-accent">
                       Combined feats <span className="faint">({derived.combos.length})</span>
                       <span className="rule" />
                     </h3>

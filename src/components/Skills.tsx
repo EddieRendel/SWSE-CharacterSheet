@@ -24,8 +24,8 @@ export function Skills({
 
   return (
     <>
-      <Panel collapseId="edit:skills" title="Trained skills" className="framed tint-green">
-        <div className={`notice ${used > allowed ? 'warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
+      <Panel collapseId="edit:skills" title="Trained skills" className="framed panel-tone-green">
+        <div className={`notice ${used > allowed ? 'notice-warn' : ''}`} style={{ marginBottom: 'var(--sp-6)' }}>
           <strong>{used}</strong> of <strong>{allowed}</strong> trained skills chosen
           {' '}({derived.classLevels[0] ? `${derived.classLevels.find(c => c.cls.id === char.levels[0].classId)?.cls.baseSkills ?? 0} from class` : ''}
           {' '}{signed(derived.mods.int)} Int
@@ -120,7 +120,7 @@ function Languages({
   return (
     <Panel
       collapseId="edit:languages"
-      className="framed tint-green"
+      className="framed panel-tone-green"
       title="Languages"
       actions={
         <div className="row">

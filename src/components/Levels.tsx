@@ -50,7 +50,7 @@ export function Levels({
     <>
       <Panel
         collapseId="edit:levels"
-        className="framed tint-purple"
+        className="framed panel-tone-purple"
         title={`Class progression — level ${derived.level}`}
         actions={
           <div className="row">
@@ -214,7 +214,7 @@ function ClassPicker({
                 if (!empty.length) return null;
                 const all = empty.length === (sel.cls.trees?.talent ?? []).length;
                 return (
-                  <div className="notice warn" style={{ marginTop: 'var(--sp-6)' }}>
+                  <div className="notice notice-warn" style={{ marginTop: 'var(--sp-6)' }}>
                     The rules data has no talents for{' '}
                     <strong>{empty.map(t => t.name).join(', ')}</strong>
                     {all ? ' — every talent tree this class uses.' : '.'}{' '}
@@ -225,7 +225,7 @@ function ClassPicker({
               })()}
 
               {sel.atMax && (
-                <div className="notice warn" style={{ marginTop: 'var(--sp-6)' }}>
+                <div className="notice notice-warn" style={{ marginTop: 'var(--sp-6)' }}>
                   You already have the maximum {sel.cls.maxLevel} levels in this class.
                 </div>
               )}

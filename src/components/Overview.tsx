@@ -22,7 +22,7 @@ export function Overview({
 
   return (
     <div className="character">
-      <Panel title="Identity" className="framed tint-accent">
+      <Panel title="Identity" className="framed panel-tone-accent">
         <div className="identity-edit">
           <PortraitButton char={char} update={update} size={96} />
           <div className="grow">
@@ -53,7 +53,7 @@ export function Overview({
           text — the single most consequential choice on the page, drawn like a list item. */}
       <Panel
         title="Species"
-        className="framed tint-green"
+        className="framed panel-tone-green"
         actions={species && (
           <div className="row">
             <button className="sm" onClick={() => setPickingSpecies(true)}>Change</button>
@@ -78,16 +78,16 @@ export function Overview({
               <div className="species-mods">
                 {Object.entries(species.abilities).map(([a, v]) => (
                   <span key={a} className="species-mod">
-                    <span className="k">{a.toUpperCase()}</span>
-                    <span className={`v ${v > 0 ? 'up' : 'down'}`}>{signed(v)}</span>
+                    <span className="species-mod-key">{a.toUpperCase()}</span>
+                    <span className={`species-mod-value ${v > 0 ? 'up' : 'down'}`}>{signed(v)}</span>
                   </span>
                 ))}
               </div>
             )}
 
             <div className="species-facts">
-              <span><span className="k">Size</span><span className="v">{species.size}</span></span>
-              <span><span className="k">Speed</span><span className="v">{species.speed} sq</span></span>
+              <span><span className="species-facts-key">Size</span><span className="species-facts-value">{species.size}</span></span>
+              <span><span className="species-facts-key">Speed</span><span className="species-facts-value">{species.speed} sq</span></span>
             </div>
 
             {(species.features ?? []).length > 0 && (
@@ -95,7 +95,7 @@ export function Overview({
                 <div className="group-rule">Traits</div>
                 <div className="chips">
                   {(species.features ?? []).map((f, i) => (
-                    <button key={i} className="chip tone-green" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
+                    <button key={i} className="chip text-tone-green" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
                       {featureName(f.id, f.spec)}
                     </button>
                   ))}
@@ -258,11 +258,11 @@ function SpeciesPicker({
                 )}
               </div>
               <div className="grid g3" style={{ marginBottom: 'var(--sp-6)' }}>
-                <div className="stat"><div className="label">Size</div><div className="value" style={{ fontSize: 'var(--fs-md)' }}>{s.size}</div></div>
-                <div className="stat"><div className="label">Speed</div><div className="value" style={{ fontSize: 'var(--fs-md)' }}>{s.speed} sq</div></div>
+                <div className="stat"><div className="stat-label">Size</div><div className="stat-value" style={{ fontSize: 'var(--fs-md)' }}>{s.size}</div></div>
+                <div className="stat"><div className="stat-label">Speed</div><div className="stat-value" style={{ fontSize: 'var(--fs-md)' }}>{s.speed} sq</div></div>
                 <div className="stat">
-                  <div className="label">Ability modifiers</div>
-                  <div className="value" style={{ fontSize: 'var(--fs-body)' }}>
+                  <div className="stat-label">Ability modifiers</div>
+                  <div className="stat-value" style={{ fontSize: 'var(--fs-body)' }}>
                     {s.abilities
                       ? Object.entries(s.abilities).map(([a, v]) => `${signed(v)} ${a.toUpperCase()}`).join(' ')
                       : 'None'}
@@ -402,7 +402,7 @@ function NearHuman({
   const incomplete = !nh.trait || !nh.sacrifice;
 
   return (
-    <Panel title="Near-Human" className="framed tint-green">
+    <Panel title="Near-Human" className="framed panel-tone-green">
       <p className="hint" style={{ marginBottom: 'var(--sp-6)' }}>
         A Near-Human uses the Human stat block and trades <strong>either</strong> its bonus feat{' '}
         <strong>or</strong> its bonus trained skill for a single Near-Human trait, plus up to{' '}
@@ -410,7 +410,7 @@ function NearHuman({
       </p>
 
       {incomplete && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-6)' }}>
           {!nh.trait && 'Choose a trait. '}
           {!nh.sacrifice && 'Choose what to give up for it.'}
         </div>

@@ -186,7 +186,7 @@ export function FeaturePicker({
       }
     >
       {emptyClassTrees.length > 0 && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-6)' }}>
           <strong>{emptyClassTrees.map(t => t.name).join(', ')}</strong>{' '}
           {emptyClassTrees.length === 1 ? 'is a talent tree' : 'are talent trees'} this class draws
           from, but the rules data contains none of their talents. Add them from your books in{' '}
@@ -358,7 +358,7 @@ export function FeaturePicker({
               )}
 
               {finalResult?.duplicate && (
-                <div className="notice warn" style={{ marginTop: 'var(--sp-6)' }}>
+                <div className="notice notice-warn" style={{ marginTop: 'var(--sp-6)' }}>
                   You already have this{selected.multiple ? ' the maximum number of times' : ''}.
                 </div>
               )}
@@ -498,10 +498,10 @@ export function ClassDetail({ classId }: { classId: string }) {
         <img className="class-icon" src={icon} alt="" width={96} height={96} loading="lazy" />
       )}
       <div className="grid g4" style={{ marginBottom: 'var(--sp-6)' }}>
-        <div className="stat"><div className="label">Hit die</div><div className="value">d{cls.hitDie}</div></div>
-        <div className="stat"><div className="label">BAB</div><div className="value" style={{ fontSize: 'var(--fs-lg)' }}>{cls.fullBaseAttackBonus ? 'Full' : '3/4'}</div></div>
-        <div className="stat"><div className="label">Ref / Fort / Will</div><div className="value" style={{ fontSize: 'var(--fs-lg)' }}>+{cls.defenseBonuses.join(' / +')}</div></div>
-        <div className="stat"><div className="label">Max level</div><div className="value">{cls.maxLevel}</div></div>
+        <div className="stat"><div className="stat-label">Hit die</div><div className="stat-value">d{cls.hitDie}</div></div>
+        <div className="stat"><div className="stat-label">BAB</div><div className="stat-value" style={{ fontSize: 'var(--fs-lg)' }}>{cls.fullBaseAttackBonus ? 'Full' : '3/4'}</div></div>
+        <div className="stat"><div className="stat-label">Ref / Fort / Will</div><div className="stat-value" style={{ fontSize: 'var(--fs-lg)' }}>+{cls.defenseBonuses.join(' / +')}</div></div>
+        <div className="stat"><div className="stat-label">Max level</div><div className="stat-value">{cls.maxLevel}</div></div>
       </div>
       {!cls.prestige && (
         <p className="hint">

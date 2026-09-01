@@ -46,7 +46,7 @@ export function Droid({
   const unresolved = priced.filter(p => p === null).length;
 
   return (
-    <Panel title="Droid chassis" className="framed tint-green">
+    <Panel title="Droid chassis" className="framed panel-tone-green">
       <p className="hint" style={{ marginBottom: 'var(--sp-6)' }}>
         Droids have no Constitution score: no bonus hit points from it, and Strength applies to
         Fortitude Defense instead. They are immune to poison, disease, radiation, vacuum,
@@ -54,7 +54,7 @@ export function Droid({
       </p>
 
       {(!degree || !hasProcessor || !hasLocomotion) && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-6)' }}>
           {!degree && 'Choose a degree. '}
           {!hasLocomotion && 'Fit a locomotion system. '}
           {!hasProcessor && 'Fit a processor — a droid hero needs a Basic or Heuristic Processor.'}
@@ -104,21 +104,21 @@ export function Droid({
 
       <div className="grid g4" style={{ marginTop: 'var(--sp-7)' }}>
         <div className="stat">
-          <div className="label">Appendages</div>
-          <div className="value">{appendages}</div>
+          <div className="stat-label">Appendages</div>
+          <div className="stat-value">{appendages}</div>
         </div>
         <div className="stat">
-          <div className="label">Speed</div>
-          <div className="value">{derived.speed}<span style={{ fontSize: 'var(--fs-sm)' }}> sq</span></div>
+          <div className="stat-label">Speed</div>
+          <div className="stat-value">{derived.speed}<span style={{ fontSize: 'var(--fs-sm)' }}> sq</span></div>
         </div>
         <div className="stat">
-          <div className="label">Systems fitted</div>
-          <div className="value">{installed.length}</div>
+          <div className="stat-label">Systems fitted</div>
+          <div className="stat-value">{installed.length}</div>
         </div>
         <div className="stat">
-          <div className="label">Systems cost</div>
-          <div className="value" style={{ fontSize: 'var(--fs-lg)' }}>{totalKnown.toLocaleString()}</div>
-          <div className="sub">{unresolved ? `${unresolved} priced by formula` : 'credits'}</div>
+          <div className="stat-label">Systems cost</div>
+          <div className="stat-value" style={{ fontSize: 'var(--fs-lg)' }}>{totalKnown.toLocaleString()}</div>
+          <div className="stat-sub">{unresolved ? `${unresolved} priced by formula` : 'credits'}</div>
         </div>
       </div>
 
@@ -132,8 +132,8 @@ export function Droid({
                 <div key={`${s.id}-${i}`} className="item">
                   <span className="badge">{s.category}</span>
                   <div className="grow">
-                    <div className="name">{s.name}</div>
-                    <div className="meta">
+                    <div className="item-name">{s.name}</div>
+                    <div className="item-meta">
                       {priced[i] !== null ? `${priced[i]!.toLocaleString()} credits` : (s.cost ?? 'cost unlisted')}
                       {s.appendages ? ` · ${s.appendages} appendage${s.appendages > 1 ? 's' : ''}` : ''}
                       {s.unarmedDamage ? ` · unarmed ${s.unarmedDamage}` : ''}

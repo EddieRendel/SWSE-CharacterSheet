@@ -124,7 +124,7 @@ export function Features({
           <div className="col" style={{ gap: 'var(--sp-4)', marginTop: 'var(--sp-4)' }}>
             {lapsed.map(l => (
               <div key={l.key}>
-                <div className="name">{l.name}</div>
+                <div className="item-name">{l.name}</div>
                 <ReqList checks={l.missing} />
               </div>
             ))}
@@ -133,7 +133,7 @@ export function Features({
       )}
 
       {derived.unfilledSlots.length > 0 && (
-        <div className="notice warn" style={{ marginBottom: 'var(--sp-7)' }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-7)' }}>
           <strong>{derived.unfilledSlots.length}</strong> unfilled{' '}
           {derived.unfilledSlots.length === 1 ? 'choice' : 'choices'}:{' '}
           {derived.unfilledSlots.map(s => s.label).join(', ')}
@@ -142,7 +142,7 @@ export function Features({
 
       <Panel
         collapseId="edit:features"
-        className="framed tint-blue"
+        className="framed panel-tone-blue"
         title="Feats, talents & features by level"
         actions={
           <label className="row nowrap hint" style={{ gap: 'var(--sp-3)' }}>
@@ -175,17 +175,17 @@ export function Features({
                             style={{ background: 'none', border: 'none', padding: '0' }}
                             onClick={() => setViewing({ id: ref!.id, spec: ref!.spec })}
                           >
-                            <div className="name">
+                            <div className="item-name">
                               {featureName(ref!.id, ref!.spec)}{' '}
                               <Descriptors feature={feature} compact />
                               {feature.incomplete && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>?</span>}
                             </div>
-                            <div className="meta">{KIND_LABEL[slot.kind] ?? slot.kind} · {slot.label}</div>
+                            <div className="item-meta">{KIND_LABEL[slot.kind] ?? slot.kind} · {slot.label}</div>
                           </button>
                         ) : (
                           <>
                             <div className="name warn">Choose a {KIND_LABEL[slot.kind]?.toLowerCase() ?? slot.kind}</div>
-                            <div className="meta">{slot.label}</div>
+                            <div className="item-meta">{slot.label}</div>
                           </>
                         )}
                       </div>

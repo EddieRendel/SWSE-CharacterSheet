@@ -294,8 +294,8 @@ function CharacterList({
                 <div key={c.id} className="item">
                   <Portrait portrait={c.portrait} name={c.name} size={38} />
                   <button className="clickable grow" style={{ background: 'none', border: 'none', padding: '0' }} onClick={() => onOpen(c.id)}>
-                    <div className="name">{c.name || 'Unnamed'}</div>
-                    <div className="meta">
+                    <div className="item-name">{c.name || 'Unnamed'}</div>
+                    <div className="item-meta">
                       {c.speciesId ? SPECIES[c.speciesId]?.name : 'No species'}
                       {level > 0 ? ` · ${classes} · level ${level}` : ' · no levels'}
                     </div>

@@ -185,7 +185,7 @@ export function Equipment({
         ) : (
         <div className="grid g4" style={{ marginBottom: 'var(--sp-7)' }}>
           <div className="stat">
-            <div className="label">Credits</div>
+            <div className="stat-label">Credits</div>
             <input
               className="mono center"
               style={{ fontSize: 'var(--fs-lg)', marginTop: 'var(--sp-2)' }}
@@ -194,28 +194,28 @@ export function Equipment({
             />
           </div>
           <div className="stat">
-            <div className="label">Total weight</div>
-            <div className="value" style={{ fontSize: 'var(--fs-xl)' }}>{derived.carrying.weight.toFixed(1)}<span style={{ fontSize: 'var(--fs-sm)' }}> kg</span></div>
-            <div className={`sub${derived.carrying.level !== 'normal' ? ' err' : ''}`}>
+            <div className="stat-label">Total weight</div>
+            <div className="stat-value" style={{ fontSize: 'var(--fs-xl)' }}>{derived.carrying.weight.toFixed(1)}<span style={{ fontSize: 'var(--fs-sm)' }}> kg</span></div>
+            <div className={`stat-sub${derived.carrying.level !== 'normal' ? ' err' : ''}`}>
               {LOAD_LABEL[derived.carrying.level]} · heavy at {derived.carrying.heavy.toFixed(0)} kg
             </div>
           </div>
           <div className="stat">
-            <div className="label">Armor worn</div>
-            <div className="value" style={{ fontSize: 'var(--fs-md)', marginTop: 'var(--sp-3)' }}>{derived.equippedArmor?.name ?? '—'}</div>
+            <div className="stat-label">Armor worn</div>
+            <div className="stat-value" style={{ fontSize: 'var(--fs-md)', marginTop: 'var(--sp-3)' }}>{derived.equippedArmor?.name ?? '—'}</div>
           </div>
           <div className="stat">
-            <div className="label">Armor penalty</div>
-            <div className="value" style={{ fontSize: 'var(--fs-xl)', color: derived.armorPenalty ? 'var(--red)' : undefined }}>
+            <div className="stat-label">Armor penalty</div>
+            <div className="stat-value" style={{ fontSize: 'var(--fs-xl)', color: derived.armorPenalty ? 'var(--red)' : undefined }}>
               {derived.armorPenalty ? signed(derived.armorPenalty) : '—'}
             </div>
-            <div className="sub">{derived.equippedArmor && !derived.armorProficient ? 'not proficient' : 'proficient'}</div>
+            <div className="stat-sub">{derived.equippedArmor && !derived.armorProficient ? 'not proficient' : 'proficient'}</div>
           </div>
         </div>
         )}
 
         {derived.equippedArmor && !derived.armorProficient && (
-          <div className="notice warn" style={{ marginBottom: 'var(--sp-6)' }}>
+          <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-6)' }}>
             You are not proficient with <strong>{derived.equippedArmor.name}</strong> ({derived.equippedArmor.armorType} armor).
             You take a {signed(derived.armorPenalty)} penalty on attack rolls and on Strength- and
             Dexterity-based skill checks. Take the{' '}
@@ -428,7 +428,7 @@ function ItemBrowser({
               <Tip className="grow block" content={<ItemTipBody item={item} />}>
                 <button type="button" className="linklike block" onClick={() => onView(item)}>
                   <div className="name breakdown">{item.name}</div>
-                  {meta && <div className="meta">{meta}</div>}
+                  {meta && <div className="item-meta">{meta}</div>}
                 </button>
               </Tip>
               <span className="faint nowrap">{item.weight} kg</span>
