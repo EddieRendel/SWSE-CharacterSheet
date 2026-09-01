@@ -1265,15 +1265,23 @@ await step('a dialog can be pulled shut, and springs back if the pull is short',
   // From the header, not the bar. 20px is a thin thing to find with a thumb, and a drag
   // that started anywhere else used to fall through to the browser, which took it for a
   // pull-to-refresh and reloaded the page out from under the dialog.
+  //
+  // Driven through the devtools protocol rather than `page.mouse`, because the gesture asks
+  // the event whether a finger sent it and a mouse is told no. `page.touchscreen` only taps,
+  // so the drag is dispatched here — as a real touch pointer, which is also what lets the
+  // handler take a pointer capture.
+  const touch = await phone.context().newCDPSession(phone);
   const pull = async (dy, from = '.modal > header') => {
     const grab = await phone.locator(from).boundingBox();
     if (!grab) throw new Error(`nothing to pull the sheet by at ${from}`);
     // Left of centre, clear of the ✕, which has a job of its own.
     const x = grab.x + grab.width * 0.25, y = grab.y + grab.height / 2;
-    await phone.mouse.move(x, y);
-    await phone.mouse.down();
-    for (let i = 1; i <= 5; i++) await phone.mouse.move(x, y + (dy * i) / 5);
-    await phone.mouse.up();
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 5; i++) {
+      await touch.send('Input.dispatchTouchEvent',
+        { type: 'touchMove', touchPoints: [{ x, y: y + (dy * i) / 5 }] });
+    }
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   };
 
   await open();
@@ -1348,6 +1356,45 @@ await step('the level bar reads down the page, flush left', async () => {
   if (lefts.size !== 1) throw new Error(`its rows start at ${[...lefts].join(', ')} rather than one edge`);
   const ys = rows.map(r => r.y);
   if (new Set(ys).size !== ys.length) throw new Error('two of them are still sharing a line');
+});
+
+// `(pointer: coarse)` answers for the primary pointing device, not for whatever sent the
+// event in hand. A tablet with a mouse plugged into it is coarse, so both of these used to be
+// taken for a finger: hover cards were suppressed, and a drag across a dialog header threw
+// the dialog away mid-sentence. Both questions are asked of the event now — this whole
+// context is a touch device, and the mouse in it still has to behave like a mouse.
+await step('a mouse on a touch device is still a mouse', async () => {
+  await phone.locator('.tabs button').nth(2).tap();
+  await phone.waitForTimeout(300);
+
+  const anchor = phone.locator('.def-cell .tip-anchor').first();
+  await anchor.scrollIntoViewIfNeeded();
+  await anchor.hover();
+  await phone.waitForTimeout(300);
+  if (await phone.locator('.tip-card').count() !== 1) {
+    throw new Error('hovering with a mouse showed nothing, because the device was asked instead of the pointer');
+  }
+  await phone.mouse.move(0, 0);
+  await phone.waitForTimeout(250);
+
+  // And the drag that a finger uses to put the sheet away must not fire for a mouse.
+  const panel = phone.locator('.panel').filter({ has: phone.locator('header button:has-text("Actions")') });
+  await panel.locator('header button:has-text("Actions")').tap();
+  await phone.locator('.turn-actions button:has-text("Standard")').tap();
+  await phone.waitForSelector('.modal');
+  const head = await phone.locator('.modal > header').boundingBox();
+  await phone.mouse.move(head.x + head.width * 0.25, head.y + head.height / 2);
+  await phone.mouse.down();
+  for (let i = 1; i <= 6; i++) {
+    await phone.mouse.move(head.x + head.width * 0.25, head.y + head.height / 2 + i * 60);
+  }
+  await phone.mouse.up();
+  await phone.waitForTimeout(400);
+  if (await phone.locator('.modal').count() !== 1) {
+    throw new Error('a mouse drag across the header dismissed the dialog as though it were a finger');
+  }
+  await phone.locator('.modal header button[aria-label="Close"]').tap();
+  await phone.waitForSelector('.modal', { state: 'detached' });
 });
 
 // Held here rather than by review, which is where it sat before. A tap latches :hover onto

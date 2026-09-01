@@ -5,7 +5,7 @@ import type { Feature, ResolvedItem } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
 import { focusIsBeingRestored, useDismissLayer } from '../dismiss';
-import { isTouch } from '../pointer';
+
 import { descriptorsOf, itemStatRows, talentSources, upgradeEffects } from './labels';
 
 const GAP = 8;
@@ -35,6 +35,13 @@ export function Tip({
   /** Whether the tap that reached this anchor had a job of its own to do. */
   const wrapsControl = () =>
     !!anchor.current?.querySelector('button, a[href], input, select, textarea');
+
+  // What kind of thing produced the press we are in the middle of. `(pointer: coarse)`
+  // cannot answer this: it describes the primary pointing device, not the one that sent the
+  // event. A laptop with a touchscreen is `fine`, so a tap on it would be taken for a mouse;
+  // a tablet with a mouse plugged in is `coarse`, so the mouse would be taken for a finger.
+  // Cleared on blur, so a tap does not go on colouring a later keyboard visit.
+  const pressedWith = useRef<string | null>(null);
 
   // Measure the card, then try each side in turn and take the first it fits on whole.
   // A tall card hovered from the middle of the page has no room above or below, so it
@@ -102,10 +109,12 @@ export function Tip({
   }, [open, content]);
 
   // A card opened by tapping a bare anchor has no blur to close it — a span cannot hold
-  // focus — so the next touch anywhere outside does. Capture, so a handler inside cannot
+  // focus — so the next press anywhere outside does. Not gated on the kind of device: a
+  // press outside is a fair reason to put the card away whatever sent it, and a hovered card
+  // comes straight back when the pointer re-enters. Capture, so a handler inside cannot
   // swallow it first.
   useLayoutEffect(() => {
-    if (!open || !isTouch) return;
+    if (!open) return;
     const onDown = (e: PointerEvent) => {
       if (!anchor.current?.contains(e.target as Node)) setOpen(false);
     };
@@ -138,26 +147,32 @@ export function Tip({
       <span
         ref={anchor}
         className={`tip-anchor${className ? ` ${className}` : ''}`}
-        // A tap fires an emulated mouseenter before its click, so on a touch screen these
-        // two would open the card and the click would then toggle it straight back shut.
-        // Touch is driven from the tap alone, below; hover is for things that really hover.
-        onMouseEnter={() => { if (!isTouch) setOpen(true); }}
-        onMouseLeave={() => { if (!isTouch) { setOpen(false); setStyle(HIDDEN); } }}
-        // Focus is the keyboard's way of asking for the card. Two things it is not: focus
-        // handed back by a dialog that closed (see `restoreFocus` in dismiss.ts), and, on a
-        // touch screen, the by-product of tapping a control. There the tap already meant
-        // something — the toggle toggles, the chip opens its rules — and a card over the top
-        // of it is a second thing the player did not ask for and then has to dismiss.
-        onFocus={() => {
+        // Pointer events rather than mouse ones, because these carry `pointerType` and the
+        // mouse pair does not. A tap emits an emulated enter on its way to its click, and
+        // acting on that would open the card and let the click toggle it straight back shut.
+        // Hover is for what really hovers; touch is driven from the tap alone, below.
+        onPointerEnter={e => { if (e.pointerType !== 'touch') setOpen(true); }}
+        onPointerLeave={e => { if (e.pointerType !== 'touch') { setOpen(false); setStyle(HIDDEN); } }}
+        onPointerDown={e => { pressedWith.current = e.pointerType; }}
+        // Focus is the keyboard's way of asking for the card, and three things it is not:
+        // focus handed back by a dialog that closed (see `restoreFocus` in dismiss.ts), the
+        // by-product of a tap landing on a control, and the by-product of a mouse click,
+        // which has hover for this already. `:focus-visible` is the browser's own answer to
+        // "was this asked for by keyboard", and the press check backs it up on engines that
+        // set it more freely after a tap.
+        onFocus={e => {
           if (focusIsBeingRestored()) return;
-          if (isTouch && wrapsControl()) return;
+          if (pressedWith.current === 'touch') return;
+          if (!e.target.matches(':focus-visible')) return;
           setOpen(true);
         }}
-        // An anchor with no control in it has no other job, so on a touch screen the tap is
-        // the only way to ask for the working behind a number — and a span cannot take focus
-        // to ask with. Tapping it again, or anywhere else, puts it away.
-        onClick={() => { if (isTouch && !wrapsControl()) setOpen(o => !o); }}
-        onBlur={() => setOpen(false)}
+        // An anchor with no control in it has no other job, so a tap on it is the only way to
+        // ask for the working behind a number — and a span cannot take focus to ask with.
+        // Tapping it again, or anywhere else, puts it away.
+        onClick={() => {
+          if (pressedWith.current === 'touch' && !wrapsControl()) setOpen(o => !o);
+        }}
+        onBlur={() => { setOpen(false); pressedWith.current = null; }}
       >
         {children}
       </span>

@@ -788,10 +788,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   }
 }
 
-/* Shown only where the pull is wired up, which is a touch screen — see `pull` in ui.tsx.
-   A narrow window on a desktop still gets the sheet, because that is a shape thing, but it
-   gets it without a bar inviting a drag that would do nothing. */
-@media (pointer: coarse) and (max-width: 520px) {
+/* Shown wherever the pull can actually happen — see `pull` in ui.tsx, which asks the event
+   whether a finger sent it. `any-pointer`, not `pointer`: a laptop with a touchscreen has a
+   mouse for its primary pointer and would fail the plain query while still being a thing you
+   can pull a sheet down on. A narrow window with no touch at all still gets the sheet, that
+   being a shape decision, but without a bar inviting a drag that would do nothing. */
+@media (any-pointer: coarse) and (max-width: 520px) {
   .modal-grab { display: block; }
 }
 

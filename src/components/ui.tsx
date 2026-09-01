@@ -7,7 +7,6 @@ import { readPortrait } from '../storage';
 import { useCollapsePanel } from '../collapse';
 import { restoreFocus, useDismissLayer } from '../dismiss';
 import { useScrollLock } from '../scrolllock';
-import { isTouch } from '../pointer';
 import { descriptorsOf, itemStatRows, prerequisiteText, readDescription, upgradeEffects } from './labels';
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -228,11 +227,13 @@ export function Modal({
   const [pulled, setPulled] = useState(0);
   const pullFrom = useRef<{ y: number; at: number } | null>(null);
 
-  // Only on a touch screen. With a mouse the header is something to read and select, and a
-  // drag across it that happened to run downwards would start dismissing what it is labelling.
-  const pull = !isTouch ? {} : {
+  const pull = {
     onPointerDown: (e: ReactPointerEvent) => {
-      // Not from the close button or anything else in the header with a job of its own.
+      // Only a finger pulls the sheet down. Asked of the event rather than the device: a
+      // tablet with a mouse plugged in still reports `(pointer: coarse)`, and dragging across
+      // a header to select its title should not throw the dialog away.
+      if (e.pointerType !== 'touch') return;
+      // Nor from the close button or anything else in the header with a job of its own.
       if ((e.target as HTMLElement).closest('button')) return;
       pullFrom.current = { y: e.clientY, at: performance.now() };
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
