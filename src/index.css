@@ -63,9 +63,16 @@
   /* A fallen character's page is not the same gold as an untouched one. Everything on the
      sheet reads --sheet-accent rather than --accent, and Sheet.tsx overrides the pair
      inline as the Dark Side score climbs. A theme sets --accent and these follow. */
+  /* Declared as a channel as well as a colour, for the same reason the hues above are:
+     without it nothing that wants a tint of the sheet accent could follow the sheet accent.
+     A feature chip was the visible cost — it washed its background with --accent-rgb while
+     taking its border from --sheet-accent-dim, so a fallen character got a red edge around
+     a gold fill. */
+  --sheet-accent-rgb: var(--accent-rgb);
   --sheet-accent: var(--accent);
   --sheet-accent-dim: var(--accent-dim);
-  --accent-tempted: #ff9f45;
+  --accent-tempted-rgb: 255, 159, 69;
+  --accent-tempted: rgb(var(--accent-tempted-rgb));
   --accent-tempted-dim: #a8611c;
   --accent-fallen-dim: #8f3b3b;
 
@@ -388,12 +395,12 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.brand {
+.topbar-brand {
   font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
   font-size: var(--fs-md); color: var(--accent); cursor: pointer;
   display: flex; align-items: center; gap: var(--sp-4);
 }
-.brand small {
+.topbar-brand small {
   color: var(--text-faint); letter-spacing: 0.08em; font-weight: 500; font-size: var(--fs-micro);
 }
 .spacer { flex: 1; }
@@ -401,7 +408,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 /* ---------- topbar actions: inline on wide screens, burger below 820px ---------- */
 .topbar-actions { display: flex; align-items: center; gap: var(--sp-4); flex-shrink: 0; }
 .topbar-menu { display: none; position: relative; flex-shrink: 0; }
-.burger { font-size: var(--fs-lg); line-height: 1; padding: var(--sp-3) var(--sp-5); }
+.topbar-burger { font-size: var(--fs-lg); line-height: 1; padding: var(--sp-3) var(--sp-5); }
 
 /* The character summary is what gives up space first, truncating instead of
    pushing the buttons off the right edge. */
@@ -409,25 +416,25 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 .topbar-status .portrait { flex-shrink: 0; }
 .topbar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.menu-pop {
+.topbar-menu-pop {
   position: absolute; top: calc(100% + 7px); right: 0; z-index: 40;
   min-width: 190px; padding: var(--sp-3);
   display: flex; flex-direction: column; gap: var(--sp-1);
   background: var(--bg-2); border: 1px solid var(--border-2);
   border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
 }
-.menu-pop button {
+.topbar-menu-pop button {
   background: none; border: none; border-radius: var(--radius-md);
   padding: var(--sp-5) var(--sp-6); text-align: left; white-space: nowrap; color: var(--text-dim);
 }
-.menu-pop button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
+.topbar-menu-pop button:hover:not(:disabled) { background: var(--bg-3); color: var(--text); }
 
 .tab-short { display: none; }
 
 @media (max-width: 820px) {
   .topbar { gap: var(--sp-5); padding: var(--sp-5) var(--sp-6); }
-  .brand { font-size: var(--fs-sm); letter-spacing: 0.10em; flex-shrink: 0; }
-  .brand small { display: none; }
+  .topbar-brand { font-size: var(--fs-sm); letter-spacing: 0.10em; flex-shrink: 0; }
+  .topbar-brand small { display: none; }
   .topbar-actions { display: none; }
   .topbar-menu { display: block; }
   .tabs { padding: 0 var(--sp-6); }
@@ -571,7 +578,7 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
 
 /* One modification fitted to a carried item, in the equipment editor. The numbers sit in
    a grid that folds to two columns on a phone, so nothing here has a fixed width. */
-.upgrade {
+.kit-upgrade {
   display: flex; flex-direction: column; gap: var(--sp-5);
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: var(--radius-md); padding: var(--sp-5) var(--sp-6);
@@ -899,11 +906,6 @@ button.linklike.block { display: block; width: 100%; }
 .pip.full { background: var(--accent); border-color: var(--accent); }
 .attack-row.exhausted { opacity: 0.5; }
 
-.fp-bar {
-  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
-  background: var(--bg-3); border: 1px solid var(--border);
-  border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-5); margin-bottom: var(--sp-5);
-}
 
 /* ---------- hover cards ---------- */
 .tip-anchor { display: inline-flex; align-items: center; gap: inherit; }
@@ -971,8 +973,8 @@ button.linklike.block { display: block; width: 100%; }
   border: 2px solid var(--sheet-accent);
   pointer-events: none;
 }
-.level-bar::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
-.level-bar::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
+.level-bar::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: var(--radius-sharp); }
+.level-bar::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: var(--radius-sharp); }
 .level-bar-label {
   color: var(--text-faint); font-size: var(--fs-micro); text-transform: uppercase;
   letter-spacing: 0.09em; font-weight: 700;
@@ -982,24 +984,24 @@ button.linklike.block { display: block; width: 100%; }
   font-family: var(--mono); font-size: var(--fs-num-lg); font-weight: 700;
   color: var(--sheet-accent); line-height: 1.05; letter-spacing: -0.02em;
 }
-.todo { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
-.todo-chip {
+.level-todo { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.level-todo-chip {
   background: rgba(var(--amber-rgb), 0.12); border-color: var(--amber-dim); color: var(--amber);
 }
-.todo-chip:hover { background: rgba(var(--amber-rgb), 0.2); }
+.level-todo-chip:hover { background: rgba(var(--amber-rgb), 0.2); }
 
 /* Having more than you are entitled to reads as a fault, not as a choice still to make. */
-.todo-chip.over {
+.level-todo-chip.over {
   background: rgba(var(--red-rgb), 0.12); border-color: var(--red-edge); color: var(--red-soft);
 }
-.todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
+.level-todo-chip.over:hover { background: rgba(var(--red-rgb), 0.2); }
 
 .edit-section { margin-bottom: var(--sp-2); }
 /* Whatever a new level still owes you is lifted to the top and outlined. The outline and the
    header above it are the whole signal: the panel keeps its own colour, because straight
    after a level-up every section owes something and taking all four tones over turned the
    page a single gold — which is what the tones were introduced to stop. */
-.edit-section.needs-attention > .panel {
+.edit-section.edit-needs-attention > .panel {
   border-color: var(--amber-dim);
   box-shadow: 0 0 0 1px rgba(var(--amber-rgb), 0.14);
 }
@@ -1015,12 +1017,12 @@ button.linklike.block { display: block; width: 100%; }
    the tick at the far left of it. */
 .skill-row.trained > td { background: var(--bg-3); }
 .skill-row.trained .skill-label { font-weight: 700; }
-.needs-header {
+.edit-needs-header {
   display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
   margin-bottom: var(--sp-3); color: var(--amber); font-size: var(--fs-body);
 }
-.needs-header.conflict { color: var(--red-soft); }
-@media print { .level-bar, .needs-header { display: none; } }
+.edit-needs-header.conflict { color: var(--red-soft); }
+@media print { .level-bar, .edit-needs-header { display: none; } }
 
 /* ================= the sheet =================================================
    The sheet used to be fourteen identical .stat tiles in two rows: an ability score and
@@ -1037,23 +1039,23 @@ button.linklike.block { display: block; width: 100%; }
    portrait editor's overlay and every hover card are `position: fixed` inside these frames,
    so both came out trimmed to the frame's shape. Brackets read the same way and clip
    nothing. */
-.frame {
+.sheet-frame {
   position: relative;
   background: var(--panel);
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sharp);
   margin-bottom: var(--sp-7);
 }
-.frame > .frame-body { padding: var(--sp-7) var(--sp-7); }
-.frame::before, .frame::after {
+.sheet-frame > .sheet-frame-body { padding: var(--sp-7); }
+.sheet-frame::before, .sheet-frame::after {
   content: ''; position: absolute;
   width: 13px; height: 13px;
   border: 2px solid var(--border-2);
   /* Decoration sitting over the padding — it must never eat a click. */
   pointer-events: none;
 }
-.frame::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
-.frame::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
+.sheet-frame::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: var(--radius-sharp); }
+.sheet-frame::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: var(--radius-sharp); }
 
 /* Only two frames are ever lit, and both mean the same thing: this is the live surface,
    the part of the page that moves while you play. Tier two used to be lit blue and the
@@ -1062,10 +1064,10 @@ button.linklike.block { display: block; width: 100%; }
    away, they went back to the things they describe: the defense numbers are still blue,
    the feature headings still carry their tone, the hit point bar is still green or amber
    or red. What is gone is the frame around them repeating it. */
-.frame.lit { box-shadow: inset 0 2px 0 var(--sheet-accent); }
-.frame.lit::before, .frame.lit::after { border-color: var(--sheet-accent); }
-.frame.lit-red { box-shadow: inset 0 2px 0 var(--red); }
-.frame.lit-red::before, .frame.lit-red::after { border-color: var(--red); }
+.sheet-frame.lit { box-shadow: inset 0 2px 0 var(--sheet-accent); }
+.sheet-frame.lit::before, .sheet-frame.lit::after { border-color: var(--sheet-accent); }
+.sheet-frame.lit-red { box-shadow: inset 0 2px 0 var(--red); }
+.sheet-frame.lit-red::before, .sheet-frame.lit-red::after { border-color: var(--red); }
 
 /* ---------- identity ---------- */
 .identity { display: flex; align-items: center; gap: var(--sp-7); flex-wrap: wrap; }
@@ -1085,8 +1087,8 @@ button.linklike.block { display: block; width: 100%; }
 
 /* ---------- tier one: what changes during play ---------- */
 /* Brighter than the reference panels below it on purpose — this is the live surface. */
-.vitals-frame { background: var(--bg-3); }
-.vitals-frame > .frame-body { padding: 0; }
+.sheet-vitals-frame { background: var(--bg-3); }
+.sheet-vitals-frame > .sheet-frame-body { padding: 0; }
 .vitals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .vital { padding: var(--sp-6) var(--sp-7); min-width: 0; }
 .vital + .vital { border-left: 1px solid var(--border); }
@@ -1262,8 +1264,8 @@ button.linklike.block { display: block; width: 100%; }
   border: 2px solid var(--border-2);
   pointer-events: none;
 }
-.panel.framed::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 3px; }
-.panel.framed::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: 3px; }
+.panel.framed::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: var(--radius-sharp); }
+.panel.framed::after { right: -1px; bottom: -1px; border-left: none; border-top: none; border-bottom-right-radius: var(--radius-sharp); }
 .panel.framed > header {
   border-radius: var(--radius-sharp) var(--radius-sharp) 0 0;
   box-shadow: inset 0 2px 0 var(--border-2);
@@ -1357,7 +1359,7 @@ button.linklike.block { display: block; width: 100%; }
 /* Nothing chosen yet is the one thing on this page worth interrupting for. */
 .species-empty {
   display: block; width: 100%; text-align: left;
-  padding: var(--sp-7) var(--sp-7); border-radius: var(--radius-md);
+  padding: var(--sp-7); border-radius: var(--radius-md);
   background: rgba(var(--amber-rgb), 0.05);
   border: 1px dashed var(--amber-dim); color: var(--amber);
   font-weight: 600; cursor: pointer;
@@ -1452,11 +1454,11 @@ button.linklike.block { display: block; width: 100%; }
 
 /* The switches that change the numbers below them, ruled off from the numbers themselves —
    they used to run straight into the attack list as one undifferentiated block. */
-.modifiers {
+.attack-modifiers {
   background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md);
   padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-5);
 }
-.modifiers .modifiers-label {
+.attack-modifiers .attack-modifiers-label {
   font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-3);
 }
@@ -1497,7 +1499,7 @@ button.linklike.block { display: block; width: 100%; }
 .text-tone-blue { color: var(--blue); }
 .text-tone-purple { color: var(--purple); }
 .text-tone-green { color: var(--green); }
-button.chip.text-tone-accent { background: rgba(var(--accent-rgb), 0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
+button.chip.text-tone-accent { background: rgba(var(--sheet-accent-rgb), 0.09); border-color: var(--sheet-accent-dim); color: var(--text); }
 button.chip.text-tone-blue { background: rgba(var(--blue-rgb), 0.09); border-color: var(--blue-edge); color: var(--text); }
 button.chip.text-tone-purple { background: rgba(var(--purple-rgb), 0.09); border-color: var(--purple-edge); color: var(--text); }
 button.chip.text-tone-green { background: rgba(var(--green-rgb), 0.09); border-color: var(--green-edge); color: var(--text); }
@@ -1531,10 +1533,10 @@ button.chip.text-tone-green:hover:not(:disabled) { border-color: var(--green); }
    claiming to be a feat. A palette repaints this along with everything else it owns. */
 .turn-action {
   background:
-    linear-gradient(rgba(var(--accent-rgb), calc(var(--cost, 0) * 0.012)) 0 100%),
+    linear-gradient(rgba(var(--sheet-accent-rgb), calc(var(--cost, 0) * 0.012)) 0 100%),
     var(--bg-2);
   border: 1px solid var(--border);
-  border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17));
+  border-left: 3px solid rgba(var(--sheet-accent-rgb), calc(0.3 + var(--cost, 0) * 0.17));
   border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
 .turn-action-name { font-size: var(--fs-body); font-weight: 600; }
@@ -1550,7 +1552,7 @@ button.chip.text-tone-green:hover:not(:disabled) { border-color: var(--green); }
 /* The buttons that open a kind, and the switcher inside, carry the same edge at the same
    weight — so the row doubles as the legend for what the shading in the dialog means, and
    these read as reference rather than as more of the modifier toggles above them. */
-button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(--cost, 0) * 0.17)); }
+button.sm.kind { border-left: 3px solid rgba(var(--sheet-accent-rgb), calc(0.3 + var(--cost, 0) * 0.17)); }
 .turn-action .rules-text p:last-child { margin-bottom: 0; }
 /* The size ladder and what each step adds, rendered from the one place rules.json defines it
    rather than transcribed a second time into the action's own text. Its own two columns
@@ -1578,10 +1580,12 @@ button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(-
 }
 .kit-head:first-child td { padding-top: var(--sp-1); }
 /* Worn or wielded is the distinction that matters in play, so it is an edge on the row
-   rather than a tick you have to go looking for. */
+   rather than a tick you have to go looking for — and the name in bold beside it. That
+   second half had never actually happened: the rule read `.item-name`, which is the class
+   the character list uses, while the name in this table is a button. */
 .kit-row td:first-child { border-left: 3px solid transparent; }
 .kit-row.worn td:first-child { border-left-color: var(--sheet-accent); }
-.kit-row.worn .item-name { font-weight: 600; }
+.kit-row.worn .linklike { font-weight: 600; }
 .kit-row:hover td { background: rgba(var(--wash-rgb), 0.02); }
 .kit-actions { display: flex; gap: var(--sp-1); justify-content: flex-end; }
 
@@ -1591,9 +1595,9 @@ button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(-
 .print-only { display: none; }
 
 @media print {
-  /* `.turn-actions` for the same reason as `.modifiers`: print hides every button, and both
+  /* `.turn-actions` for the same reason as `.attack-modifiers`: print hides every button, and both
      are a label over a row of them, which on paper would be a heading standing over nothing. */
-  .seg, .modifiers, .kit-actions, .turn-actions { display: none !important; }
+  .seg, .attack-modifiers, .kit-actions, .turn-actions { display: none !important; }
   .print-only { display: block; }
   .skill.trained { background: none; }
   .skill > .pip { border-color: #333; }
@@ -1605,8 +1609,8 @@ button.sm.kind { border-left: 3px solid rgba(var(--accent-rgb), calc(0.3 + var(-
 }
 
 @media print {
-  .frame, .vitals-frame { background: #fff !important; border-color: #ccc; box-shadow: none !important; }
-  .frame::before, .frame::after { border-color: #999; }
+  .sheet-frame, .sheet-vitals-frame { background: #fff !important; border-color: #ccc; box-shadow: none !important; }
+  .sheet-frame::before, .sheet-frame::after { border-color: #999; }
   .vital + .vital, .def-cell + .def-cell, .abil + .abil { border-color: #ccc; }
   .factline { background: #fff; border-color: #ccc; }
   .hp-bar, .fall-bar { border-color: #999; }

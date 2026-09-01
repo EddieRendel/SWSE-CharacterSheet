@@ -175,12 +175,12 @@ export function EditCharacter({
                 : 'Set your ability scores first, then add a class level. Feats, talents and skills follow from it.'}
             </span>
           ) : (
-            <div className="todo">
+            <div className="level-todo">
               <span className="hint nowrap">Still to do:</span>
               {outstanding.map(o => (
                 <button
                   key={o.id}
-                  className={`sm todo-chip${o.over ? ' over' : ''}`}
+                  className={`sm level-todo-chip${o.over ? ' over' : ''}`}
                   onClick={() => jumpTo(o.id)}
                 >
                   {o.label}
@@ -197,10 +197,10 @@ export function EditCharacter({
           <div
             key={id}
             ref={el => { sectionRefs.current[id] = el; }}
-            className={`edit-section${need ? (need.over ? ' conflict' : ' needs-attention') : ''}`}
+            className={`edit-section${need ? (need.over ? ' conflict' : ' edit-needs-attention') : ''}`}
           >
             {need && (
-              <div className={`needs-header${need.over ? ' conflict' : ''}`}>
+              <div className={`edit-needs-header${need.over ? ' conflict' : ''}`}>
                 <strong>{LABELS[id]}</strong>
                 <span className={`badge ${need.over ? 'red' : 'accent'}`}>{need.label}</span>
               </div>

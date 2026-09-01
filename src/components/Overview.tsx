@@ -21,7 +21,7 @@ export function Overview({
   const classLine = derived.classLevels.map(c => `${c.cls.name} ${c.levels}`).join(' / ');
 
   return (
-    <div className="character">
+    <div>
       <Panel title="Identity" className="framed panel-tone-accent">
         <div className="identity-edit">
           <PortraitButton char={char} update={update} size={96} />

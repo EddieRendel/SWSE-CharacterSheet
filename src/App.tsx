@@ -148,7 +148,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="topbar">
-        <div className="brand" onClick={() => setActiveId(null)}>
+        <div className="topbar-brand" onClick={() => setActiveId(null)}>
           ⬢ SWSE Character Sheet <small>Star Wars Saga Edition</small>
         </div>
         <div className="spacer" />
@@ -172,7 +172,7 @@ export default function App() {
 
         <div className="topbar-menu" ref={menuRef}>
           <button
-            className="ghost burger"
+            className="ghost topbar-burger"
             aria-label="Menu"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
@@ -181,7 +181,7 @@ export default function App() {
             ☰
           </button>
           {menuOpen && (
-            <div className="menu-pop" role="menu">
+            <div className="topbar-menu-pop" role="menu">
               {topActions.map(a => (
                 <button key={a.label} role="menuitem" onClick={() => { setMenuOpen(false); a.run(); }}>
                   {a.label}

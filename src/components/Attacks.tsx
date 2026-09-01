@@ -176,8 +176,8 @@ export function Attacks({
     <>
       {/* Switches, ruled off from the numbers they change — they used to run straight into
           the attack list as one undifferentiated block of buttons and rows. */}
-      <div className="modifiers">
-        <div className="modifiers-label">Modifiers</div>
+      <div className="attack-modifiers">
+        <div className="attack-modifiers-label">Modifiers</div>
         <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         {/* Two hands on one weapon and a weapon in each hand are mutually exclusive, so
             each toggle switches the other off rather than letting both look active. */}

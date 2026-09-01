@@ -160,9 +160,9 @@ export function Sheet({
   // Both shifts name tokens rather than hexes, so a palette can restate what "tempted" and
   // "fallen" look like in its own colours along with everything else.
   const accentVars = fallen
-    ? { '--sheet-accent': 'var(--red)', '--sheet-accent-dim': 'var(--accent-fallen-dim)' }
+    ? { '--sheet-accent-rgb': 'var(--red-rgb)', '--sheet-accent': 'var(--red)', '--sheet-accent-dim': 'var(--accent-fallen-dim)' }
     : tempted
-      ? { '--sheet-accent': 'var(--accent-tempted)', '--sheet-accent-dim': 'var(--accent-tempted-dim)' }
+      ? { '--sheet-accent-rgb': 'var(--accent-tempted-rgb)', '--sheet-accent': 'var(--accent-tempted)', '--sheet-accent-dim': 'var(--accent-tempted-dim)' }
       : undefined;
 
   const loadWord = derived.carrying.level === 'heavy' ? 'heavy load'
@@ -171,8 +171,8 @@ export function Sheet({
 
   return (
     <div className="sheet" style={accentVars as CSSProperties | undefined}>
-      <section className={`frame ${fallen ? 'lit-red' : 'lit'}`}>
-        <div className="frame-body identity">
+      <section className={`sheet-frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="sheet-frame-body identity">
           <PortraitButton char={char} update={update} size={68} />
           <div className="grow">
             <h1>{char.name || 'Unnamed'}</h1>
@@ -198,8 +198,8 @@ export function Sheet({
       {/* Tier one: the numbers that move during play. They used to be three tiles among
           fourteen identical ones, with their controls in a separate panel further down the
           page — the reading and the editing of the same number, half a screen apart. */}
-      <section className={`frame vitals-frame ${fallen ? 'lit-red' : 'lit'}`}>
-        <div className="frame-body vitals">
+      <section className={`sheet-frame sheet-vitals-frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="sheet-frame-body vitals">
           <div className={`vital hp ${hpState}`}>
             <div className="vital-label">Hit points</div>
             <StatTip
@@ -371,8 +371,8 @@ export function Sheet({
       </section>
 
       {/* Tier two: what the galaxy rolls against. A set, framed as a set. */}
-      <section className="frame">
-        <div className="frame-body defenses">
+      <section className="sheet-frame">
+        <div className="sheet-frame-body defenses">
           <DefCell
             label="Reflex" title="Reflex Defense" value={derived.defenses.reflex}
             sub={`flat-footed ${derived.defenses.flatFooted}`}
@@ -397,8 +397,8 @@ export function Sheet({
 
       {/* Tier three: what is simply true about the character. The modifier is what you add
           at the table, so it is the number here; the score below it is where it came from. */}
-      <section className="frame">
-        <div className={`frame-body abil-strip${derived.isDroid ? ' five' : ''}`}>
+      <section className="sheet-frame">
+        <div className={`sheet-frame-body abil-strip${derived.isDroid ? ' five' : ''}`}>
           {ABILITY_IDS
             // Droids have no Constitution score at all.
             .filter(a => !(derived.isDroid && a === 'con'))

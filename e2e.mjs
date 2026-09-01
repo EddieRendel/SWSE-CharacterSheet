@@ -23,7 +23,7 @@ const BASE_URL = process.env.E2E_URL ?? 'http://localhost:6006/';
 await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 
 console.log('\n▸ Character creation');
-await step('app renders', async () => { await page.waitForSelector('.brand', { timeout: 10000 }); });
+await step('app renders', async () => { await page.waitForSelector('.topbar-brand', { timeout: 10000 }); });
 await step('create character', async () => {
   await page.click('button:has-text("Create your first character")');
   await page.waitForSelector('.tabs');
@@ -178,7 +178,7 @@ await step('an Intelligence bonus buys languages, and they reach the sheet', asy
 
 console.log('\n▸ Levelling up leads with what is outstanding');
 const sectionOrder = () => page.locator('.edit-section').evaluateAll(els => els.map(e =>
-  e.querySelector('.needs-header strong')?.textContent
+  e.querySelector('.edit-needs-header strong')?.textContent
   ?? e.querySelector('.panel header h2')?.textContent?.split('—')[0].trim() ?? '?'));
 
 await step('adding a level surfaces what it owes you', async () => {
@@ -189,9 +189,9 @@ await step('adding a level surfaces what it owes you', async () => {
   await page.click('.modal button.primary');
   await page.waitForSelector('.modal', { state: 'detached' });
 
-  const todo = await page.locator('.todo-chip').allTextContents();
+  const todo = await page.locator('.level-todo-chip').allTextContents();
   if (!todo.length) throw new Error('a new level left nothing to do');
-  const highlighted = await page.locator('.edit-section.needs-attention .needs-header strong').allTextContents();
+  const highlighted = await page.locator('.edit-section.edit-needs-attention .edit-needs-header strong').allTextContents();
   if (!highlighted.length) throw new Error('nothing was highlighted');
 
   // Whatever needs attention has to be above whatever does not.
@@ -305,8 +305,8 @@ await step('fit a modification to the rifle', async () => {
   await page.locator('tr:has-text("Blaster Rifle") button:has-text("✎")').first().click();
   await page.waitForSelector('.modal:has-text("Customize")');
   await page.click('.modal button:has-text("Add modification")');
-  await page.fill('.upgrade input[placeholder^="What it is"]', 'Ilum crystal');
-  await page.locator('.upgrade .field:has(label:text-is("Attack")) input').fill('1');
+  await page.fill('.kit-upgrade input[placeholder^="What it is"]', 'Ilum crystal');
+  await page.locator('.kit-upgrade .field:has(label:text-is("Attack")) input').fill('1');
   await page.click('.modal footer button.primary:has-text("Save")');
   await page.waitForSelector('.modal', { state: 'detached' });
 });
@@ -717,6 +717,44 @@ await step('a palette repaints the chrome and survives a reload', async () => {
   console.log(`       accent ${before} -> sith -> back to ${await accent()}`);
 });
 
+await step('every swatch shows the palette it actually offers', async () => {
+  // The swatches are literal hexes in theme.ts — they have to be, since a swatch shows the
+  // theme on offer rather than the one in use — so nothing in the type system ties them to
+  // the tokens they are copied from. Retune a palette and they go quietly stale. Each option
+  // applies its theme on click, so the check is simply: click it, then ask the page what the
+  // chrome actually became.
+  await page.click('button:has-text("Theme")');
+  await page.waitForSelector('.theme-grid');
+  const n = await page.locator('.theme-option').count();
+  if (n < 2) throw new Error(`expected several palettes, got ${n}`);
+
+  const drift = [];
+  for (let i = 0; i < n; i++) {
+    const option = page.locator('.theme-option').nth(i);
+    const name = (await option.locator('.theme-name').textContent()).trim();
+    const bands = await option.locator('.theme-swatch > span').evaluateAll(
+      els => els.map(e => getComputedStyle(e).backgroundColor));
+    await option.click();
+    const tokens = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      document.body.appendChild(probe);
+      const rgb = value => { probe.style.color = value; return getComputedStyle(probe).color; };
+      const read = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      const out = [rgb(read('--bg')), rgb(read('--panel')), rgb(`rgb(${read('--accent-rgb')})`)];
+      probe.remove();
+      return out;
+    });
+    for (let b = 0; b < tokens.length; b++) {
+      if (bands[b] !== tokens[b]) {
+        drift.push(`${name} band ${b + 1}: swatch ${bands[b]} but the page is ${tokens[b]}`);
+      }
+    }
+  }
+  if (drift.length) throw new Error(`swatches have drifted from the tokens:\n  ${drift.join('\n  ')}`);
+  await page.click('.theme-option:has-text("Holocron")');
+  await page.click('.modal footer button');
+  await page.waitForSelector('.modal', { state: 'detached' });
+});
 await step('a second tab follows the palette rather than keeping its own', async () => {
   // Same context means the same origin storage, which is what a second tab actually is.
   const other = await page.context().newPage();

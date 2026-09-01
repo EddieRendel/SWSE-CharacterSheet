@@ -577,7 +577,7 @@ function UpgradeFields({
   onRemove: () => void;
 }) {
   return (
-    <div className="upgrade">
+    <div className="kit-upgrade">
       <div className="row">
         <input
           style={{ flex: 1, minWidth: 0 }}
