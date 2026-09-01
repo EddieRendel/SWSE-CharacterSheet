@@ -28,13 +28,13 @@ export interface Theme {
  * what `:root` already says, so choosing it removes the attribute rather than adding rules.
  */
 export const THEMES: Theme[] = [
-  { id: 'default', name: 'Holocron', blurb: 'Archive blue and gold. The original.', swatch: ['#0b0f14', '#131b26', '#ffcf4d'] },
-  { id: 'jedi', name: 'Jedi', blurb: 'Temple granite, lit by marble.', swatch: ['#131211', '#1a1917', '#f2e7c4'] },
-  { id: 'sith', name: 'Sith', blurb: 'Ash and one colour that is not.', swatch: ['#0c0b0c', '#131113', '#c74a4a'] },
-  { id: 'mandalorian', name: 'Mandalorian', blurb: 'Beskar plate and a scorched visor.', swatch: ['#0c0e10', '#151a1e', '#e2743a'] },
-  { id: 'yoda', name: 'Dagobah', blurb: 'Swamp light through the canopy.', swatch: ['#0a0d0a', '#141a14', '#c9b458'] },
-  { id: 'wookiee', name: 'Kashyyyk', blurb: 'Deep bark, and brass that catches the light.', swatch: ['#0a0705', '#120c08', '#f2b360'] },
-  { id: 'smuggler', name: 'Smuggler', blurb: 'Scored hull plating and cockpit glow.', swatch: ['#0d0d0f', '#171719', '#d6d3c4'] },
+  { id: 'default', name: 'Holocron', blurb: 'Archive blue and gold. The original.', swatch: ['#0f1419', '#151e2a', '#e9bd45'] },
+  { id: 'jedi', name: 'Jedi', blurb: 'Temple granite, lit by marble.', swatch: ['#171615', '#1d1c1a', '#cec4a6'] },
+  { id: 'sith', name: 'Sith', blurb: 'Ash and one colour that is not.', swatch: ['#111011', '#171517', '#dd5353'] },
+  { id: 'mandalorian', name: 'Mandalorian', blurb: 'Beskar plate and a scorched visor.', swatch: ['#101315', '#161d23', '#e2743a'] },
+  { id: 'yoda', name: 'Dagobah', blurb: 'Swamp light through the canopy.', swatch: ['#0f120f', '#151c15', '#c9b458'] },
+  { id: 'wookiee', name: 'Kashyyyk', blurb: 'Deep bark, and brass that catches the light.', swatch: ['#110d09', '#18110c', '#f2b360'] },
+  { id: 'smuggler', name: 'Smuggler', blurb: 'Scored hull plating and cockpit glow.', swatch: ['#121214', '#18181a', '#c4c1b4'] },
 ];
 
 const ids = new Set(THEMES.map(t => t.id));

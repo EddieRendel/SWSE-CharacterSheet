@@ -9,24 +9,24 @@
  */
 :root {
   /* ---- chrome: what a theme is free to repaint ------------------------------------ */
-  --bg: #0b0f14;
-  --bg-2: #111823;
-  --bg-3: #17202e;
-  --panel: #131b26;
-  --border: #24313f;
-  --border-2: #2f3f52;
+  --bg: #0f1419;
+  --bg-2: #141b27;
+  --bg-3: #192331;
+  --panel: #151e2a;
+  --border: #253341;
+  --border-2: #304054;
   /* The lift a control takes under the pointer. */
-  --hover-bg: #1e293b;
+  --hover-bg: #202b3e;
   --hover-border: #3d5570;
-  --text: #dfe7f0;
+  --text: #cad1d9;
   --text-dim: #93a4b8;
-  --text-faint: #64758a;
+  --text-faint: #788ca4;
 
-  --accent-rgb: 255, 207, 77;
+  --accent-rgb: 233, 189, 69;
   --accent: rgb(var(--accent-rgb));
-  --accent-dim: #b08c22;
+  --accent-dim: #9f802c;
   /* A filled accent button under the pointer, and the ink that sits on top of one. */
-  --accent-bright: #ffd968;
+  --accent-bright: #f1c448;
   --accent-ink: #1a1200;
 
   /* ---- meaning: these say something, so a theme changes them at its peril ---------- */
@@ -55,9 +55,9 @@
      accent, and was the accent until themes arrived — but the accent is identity, free to
      become crimson for a Sith palette, and then a half-empty hit point bar turned the same
      colour as an empty one. Held apart so the warning still reads whatever the theme. */
-  --amber-rgb: 255, 207, 77;
+  --amber-rgb: 233, 189, 69;
   --amber: rgb(var(--amber-rgb));
-  --amber-dim: #b08c22;
+  --amber-dim: #9f802c;
 
   /* ---- state: the sheet re-points these per character ----------------------------- */
   /* A fallen character's page is not the same gold as an untouched one. Everything on the
@@ -73,7 +73,69 @@
   --wash-rgb: 255, 255, 255;
   --shadow-rgb: 0, 0, 0;
 
-  --radius: 8px;
+  /* ---- type ----------------------------------------------------------------------- */
+  /* Two ladders, because the numerals and the prose are doing different jobs. The text
+     steps are read as words; the `num` steps are the mono figures the sheet is built
+     around, and they carry the tier hierarchy — hit points above defenses above ability
+     modifiers. Those three were 34/30/24 before, and 34 against 30 is a thirteen percent
+     step: too small to read as a rank, so tier one and tier two looked like each other.
+     Spread to a consistent ~1.25x, which is the whole point of having tiers.
+
+     There is no 9px step. Every 9px in the file was a --text-faint micro-label, which is
+     the worst contrast in the palette at the smallest size it is set — the two faults
+     were the same fault, and both are fixed by not having it. */
+  --fs-micro: 10px;
+  --fs-tiny: 11px;
+  --fs-sm: 12px;
+  --fs-body: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-num-sm: 22px;
+  --fs-num-md: 28px;
+  --fs-num-lg: 34px;
+
+  --fw-medium: 500;
+  --fw-semi: 600;
+  --fw-bold: 700;
+
+  /* ---- space ---------------------------------------------------------------------- */
+  /* A 2px rhythm below 12 and a 4px one above, which is where the values already clustered.
+     What was here before ran 1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,17,18,20,28
+     with the off-grid values the most used of the lot — nothing lined up with anything, and
+     that unevenness is most of what reads as unfinished. Hairline borders stay a literal
+     1px: a border is not spacing and does not want to move with the rhythm. */
+  --sp-1: 2px;
+  --sp-2: 4px;
+  --sp-3: 6px;
+  --sp-4: 8px;
+  --sp-5: 10px;
+  --sp-6: 12px;
+  --sp-7: 16px;
+  --sp-8: 20px;
+  --sp-9: 24px;
+
+  /* ---- radius --------------------------------------------------------------------- */
+  /* Three tiers the stylesheet already had by habit and never named: the sheet's frames are
+     deliberately squarer than the panels on the other pages, and controls sit between. */
+  --radius-sharp: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* ---- elevation ------------------------------------------------------------------ */
+  /* One alpha for all three, at the distance each one floats. They shared a magic 0.55
+     before, which over a lifted background is heavier than it needs to be. */
+  --shadow-sm: 0 10px 30px rgba(var(--shadow-rgb), 0.45);
+  --shadow-md: 0 14px 36px rgba(var(--shadow-rgb), 0.45);
+  --shadow-lg: 0 20px 60px rgba(var(--shadow-rgb), 0.45);
+
+  /* Every palette is a dark one, so say so: without this the engine paints its own form
+     controls, scrollbars and autofill in light colours over a dark page. */
+  color-scheme: dark;
+
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -96,20 +158,20 @@
  * or it stops reading as an accent at all — the two are close by design, so --text is pulled
  * a little greyer and a little darker to leave it room. */
 [data-theme="jedi"] {
-  --bg: #131211;
-  --bg-2: #1d1c19;
-  --bg-3: #272521;
-  --panel: #1a1917;
-  --border: #35322c;
-  --border-2: #4e4a41;
-  --hover-bg: #2c2a25;
+  --bg: #171615;
+  --bg-2: #201f1c;
+  --bg-3: #292723;
+  --panel: #1d1c1a;
+  --border: #37342d;
+  --border-2: #4f4b42;
+  --hover-bg: #2e2c27;
   --hover-border: #6a6558;
-  --text: #ddd8ca;
-  --text-dim: #a9a392;
-  --text-faint: #7e7867;
-  --accent-rgb: 242, 231, 196;
-  --accent-dim: #8d8362;
-  --accent-bright: #fbf5e2;
+  --text: #d7d2c5;
+  --text-dim: #a7a190;
+  --text-faint: #8f8975;
+  --accent-rgb: 206, 196, 166;
+  --accent-dim: #746e5d;
+  --accent-bright: #dad0b0;
   --accent-ink: #17150f;
 }
 
@@ -122,20 +184,20 @@
  * for being the only one in the room. The accent is a brick rather than a signal red for the
  * same reason: it is the saturation that wears, not the hue. */
 [data-theme="sith"] {
-  --bg: #0c0b0c;
-  --bg-2: #151315;
-  --bg-3: #1e1b1d;
-  --panel: #131113;
-  --border: #2e2a2c;
-  --border-2: #453e41;
-  --hover-bg: #262225;
+  --bg: #111011;
+  --bg-2: #191719;
+  --bg-3: #211e20;
+  --panel: #171517;
+  --border: #302c2e;
+  --border-2: #463f42;
+  --hover-bg: #282427;
   --hover-border: #5f5559;
-  --text: #ece8e9;
-  --text-dim: #a9a2a5;
-  --text-faint: #7a7376;
-  --accent-rgb: 199, 74, 74;
-  --accent-dim: #7d2b2b;
-  --accent-bright: #d96060;
+  --text: #d0cdce;
+  --text-dim: #a19a9d;
+  --text-faint: #8a8285;
+  --accent-rgb: 221, 83, 83;
+  --accent-dim: #8b3131;
+  --accent-bright: #fe6060;
   --accent-ink: #1a0505;
   /* The one palette that has to move a meaning hue. Its accent is red, so danger needs to
      stop being the same red — pushed towards orange, and the soft and edge shades with it,
@@ -148,39 +210,39 @@
 
 /* Beskar: cold plate, a scorched-orange visor glow. */
 [data-theme="mandalorian"] {
-  --bg: #0c0e10;
-  --bg-2: #151a1e;
-  --bg-3: #1e252b;
-  --panel: #131a1f;
-  --border: #2a343c;
-  --border-2: #3d4b56;
-  --hover-bg: #242e36;
+  --bg: #101315;
+  --bg-2: #181d22;
+  --bg-3: #20272e;
+  --panel: #161d23;
+  --border: #2b363e;
+  --border-2: #3e4c57;
+  --hover-bg: #263038;
   --hover-border: #55697a;
-  --text: #e6ecf0;
-  --text-dim: #a0aeb9;
-  --text-faint: #6f7d88;
+  --text: #cbd0d4;
+  --text-dim: #96a3ad;
+  --text-faint: #7c8b97;
   --accent-rgb: 226, 116, 58;
-  --accent-dim: #97481d;
-  --accent-bright: #f28c52;
+  --accent-dim: #944a23;
+  --accent-bright: #ff8443;
   --accent-ink: #1a0c04;
 }
 
 /* Dagobah: everything a little damp, light coming through leaves rather than windows. */
 [data-theme="yoda"] {
-  --bg: #0a0d0a;
-  --bg-2: #141a14;
-  --bg-3: #1c241b;
-  --panel: #121812;
-  --border: #293327;
-  --border-2: #3d4a3a;
-  --hover-bg: #232d21;
+  --bg: #0f120f;
+  --bg-2: #171d17;
+  --bg-3: #1e271d;
+  --panel: #151c15;
+  --border: #2b3528;
+  --border-2: #3e4b3b;
+  --hover-bg: #252f23;
   --hover-border: #56684f;
-  --text: #e8eee2;
-  --text-dim: #a6b39c;
-  --text-faint: #74806c;
+  --text: #cbd0c5;
+  --text-dim: #97a38e;
+  --text-faint: #7e8b76;
   --accent-rgb: 201, 180, 88;
-  --accent-dim: #85742f;
-  --accent-bright: #ddc972;
+  --accent-dim: #837537;
+  --accent-bright: #e0c963;
   --accent-ink: #141405;
 }
 
@@ -190,39 +252,39 @@
  * enough in value that the accent sank into the background instead of sitting on it — and
  * close enough to the Jedi palette that the two read as the same theme twice. */
 [data-theme="wookiee"] {
-  --bg: #0a0705;
-  --bg-2: #150e09;
-  --bg-3: #1f150e;
-  --panel: #120c08;
-  --border: #332316;
-  --border-2: #4d3623;
-  --hover-bg: #291c12;
+  --bg: #110d09;
+  --bg-2: #1a120c;
+  --bg-3: #231811;
+  --panel: #18110c;
+  --border: #362517;
+  --border-2: #4f3724;
+  --hover-bg: #2c1e14;
   --hover-border: #6f4e31;
-  --text: #f7efe4;
-  --text-dim: #c6ae94;
-  --text-faint: #8e7a64;
+  --text: #d2cbc1;
+  --text-dim: #ab9680;
+  --text-faint: #937f68;
   --accent-rgb: 242, 179, 96;
-  --accent-dim: #a06a24;
-  --accent-bright: #ffc98a;
+  --accent-dim: #966e39;
+  --accent-bright: #ffc66b;
   --accent-ink: #180d02;
 }
 
 /* Scored hull plating, and the bone-white of a ship painted a long time ago. */
 [data-theme="smuggler"] {
-  --bg: #0d0d0f;
-  --bg-2: #171719;
-  --bg-3: #212124;
-  --panel: #141416;
-  --border: #2e2e33;
-  --border-2: #434349;
-  --hover-bg: #28282d;
+  --bg: #121214;
+  --bg-2: #1a1a1d;
+  --bg-3: #232327;
+  --panel: #18181a;
+  --border: #303035;
+  --border-2: #44444a;
+  --hover-bg: #2a2a2f;
   --hover-border: #5c5c66;
-  --text: #eceae4;
-  --text-dim: #a8a59c;
-  --text-faint: #77746c;
-  --accent-rgb: 214, 211, 196;
-  --accent-dim: #8c8a7e;
-  --accent-bright: #eeece2;
+  --text: #d1cfca;
+  --text-dim: #a19e95;
+  --text-faint: #89867d;
+  --accent-rgb: 196, 193, 180;
+  --accent-dim: #807e75;
+  --accent-bright: #dbd8ca;
   --accent-ink: #17170f;
 }
 
