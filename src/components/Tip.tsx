@@ -277,7 +277,7 @@ export function ItemTipBody({ item, note }: { item: ResolvedItem; note?: ReactNo
           ))}
         </>
       )}
-      {item.notes && <p className="tip-clamp" style={{ marginTop: 6 }}>{item.notes}</p>}
+      {item.notes && <p className="tip-clamp" style={{ marginTop: 'var(--sp-3)' }}>{item.notes}</p>}
     </div>
   );
 }

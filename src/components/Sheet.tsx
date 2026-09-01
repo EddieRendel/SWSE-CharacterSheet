@@ -69,7 +69,7 @@ function DefCell({
         <div>
           <div className="vital-label">{label}</div>
           <div className="def-value">{value}</div>
-          <div className="sub">{sub}</div>
+          <div className="def-cell-sub">{sub}</div>
         </div>
       </StatTip>
     </div>
@@ -160,9 +160,9 @@ export function Sheet({
   // Both shifts name tokens rather than hexes, so a palette can restate what "tempted" and
   // "fallen" look like in its own colours along with everything else.
   const accentVars = fallen
-    ? { '--sheet-accent': 'var(--red)', '--sheet-accent-dim': 'var(--accent-fallen-dim)' }
+    ? { '--sheet-accent-rgb': 'var(--red-rgb)', '--sheet-accent': 'var(--red)', '--sheet-accent-dim': 'var(--accent-fallen-dim)' }
     : tempted
-      ? { '--sheet-accent': 'var(--accent-tempted)', '--sheet-accent-dim': 'var(--accent-tempted-dim)' }
+      ? { '--sheet-accent-rgb': 'var(--accent-tempted-rgb)', '--sheet-accent': 'var(--accent-tempted)', '--sheet-accent-dim': 'var(--accent-tempted-dim)' }
       : undefined;
 
   const loadWord = derived.carrying.level === 'heavy' ? 'heavy load'
@@ -171,8 +171,8 @@ export function Sheet({
 
   return (
     <div className="sheet" style={accentVars as CSSProperties | undefined}>
-      <section className={`frame ${fallen ? 'lit-red' : 'lit'}`}>
-        <div className="frame-body identity">
+      <section className={`sheet-frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="sheet-frame-body identity">
           <PortraitButton char={char} update={update} size={68} />
           <div className="grow">
             <h1>{char.name || 'Unnamed'}</h1>
@@ -198,8 +198,8 @@ export function Sheet({
       {/* Tier one: the numbers that move during play. They used to be three tiles among
           fourteen identical ones, with their controls in a separate panel further down the
           page — the reading and the editing of the same number, half a screen apart. */}
-      <section className={`frame vitals-frame ${fallen ? 'lit-red' : 'lit'}`}>
-        <div className="frame-body vitals">
+      <section className={`sheet-frame sheet-vitals-frame ${fallen ? 'lit-red' : 'lit'}`}>
+        <div className="sheet-frame-body vitals">
           <div className={`vital hp ${hpState}`}>
             <div className="vital-label">Hit points</div>
             <StatTip
@@ -213,7 +213,7 @@ export function Sheet({
             >
               <div>
                 <div className="vital-value">
-                  {currentHp}<span className="of">/{derived.maxHitPoints}</span>
+                  {currentHp}<span className="vital-value-of">/{derived.maxHitPoints}</span>
                 </div>
                 <div className="hp-bar">
                   <div className={`hp-fill ${hpState}`} style={{ width: `${hpFraction * 100}%` }} />
@@ -292,7 +292,7 @@ export function Sheet({
                 >
                   <div>
                     <div className="vital-value">
-                      {fpLeft}<span className="of">/{derived.forcePoints}</span>
+                      {fpLeft}<span className="vital-value-of">/{derived.forcePoints}</span>
                     </div>
                     <span className="uses">
                       {Array.from({ length: Math.min(derived.forcePoints, 12) }, (_, i) => (
@@ -371,8 +371,8 @@ export function Sheet({
       </section>
 
       {/* Tier two: what the galaxy rolls against. A set, framed as a set. */}
-      <section className="frame lit-blue">
-        <div className="frame-body defenses">
+      <section className="sheet-frame">
+        <div className="sheet-frame-body defenses">
           <DefCell
             label="Reflex" title="Reflex Defense" value={derived.defenses.reflex}
             sub={`flat-footed ${derived.defenses.flatFooted}`}
@@ -397,8 +397,8 @@ export function Sheet({
 
       {/* Tier three: what is simply true about the character. The modifier is what you add
           at the table, so it is the number here; the score below it is where it came from. */}
-      <section className="frame">
-        <div className={`frame-body abil-strip${derived.isDroid ? ' five' : ''}`}>
+      <section className="sheet-frame">
+        <div className={`sheet-frame-body abil-strip${derived.isDroid ? ' five' : ''}`}>
           {ABILITY_IDS
             // Droids have no Constitution score at all.
             .filter(a => !(derived.isDroid && a === 'con'))
@@ -421,9 +421,9 @@ export function Sheet({
             footer="Every class contributes; multiclass characters add them together."
           />
         }>
-          <span className="fact">
-            <span className="k">Base attack</span>
-            <span className="v breakdown">{signed(derived.baseAttackBonus)}</span>
+          <span className="factline-fact">
+            <span className="factline-key">Base attack</span>
+            <span className="factline-value breakdown">{signed(derived.baseAttackBonus)}</span>
           </span>
         </Tip>
         <Tip content={
@@ -442,21 +442,21 @@ export function Sheet({
                   : derived.carrying.level === 'strained' ? 'you can move one square a turn.' : 'you cannot move.')}
           />
         }>
-          <span className="fact">
-            <span className="k">Speed</span>
-            <span className="v breakdown">{derived.speed} sq</span>
+          <span className="factline-fact">
+            <span className="factline-key">Speed</span>
+            <span className="factline-value breakdown">{derived.speed} sq</span>
           </span>
         </Tip>
-        <span className="fact">
-          <span className="k">Size</span>
-          <span className="v">{derived.size}</span>
+        <span className="factline-fact">
+          <span className="factline-key">Size</span>
+          <span className="factline-value">{derived.size}</span>
         </span>
-        <span className="fact">
-          <span className="k">Carrying</span>
-          <span className={`v ${loadWord ? 'err' : ''}`}>
+        <span className="factline-fact">
+          <span className="factline-key">Carrying</span>
+          <span className={`factline-value ${loadWord ? 'err' : ''}`}>
             {derived.carrying.weight.toFixed(1)} / {derived.carrying.heavy.toFixed(0)} kg
           </span>
-          {loadWord && <span className="badge red" style={{ marginLeft: 6 }}>{loadWord}</span>}
+          {loadWord && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>{loadWord}</span>}
         </span>
       </div>
 
@@ -464,7 +464,7 @@ export function Sheet({
         <div>
           <Panel
             title="Skills"
-            className="reference framed tint-green"
+            className="reference framed panel-tone-green"
             actions={<span className="hint nowrap">{trainedCount} trained</span>}
           >
             {/* Two columns on a wide screen. The list is the longest thing on the page and
@@ -497,7 +497,7 @@ export function Sheet({
               ))}
             </div>
             {(derived.languages.automatic.length > 0 || derived.languages.chosen.length > 0) && (
-              <div className="row" style={{ marginTop: 10, flexWrap: 'wrap', gap: 6 }}>
+              <div className="row" style={{ marginTop: 'var(--sp-5)', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
                 <span className="hint nowrap">Languages</span>
                 {[...derived.languages.automatic, ...derived.languages.chosen]
                   .map(l => <span key={l} className="chip">{l}</span>)}
@@ -508,7 +508,7 @@ export function Sheet({
 
         <div>
           <Panel
-            className="framed tint-purple"
+            className="framed panel-tone-purple"
             title={SHEET_TABS.find(t => t.id === tab)!.label}
             actions={
               <div className="seg">
@@ -535,7 +535,7 @@ export function Sheet({
             {tab === 'features' && featureCount > 0 && (
               <>
                 {featureGroups.map(([title, items]) => {
-                  const tone = FEATURE_TONES[title] ? `tone-${FEATURE_TONES[title]}` : '';
+                  const tone = FEATURE_TONES[title] ? `text-tone-${FEATURE_TONES[title]}` : '';
                   return (
                   <div key={title} className="feature-group">
                     <h3 className={tone}>
@@ -583,19 +583,19 @@ export function Sheet({
                     not a thing you hold: the benefit is simply on while both feats are. */}
                 {derived.combos.length > 0 && (
                   <div className="feature-group">
-                    <h3 className="tone-accent">
+                    <h3 className="text-tone-accent">
                       Combined feats <span className="faint">({derived.combos.length})</span>
                       <span className="rule" />
                     </h3>
-                    <p className="hint" style={{ margin: '0 0 8px' }}>
+                    <p className="hint" style={{ margin: '0 0 var(--sp-4)' }}>
                       On because you hold both feats. They cost no slot and were never chosen —
                       change either feat and its Combined Feat goes with it.
                     </p>
-                    <div className="col" style={{ gap: 8 }}>
+                    <div className="col" style={{ gap: 'var(--sp-4)' }}>
                       {derived.combos.map(combo => (
                         <div key={combo.id} className="combo on">
-                          <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                            <span className="name grow">{combo.name}</span>
+                          <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
+                            <span className="combo-name grow">{combo.name}</span>
                             {combo.sources.map(source => (
                               <span key={source.book} className="badge">
                                 {BOOK_NAMES[source.book] ?? source.book}

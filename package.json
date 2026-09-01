@@ -19,7 +19,8 @@
     "import:foundry-text": "node tools-import-foundry-text.mjs",
     "dedupe": "node tools-dedupe-features.mjs",
     "wire:choices": "node tools-wire-choices.mjs",
-    "attribute:books": "node tools-attribute-books.mjs"
+    "attribute:books": "node tools-attribute-books.mjs",
+    "lint:css": "stylelint \"src/**/*.css\""
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -33,6 +34,8 @@
     "classic-level": "^3.0.0",
     "oxlint": "^1.75.0",
     "playwright": "^1.62.1",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
     "tsx": "^4.23.12",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",

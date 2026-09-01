@@ -113,7 +113,7 @@ export function Features({
   return (
     <>
       {lapsed.length > 0 && (
-        <div className="notice conflict" style={{ marginBottom: 16 }}>
+        <div className="notice conflict" style={{ marginBottom: 'var(--sp-7)' }}>
           <strong>
             {lapsed.length} {lapsed.length === 1 ? 'choice no longer meets' : 'choices no longer meet'}
             {' '}its prerequisites.
@@ -121,10 +121,10 @@ export function Features({
           Changing an earlier pick can pull the ground out from under a later one. Nothing has
           been removed — change or clear {lapsed.length === 1 ? 'it' : 'them'} below, or put back
           what {lapsed.length === 1 ? 'it' : 'they'} rested on.
-          <div className="col" style={{ gap: 8, marginTop: 8 }}>
+          <div className="col" style={{ gap: 'var(--sp-4)', marginTop: 'var(--sp-4)' }}>
             {lapsed.map(l => (
               <div key={l.key}>
-                <div className="name">{l.name}</div>
+                <div className="item-name">{l.name}</div>
                 <ReqList checks={l.missing} />
               </div>
             ))}
@@ -133,7 +133,7 @@ export function Features({
       )}
 
       {derived.unfilledSlots.length > 0 && (
-        <div className="notice warn" style={{ marginBottom: 16 }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-7)' }}>
           <strong>{derived.unfilledSlots.length}</strong> unfilled{' '}
           {derived.unfilledSlots.length === 1 ? 'choice' : 'choices'}:{' '}
           {derived.unfilledSlots.map(s => s.label).join(', ')}
@@ -142,16 +142,16 @@ export function Features({
 
       <Panel
         collapseId="edit:features"
-        className="framed tint-blue"
+        className="framed panel-tone-blue"
         title="Feats, talents & features by level"
         actions={
-          <label className="row nowrap hint" style={{ gap: 6 }}>
+          <label className="row nowrap hint" style={{ gap: 'var(--sp-3)' }}>
             <input type="checkbox" checked={hideAuto} onChange={e => setHideAuto(e.target.checked)} />
             Choices only
           </label>
         }
       >
-        <div className="col" style={{ gap: 14 }}>
+        <div className="col" style={{ gap: 'var(--sp-7)' }}>
           {byLevel.map(([level, slots]) => (
             <LevelGroup
               key={level}
@@ -172,20 +172,20 @@ export function Features({
                         {feature ? (
                           <button
                             className="clickable"
-                            style={{ background: 'none', border: 'none', padding: 0 }}
+                            style={{ background: 'none', border: 'none', padding: '0' }}
                             onClick={() => setViewing({ id: ref!.id, spec: ref!.spec })}
                           >
-                            <div className="name">
+                            <div className="item-name">
                               {featureName(ref!.id, ref!.spec)}{' '}
                               <Descriptors feature={feature} compact />
-                              {feature.incomplete && <span className="badge red" style={{ marginLeft: 6 }}>?</span>}
+                              {feature.incomplete && <span className="badge red" style={{ marginLeft: 'var(--sp-3)' }}>?</span>}
                             </div>
-                            <div className="meta">{KIND_LABEL[slot.kind] ?? slot.kind} · {slot.label}</div>
+                            <div className="item-meta">{KIND_LABEL[slot.kind] ?? slot.kind} · {slot.label}</div>
                           </button>
                         ) : (
                           <>
-                            <div className="name warn">Choose a {KIND_LABEL[slot.kind]?.toLowerCase() ?? slot.kind}</div>
-                            <div className="meta">{slot.label}</div>
+                            <div className="item-name warn">Choose a {KIND_LABEL[slot.kind]?.toLowerCase() ?? slot.kind}</div>
+                            <div className="item-meta">{slot.label}</div>
                           </>
                         )}
                       </div>

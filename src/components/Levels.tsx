@@ -50,7 +50,7 @@ export function Levels({
     <>
       <Panel
         collapseId="edit:levels"
-        className="framed tint-purple"
+        className="framed panel-tone-purple"
         title={`Class progression — level ${derived.level}`}
         actions={
           <div className="row">
@@ -62,7 +62,7 @@ export function Levels({
         {char.levels.length === 0 ? (
           <div className="empty">
             No levels yet. Add your first class level to begin.
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 'var(--sp-6)' }}>
               <button className="primary" onClick={() => setAdding(true)}>Add level</button>
             </div>
           </div>
@@ -88,7 +88,7 @@ export function Levels({
                       <td className="num">{i + 1}</td>
                       <td>
                         <strong>{cls?.name ?? entry.classId}</strong>
-                        {cls?.prestige && <span className="badge purple" style={{ marginLeft: 6 }}>prestige</span>}
+                        {cls?.prestige && <span className="badge purple" style={{ marginLeft: 'var(--sp-3)' }}>prestige</span>}
                       </td>
                       <td className="num">{classLevel}</td>
                       <td className="num">
@@ -97,10 +97,10 @@ export function Levels({
                             {hp?.gained} <span className="faint">(fixed)</span>
                           </span>
                         ) : (
-                          <div className="row" style={{ justifyContent: 'flex-end', gap: 6 }}>
+                          <div className="row" style={{ justifyContent: 'flex-end', gap: 'var(--sp-3)' }}>
                             <input
                               className="mono center"
-                              style={{ width: 56, padding: '2px 4px' }}
+                              style={{ width: 56, padding: 'var(--sp-1) var(--sp-2)' }}
                               value={entry.hitPoints ?? ''}
                               onChange={e => setHp(i, parseInt(e.target.value, 10))}
                             />
@@ -118,7 +118,7 @@ export function Levels({
         )}
 
         {char.levels.length > 1 && (
-          <p className="hint" style={{ marginTop: 10 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-5)' }}>
             Rolled hit points are editable. New levels default to the average for the die.
             Your Constitution modifier ({derived.mods.con >= 0 ? '+' : ''}{derived.mods.con}) is added to each level.
           </p>
@@ -180,11 +180,11 @@ function ClassPicker({
     >
       <div className="split">
         <div className="options">
-          <div className="hint" style={{ padding: '0 4px 6px' }}>Base classes</div>
+          <div className="hint" style={{ padding: '0 var(--sp-2) var(--sp-3)' }}>Base classes</div>
           {entries.filter(e => !e.cls.prestige).map(e => (
             <ClassOption key={e.cls.id} e={e} selected={selected} setSelected={setSelected} />
           ))}
-          <div className="hint" style={{ padding: '10px 4px 6px' }}>Prestige classes</div>
+          <div className="hint" style={{ padding: 'var(--sp-5) var(--sp-2) var(--sp-3)' }}>Prestige classes</div>
           {entries.filter(e => e.cls.prestige).map(e => (
             <ClassOption key={e.cls.id} e={e} selected={selected} setSelected={setSelected} />
           ))}
@@ -193,16 +193,16 @@ function ClassPicker({
           {!sel && <div className="empty">Select a class.</div>}
           {sel && (
             <>
-              <div className="row" style={{ marginBottom: 10 }}>
-                <h3 style={{ fontSize: 16 }}>{sel.cls.name}</h3>
+              <div className="row" style={{ marginBottom: 'var(--sp-5)' }}>
+                <h3 style={{ fontSize: 'var(--fs-lg)' }}>{sel.cls.name}</h3>
                 {sel.cls.prestige && <span className="badge purple">prestige</span>}
                 {sel.taken > 0 && <span className="badge">{sel.taken} level{sel.taken > 1 ? 's' : ''} taken</span>}
               </div>
               <ClassDetail classId={sel.cls.id} />
 
               {sel.req.checks.length > 0 && (
-                <div className="panel" style={{ marginTop: 14, marginBottom: 0 }}>
-                  <h3 style={{ marginBottom: 8 }}>Entry requirements</h3>
+                <div className="panel" style={{ marginTop: 'var(--sp-7)', marginBottom: '0' }}>
+                  <h3 style={{ marginBottom: 'var(--sp-4)' }}>Entry requirements</h3>
                   <ReqList checks={sel.req.checks} />
                 </div>
               )}
@@ -214,7 +214,7 @@ function ClassPicker({
                 if (!empty.length) return null;
                 const all = empty.length === (sel.cls.trees?.talent ?? []).length;
                 return (
-                  <div className="notice warn" style={{ marginTop: 12 }}>
+                  <div className="notice notice-warn" style={{ marginTop: 'var(--sp-6)' }}>
                     The rules data has no talents for{' '}
                     <strong>{empty.map(t => t.name).join(', ')}</strong>
                     {all ? ' — every talent tree this class uses.' : '.'}{' '}
@@ -225,12 +225,12 @@ function ClassPicker({
               })()}
 
               {sel.atMax && (
-                <div className="notice warn" style={{ marginTop: 12 }}>
+                <div className="notice notice-warn" style={{ marginTop: 'var(--sp-6)' }}>
                   You already have the maximum {sel.cls.maxLevel} levels in this class.
                 </div>
               )}
               {char.levels.length > 0 && sel.taken === 0 && (
-                <div className="notice" style={{ marginTop: 12 }}>
+                <div className="notice" style={{ marginTop: 'var(--sp-6)' }}>
                   Multiclassing: you gain this class's hit die, talents and bonus feats, but not its
                   starting feats, starting hit points or trained skills — those come only from your first class.
                 </div>

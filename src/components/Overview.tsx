@@ -21,8 +21,8 @@ export function Overview({
   const classLine = derived.classLevels.map(c => `${c.cls.name} ${c.levels}`).join(' / ');
 
   return (
-    <div className="character">
-      <Panel title="Identity" className="framed tint-accent">
+    <div>
+      <Panel title="Identity" className="framed panel-tone-accent">
         <div className="identity-edit">
           <PortraitButton char={char} update={update} size={96} />
           <div className="grow">
@@ -53,7 +53,7 @@ export function Overview({
           text — the single most consequential choice on the page, drawn like a list item. */}
       <Panel
         title="Species"
-        className="framed tint-green"
+        className="framed panel-tone-green"
         actions={species && (
           <div className="row">
             <button className="sm" onClick={() => setPickingSpecies(true)}>Change</button>
@@ -78,16 +78,16 @@ export function Overview({
               <div className="species-mods">
                 {Object.entries(species.abilities).map(([a, v]) => (
                   <span key={a} className="species-mod">
-                    <span className="k">{a.toUpperCase()}</span>
-                    <span className={`v ${v > 0 ? 'up' : 'down'}`}>{signed(v)}</span>
+                    <span className="species-mod-key">{a.toUpperCase()}</span>
+                    <span className={`species-mod-value ${v > 0 ? 'up' : 'down'}`}>{signed(v)}</span>
                   </span>
                 ))}
               </div>
             )}
 
             <div className="species-facts">
-              <span><span className="k">Size</span><span className="v">{species.size}</span></span>
-              <span><span className="k">Speed</span><span className="v">{species.speed} sq</span></span>
+              <span><span className="species-facts-key">Size</span><span className="species-facts-value">{species.size}</span></span>
+              <span><span className="species-facts-key">Speed</span><span className="species-facts-value">{species.speed} sq</span></span>
             </div>
 
             {(species.features ?? []).length > 0 && (
@@ -95,7 +95,7 @@ export function Overview({
                 <div className="group-rule">Traits</div>
                 <div className="chips">
                   {(species.features ?? []).map((f, i) => (
-                    <button key={i} className="chip tone-green" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
+                    <button key={i} className="chip text-tone-green" style={{ width: 'auto' }} onClick={() => setViewing(f.id)}>
                       {featureName(f.id, f.spec)}
                     </button>
                   ))}
@@ -142,10 +142,10 @@ export function Overview({
           <Field label="Appearance"><textarea value={t.appearance} onChange={e => setTrait('appearance', e.target.value)} /></Field>
           <Field label="Personality"><textarea value={t.personality} onChange={e => setTrait('personality', e.target.value)} /></Field>
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 'var(--sp-6)' }}>
           <Field label="Background"><textarea value={t.background} onChange={e => setTrait('background', e.target.value)} /></Field>
         </div>
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 'var(--sp-6)' }}>
           <Field label="Notes"><textarea value={char.notes} onChange={e => update(c => { c.notes = e.target.value; })} style={{ minHeight: 120 }} /></Field>
         </div>
       </Panel>
@@ -225,7 +225,7 @@ function SpeciesPicker({
         </>
       }
     >
-      <div className="row" style={{ marginBottom: 12 }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-6)' }}>
         <input
           autoFocus={autoFocusSearch}
           placeholder="Search by name, trait, ability or book…"
@@ -249,20 +249,20 @@ function SpeciesPicker({
           {!s && <div className="empty">Select a species.</div>}
           {s && (
             <>
-              <div className="row" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
-                <h3 style={{ fontSize: 16 }}>{s.name}</h3>
+              <div className="row" style={{ marginBottom: 'var(--sp-5)', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: 'var(--fs-lg)' }}>{s.name}</h3>
                 {s.book && (
                   <span className="badge">
                     {BOOK_NAMES[s.book] ?? s.book}{s.page ? ` p.${s.page}` : ''}
                   </span>
                 )}
               </div>
-              <div className="grid g3" style={{ marginBottom: 12 }}>
-                <div className="stat"><div className="label">Size</div><div className="value" style={{ fontSize: 15 }}>{s.size}</div></div>
-                <div className="stat"><div className="label">Speed</div><div className="value" style={{ fontSize: 15 }}>{s.speed} sq</div></div>
+              <div className="grid g3" style={{ marginBottom: 'var(--sp-6)' }}>
+                <div className="stat"><div className="stat-label">Size</div><div className="stat-value" style={{ fontSize: 'var(--fs-md)' }}>{s.size}</div></div>
+                <div className="stat"><div className="stat-label">Speed</div><div className="stat-value" style={{ fontSize: 'var(--fs-md)' }}>{s.speed} sq</div></div>
                 <div className="stat">
-                  <div className="label">Ability modifiers</div>
-                  <div className="value" style={{ fontSize: 13 }}>
+                  <div className="stat-label">Ability modifiers</div>
+                  <div className="stat-value" style={{ fontSize: 'var(--fs-body)' }}>
                     {s.abilities
                       ? Object.entries(s.abilities).map(([a, v]) => `${signed(v)} ${a.toUpperCase()}`).join(' ')
                       : 'None'}
@@ -270,7 +270,7 @@ function SpeciesPicker({
                 </div>
               </div>
 
-              <div className="row" style={{ flexWrap: 'wrap', marginBottom: 12 }}>
+              <div className="row" style={{ flexWrap: 'wrap', marginBottom: 'var(--sp-6)' }}>
                 {s.bonusFeat && <span className="badge green">bonus feat at 1st level</span>}
                 {s.bonusSkill && <span className="badge green">bonus trained skill</span>}
                 {(s.languages ?? []).map(l => <span key={l} className="badge">{l}</span>)}
@@ -282,7 +282,7 @@ function SpeciesPicker({
                 const feat = FEATURES[f.id];
                 if (!feat) return null;
                 return (
-                  <div key={i} style={{ marginBottom: 10 }}>
+                  <div key={i} style={{ marginBottom: 'var(--sp-5)' }}>
                     <h3>{feat.name}</h3>
                     <RulesText lines={feat.description} />
                   </div>
@@ -346,7 +346,7 @@ function Sources({
         </div>
       }
     >
-      <p className="hint" style={{ marginBottom: 10 }}>
+      <p className="hint" style={{ marginBottom: 'var(--sp-5)' }}>
         Limits what the pickers offer for this character. {allowed
           ? <>Currently <strong>{allowed.length}</strong> of {ALL_BOOKS.length} books:{' '}
               <strong>{counts.features}</strong> of {counts.totalFeatures} feats and talents,{' '}
@@ -371,7 +371,7 @@ function Sources({
         ))}
       </div>
 
-      <p className="hint" style={{ marginTop: 10 }}>
+      <p className="hint" style={{ marginTop: 'var(--sp-5)' }}>
         Anything already chosen stays on the character — narrowing this only limits what is offered
         from here on.
       </p>
@@ -402,15 +402,15 @@ function NearHuman({
   const incomplete = !nh.trait || !nh.sacrifice;
 
   return (
-    <Panel title="Near-Human" className="framed tint-green">
-      <p className="hint" style={{ marginBottom: 12 }}>
+    <Panel title="Near-Human" className="framed panel-tone-green">
+      <p className="hint" style={{ marginBottom: 'var(--sp-6)' }}>
         A Near-Human uses the Human stat block and trades <strong>either</strong> its bonus feat{' '}
         <strong>or</strong> its bonus trained skill for a single Near-Human trait, plus up to{' '}
         {NEAR_HUMAN.cosmeticLimit} cosmetic variations.
       </p>
 
       {incomplete && (
-        <div className="notice warn" style={{ marginBottom: 12 }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-6)' }}>
           {!nh.trait && 'Choose a trait. '}
           {!nh.sacrifice && 'Choose what to give up for it.'}
         </div>
@@ -425,7 +425,7 @@ function NearHuman({
             ))}
           </select>
           {chosen && (
-            <p className="hint" style={{ marginTop: 6 }}>
+            <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
               {chosen.description?.[0]}{' '}
               <button className="ghost sm" onClick={() => onView(chosen.id)}>Full text</button>
             </p>
@@ -447,7 +447,7 @@ function NearHuman({
               Bonus trained skill
             </button>
           </div>
-          <p className="hint" style={{ marginTop: 6 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
             {nh.sacrifice === 'feat' && 'You no longer get the Human bonus feat.'}
             {nh.sacrifice === 'skill' && 'You train one fewer skill than a Human would.'}
             {!nh.sacrifice && 'Pick one — the other is kept.'}
@@ -455,7 +455,7 @@ function NearHuman({
         </Field>
       </div>
 
-      <div style={{ marginTop: 14 }}>
+      <div style={{ marginTop: 'var(--sp-7)' }}>
         <Field label={`Cosmetic variations (${nh.cosmetic.length}/${NEAR_HUMAN.cosmeticLimit})`}>
           <div className="row" style={{ flexWrap: 'wrap' }}>
             {NEAR_HUMAN.cosmetic.map(id => {
@@ -474,7 +474,7 @@ function NearHuman({
               );
             })}
           </div>
-          <p className="hint" style={{ marginTop: 6 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-3)' }}>
             Purely descriptive — they have no mechanical effect.
           </p>
         </Field>

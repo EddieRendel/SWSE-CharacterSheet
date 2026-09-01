@@ -66,7 +66,7 @@ function AttackRow({ a }: { a: AttackProfile }) {
           matters once it has landed. */}
       <div className="attack-roll">
         <Breakdown title="Attack roll" rows={a.attackParts} total={signed(a.attack)} />
-        <span className="k">hit</span>
+        <span className="attack-roll-key">hit</span>
       </div>
       <div className="grow">
       <div className="attack-name">
@@ -94,7 +94,7 @@ function AttackRow({ a }: { a: AttackProfile }) {
               {warnings.map((w, i) => <p key={i}>{w}</p>)}
             </div>
           }>
-            <span className="badge warn-badge">!</span>
+            <span className="badge badge-warn">!</span>
           </Tip>
         )}
       </div>
@@ -176,9 +176,9 @@ export function Attacks({
     <>
       {/* Switches, ruled off from the numbers they change — they used to run straight into
           the attack list as one undifferentiated block of buttons and rows. */}
-      <div className="modifiers">
-        <div className="modifiers-label">Modifiers</div>
-        <div className="row" style={{ flexWrap: 'wrap', gap: 5 }}>
+      <div className="attack-modifiers">
+        <div className="attack-modifiers-label">Modifiers</div>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         {/* Two hands on one weapon and a weapon in each hand are mutually exclusive, so
             each toggle switches the other off rather than letting both look active. */}
         <Toggle
@@ -247,7 +247,7 @@ export function Attacks({
         })}
 
         {available.powerAttack && (
-          <span className="row" style={{ gap: 4 }}>
+          <span className="row" style={{ gap: 'var(--sp-2)' }}>
             <Tip content={toggleTip('power-attack',
               'Trade points of attack for damage, up to your base attack bonus. Melee only; a two-handed weapon gains double the traded amount.')}>
               <span className="hint nowrap breakdown">Power Attack</span>
@@ -270,7 +270,7 @@ export function Attacks({
 
       {powers.length > 0 && (
         <>
-          <div className="row" style={{ margin: '12px 0 6px' }}>
+          <div className="row" style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>
             <h3>Force powers</h3>
             <div className="spacer" />
             {anySpent && (
@@ -290,7 +290,7 @@ export function Attacks({
                   <div className="attack-roll">
                     <Breakdown title="Use the Force" rows={p.checkParts ?? []} total={signed(p.useTheForce)}
                       footer={`Rolled against the target's ${p.versus ?? 'defense'}.`} />
-                    <span className="k">use</span>
+                    <span className="attack-roll-key">use</span>
                   </div>
                   <div className="grow">
                   <div className="attack-name">
@@ -335,7 +335,7 @@ export function Attacks({
 
       {fpAbilities.length > 0 && (
         <>
-          <h3 style={{ margin: '12px 0 6px' }}>
+          <h3 style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>
             Spends a Force Point <span className="faint">({fpAbilities.length})</span>
           </h3>
           <div className="chips">

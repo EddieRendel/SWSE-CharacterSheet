@@ -3437,6 +3437,44 @@ console.log('\n▸ Source hygiene');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ Every class the markup names has a rule behind it');
+// ---------------------------------------------------------------------------
+{
+  // Renaming a selector and missing a consumer costs nothing at build time and nothing at
+  // runtime: the element keeps a class no stylesheet mentions and quietly loses whatever the
+  // rule gave it. `.item .name` -> `.item-name` left three behind — the equipment browser, the
+  // unfilled feat prompt and the sheet's combined-feat card all went back to body weight —
+  // and the pass before it had already done the same to `.kit-row`, which is written up in
+  // the stylesheet beside that rule.
+  //
+  // Only static `className="..."` literals are read. A composed one is beyond a regex, so
+  // this is a floor rather than a proof; it would still have caught every miss so far.
+  const css = readFileSync(join(import.meta.dirname, '../index.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const defined = new Set(Array.from(css.matchAll(/\.([a-zA-Z][\w-]*)/g), m => m[1]));
+
+  const orphans: string[] = [];
+  const scan = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) scan(full);
+      // This file names classes inside its own regex, so the scan must not read itself.
+      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
+        readFileSync(full, 'utf8').split('\n').forEach((line, i) => {
+          for (const m of line.matchAll(/className="([^"{}]*)"/g)) {
+            for (const cls of m[1].split(/\s+/).filter(Boolean)) {
+              if (!defined.has(cls)) orphans.push(`${entry.name}:${i + 1} .${cls}`);
+            }
+          }
+        });
+      }
+    }
+  };
+  scan(join(import.meta.dirname, '../../src'));
+  check('no markup names a class the stylesheet does not define', [...new Set(orphans)], []);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ supplement.json patches each id exactly once');
 // ---------------------------------------------------------------------------
 {

@@ -65,9 +65,9 @@ export function Stat({
 }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
     <div className="stat">
-      <div className="label">{label}</div>
-      <div className="value">{value}</div>
-      {sub && <div className="sub">{sub}</div>}
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value}</div>
+      {sub && <div className="stat-sub">{sub}</div>}
     </div>
   );
 }
@@ -94,11 +94,11 @@ export function Modal({
     <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={wide ? { maxWidth: 1040 } : undefined}>
         <header>
-          <h2 style={{ fontSize: 15 }}>{title}</h2>
+          <h2 style={{ fontSize: 'var(--fs-md)' }}>{title}</h2>
           <div className="spacer" />
           <button className="ghost" onClick={onClose}>✕</button>
         </header>
-        <div className="body">{children}</div>
+        <div className="modal-body">{children}</div>
         {footer && <footer>{footer}</footer>}
       </div>
     </div>
@@ -174,7 +174,7 @@ function PortraitEditor({
 
   return (
     <Modal title="Portrait" onClose={onClose} footer={<button onClick={onClose}>Done</button>}>
-      <div className="row" style={{ marginBottom: 14 }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-7)' }}>
         <Portrait portrait={char.portrait} name={char.name} size={64} />
         <div className="grow">
           <button className="primary" disabled={busy} onClick={() => fileInput.current?.click()}>
@@ -183,13 +183,13 @@ function PortraitEditor({
           {char.portrait && (
             <button
               className="danger"
-              style={{ marginLeft: 8 }}
+              style={{ marginLeft: 'var(--sp-4)' }}
               onClick={() => { update(c => { c.portrait = null; }); onClose(); }}
             >
               Remove
             </button>
           )}
-          <p className="hint" style={{ marginTop: 6, marginBottom: 0 }}>
+          <p className="hint" style={{ marginTop: 'var(--sp-3)', marginBottom: '0' }}>
             Images are cropped square and scaled to 256px before being stored.
           </p>
         </div>
@@ -207,7 +207,7 @@ function PortraitEditor({
         }}
       />
 
-      <h3 style={{ marginBottom: 8 }}>Or pick a class image</h3>
+      <h3 style={{ marginBottom: 'var(--sp-4)' }}>Or pick a class image</h3>
       <div className="portrait-choices">
         {withIcons.map(c => (
           <button
@@ -256,8 +256,8 @@ export function ItemDetail({ item }: { item: ResolvedItem }) {
   const rows = itemStatRows(item);
   return (
     <div>
-      <div className="row" style={{ marginBottom: 10, flexWrap: 'wrap' }}>
-        <h3 style={{ fontSize: 16 }}>{item.name}</h3>
+      <div className="row" style={{ marginBottom: 'var(--sp-5)', flexWrap: 'wrap' }}>
+        <h3 style={{ fontSize: 'var(--fs-lg)' }}>{item.name}</h3>
         <span className={`badge ${item.category === 'weapon' ? 'blue' : item.category === 'armor' ? 'purple' : ''}`}>
           {item.category}
         </span>
@@ -272,7 +272,7 @@ export function ItemDetail({ item }: { item: ResolvedItem }) {
       </div>
 
       {rows.length > 0 && (
-        <div className="table-scroll" style={{ marginBottom: 12 }}>
+        <div className="table-scroll" style={{ marginBottom: 'var(--sp-6)' }}>
           <table>
             <tbody>
               {rows.map(([label, value]) => (
@@ -354,7 +354,7 @@ function ComboBlock({
       <div className="rules-section-label">
         Combined feat{states.length > 1 ? 's' : ''}
       </div>
-      <div className="col" style={{ gap: 8 }}>
+      <div className="col" style={{ gap: 'var(--sp-4)' }}>
         {states.map(({ combo, missing, active }) => {
           const wanting = missing
             .filter(f => !isSameHalf(f, feature.id, spec))
@@ -362,8 +362,8 @@ function ComboBlock({
           const completes = known && !active && wanting.length === 0;
           return (
             <div key={combo.id} className={`combo${active ? ' on' : ''}`}>
-              <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                <span className="name grow">{combo.name}</span>
+              <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
+                <span className="combo-name grow">{combo.name}</span>
                 {active && <span className="badge green">active</span>}
                 {completes && <span className="badge accent">completes this</span>}
                 {known && !active && !completes && <span className="badge">inactive</span>}
@@ -377,7 +377,7 @@ function ComboBlock({
                 ))}
               </div>
               <RulesText lines={combo.effect} />
-              <p className={`hint${completes ? ' ok' : ''}`} style={{ margin: 0 }}>
+              <p className={`hint${completes ? ' ok' : ''}`} style={{ margin: '0' }}>
                 {active
                   ? `On, because you hold both halves — it costs no feat and was never chosen.`
                   : completes
@@ -415,9 +415,9 @@ export function FeatureDetail({
 
   return (
     <div>
-      <div className="row" style={{ marginBottom: 8, flexWrap: 'wrap' }}>
+      <div className="row" style={{ marginBottom: 'var(--sp-4)', flexWrap: 'wrap' }}>
         <FeatureIcon id={feature.id} spec={spec} size={40} />
-        <h3 style={{ fontSize: 16 }}>
+        <h3 style={{ fontSize: 'var(--fs-lg)' }}>
           {feature.name}{spec ? ` (${specName(spec, feature)})` : ''}
         </h3>
         <span className={`badge ${feature.type === 'talent' ? 'purple' : 'blue'}`}>{feature.type.replace('-', ' ')}</span>
@@ -436,21 +436,21 @@ export function FeatureDetail({
       </div>
 
       {feature.hidden && (
-        <div className="notice warn" style={{ marginBottom: 10 }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-5)' }}>
           Hidden from the pickers: {feature.hiddenReason}. It stays in the data and becomes
           selectable if that content is added.
         </div>
       )}
 
       {feature.summaryOnly && (
-        <div className="notice" style={{ marginBottom: 10 }}>
+        <div className="notice" style={{ marginBottom: 'var(--sp-5)' }}>
           Condensed from the summary spreadsheets rather than the full rules text — check your
           sourcebook{feature.page ? ` (page ${feature.page})` : ''} for the complete wording.
         </div>
       )}
 
       {feature.incomplete && (
-        <div className="notice warn" style={{ marginBottom: 10 }}>
+        <div className="notice notice-warn" style={{ marginBottom: 'var(--sp-5)' }}>
           The rules data references this entry but never defines it. You can still select it —
           look the full text up in your sourcebook.
         </div>
@@ -464,7 +464,7 @@ export function FeatureDetail({
 
       {feature.prerequisites && (
         <p className="hint">
-          <span className="label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
+          <span className="prereq-label">Prerequisites:</span> {prerequisiteText(feature.prerequisites)}
         </p>
       )}
       {feature.unparsedPrerequisites?.length && (

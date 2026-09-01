@@ -148,12 +148,12 @@ export default function App() {
   return (
     <div className="app">
       <div className="topbar">
-        <div className="brand" onClick={() => setActiveId(null)}>
+        <div className="topbar-brand" onClick={() => setActiveId(null)}>
           ⬢ SWSE Character Sheet <small>Star Wars Saga Edition</small>
         </div>
         <div className="spacer" />
         {active && derived && (
-          <span className="hint row topbar-status" style={{ gap: 8 }}>
+          <span className="hint row topbar-status" style={{ gap: 'var(--sp-4)' }}>
             <Portrait portrait={active.portrait} name={active.name} size={26} />
             <span className="topbar-name">
               {active.name || 'Unnamed'} · level {derived.level}
@@ -172,7 +172,7 @@ export default function App() {
 
         <div className="topbar-menu" ref={menuRef}>
           <button
-            className="ghost burger"
+            className="ghost topbar-burger"
             aria-label="Menu"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
@@ -181,7 +181,7 @@ export default function App() {
             ☰
           </button>
           {menuOpen && (
-            <div className="menu-pop" role="menu">
+            <div className="topbar-menu-pop" role="menu">
               {topActions.map(a => (
                 <button key={a.label} role="menuitem" onClick={() => { setMenuOpen(false); a.run(); }}>
                   {a.label}
@@ -276,7 +276,7 @@ function CharacterList({
         {characters.length === 0 ? (
           <div className="empty">
             No characters yet.
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 'var(--sp-6)' }}>
               <button className="primary" onClick={onCreate}>Create your first character</button>
             </div>
           </div>
@@ -293,9 +293,9 @@ function CharacterList({
               return (
                 <div key={c.id} className="item">
                   <Portrait portrait={c.portrait} name={c.name} size={38} />
-                  <button className="clickable grow" style={{ background: 'none', border: 'none', padding: 0 }} onClick={() => onOpen(c.id)}>
-                    <div className="name">{c.name || 'Unnamed'}</div>
-                    <div className="meta">
+                  <button className="clickable grow" style={{ background: 'none', border: 'none', padding: '0' }} onClick={() => onOpen(c.id)}>
+                    <div className="item-name">{c.name || 'Unnamed'}</div>
+                    <div className="item-meta">
                       {c.speciesId ? SPECIES[c.speciesId]?.name : 'No species'}
                       {level > 0 ? ` · ${classes} · level ${level}` : ' · no levels'}
                     </div>
@@ -315,7 +315,7 @@ function CharacterList({
             app changes, so "which version were you on?" is the first question any lost-data
             report needs an answer to. It is here rather than in the header because this is
             the panel someone is already reading when they go looking. */}
-        <p className="hint" style={{ marginBottom: 10 }}>
+        <p className="hint" style={{ marginBottom: 'var(--sp-5)' }}>
           Version <strong>{APP_VERSION}</strong>
         </p>
         <p className="dim">
@@ -341,11 +341,11 @@ function CharacterList({
         </p>
 
         {DATA_REPAIRS.length > 0 && (
-          <details style={{ marginTop: 10 }}>
+          <details style={{ marginTop: 'var(--sp-5)' }}>
             <summary className="hint" style={{ cursor: 'pointer' }}>
               {DATA_REPAIRS.length} corrections applied to the source data
             </summary>
-            <ul className="hint" style={{ marginTop: 8, paddingLeft: 18, lineHeight: 1.8 }}>
+            <ul className="hint" style={{ marginTop: 'var(--sp-4)', paddingLeft: 18, lineHeight: 1.8 }}>
               {DATA_REPAIRS.map((r, i) => <li key={i}>{r}</li>)}
             </ul>
           </details>

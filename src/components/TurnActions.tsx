@@ -90,14 +90,14 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
 
   return (
     <div className="turn-actions">
-      <h3 style={{ margin: '12px 0 6px' }}>Actions in combat</h3>
-      <p className="hint" style={{ margin: '0 0 8px' }}>
+      <h3 style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>Actions in combat</h3>
+      <p className="hint" style={{ margin: '0 0 var(--sp-4)' }}>
         What a turn holds, as the book has it. None of this depends on your character.
       </p>
       {/* Wrapping, not a `.seg`: six labels run past the width of a phone, and `.seg` hides
           its overflow rather than scrolling it, so the last two would be invisible and
           untappable rather than merely cramped. The modifiers strip above does the same. */}
-      <div className="row" style={{ flexWrap: 'wrap', gap: 5 }}>
+      <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         {KINDS.map(k => {
           const count = actionsOf(k.id).length;
           return (
@@ -135,7 +135,7 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
               resting `.primary` style is what "on" looks like and its only hover rule is
               already inside `@media (hover: hover)`, so a hover latched by a tap cannot
               leave a second button looking chosen. */}
-          <div className="row" style={{ flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+          <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-3)', marginBottom: 'var(--sp-6)' }}>
             {KINDS.map(k => (
               <button
                 key={k.id}
@@ -158,8 +158,8 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
             <RulesText lines={TURN} />
           </div>
 
-          <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-            <h3 className="tone-accent" style={{ fontSize: 16 }}>{kind.name}</h3>
+          <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-3)' }}>
+            <h3 className="text-tone-accent" style={{ fontSize: 'var(--fs-lg)' }}>{kind.name}</h3>
             <span className="badge accent">{cite(kind.page)}</span>
           </div>
           <RulesText lines={kind.description} />
@@ -169,12 +169,12 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
               same grey stack. Set once here and inherited. */}
           <div
             className="col"
-            style={{ gap: 8, marginTop: 10, '--cost': kind.cost } as CSSProperties}
+            style={{ gap: 'var(--sp-4)', marginTop: 'var(--sp-5)', '--cost': kind.cost } as CSSProperties}
           >
             {actionsOf(kind.id).map(a => (
               <div key={a.id} className="turn-action">
-                <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                  <span className="name grow">{a.name}</span>
+                <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
+                  <span className="turn-action-name grow">{a.name}</span>
                   {/* An action the book files under two headings says so, rather than reading
                       as a duplicate of one already met under the other. */}
                   {a.kinds.filter(k => k !== kind.id).map(k => (
