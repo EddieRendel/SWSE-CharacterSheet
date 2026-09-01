@@ -526,6 +526,25 @@ input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accen
   color: var(--text-faint); margin-bottom: var(--sp-2); font-weight: 600;
 }
 
+/* ================= the shared vocabulary =====================================
+   Everything below this point to the modal section is deliberately unprefixed, and a class
+   earns that only if one of these is true:
+
+     1. it is a whole page's frame — .app, .content, .wrap;
+     2. it is a shape used across unrelated sections — .badge, .chip, .item, .stat, .notice;
+     3. it is an adjective composed onto one of those — .selected, .trained, .worn, .on.
+
+   Anything else is named for the section that owns it: sheet-frame, topbar-brand,
+   attack-roll-key, species-mod-value. The test is whether you could move the rule to
+   another part of the app and have it still mean the same thing. `.value` failed that test
+   in about five places at once, which is why it is gone.
+
+   A section class reads <section>-<thing>, hyphenated, and restates enough of the path that
+   you can find the markup from the name. States stay bare and get composed onto it, so
+   `.ctrack-step.here` rather than `.ctrack-step-here` — the state word is reusable, the
+   element name is not.
+   ---------------------------------------------------------------------------- */
+
 /* ---------- pieces ---------- */
 .badge {
   display: inline-block; padding: var(--sp-1) var(--sp-4); border-radius: var(--radius-pill);

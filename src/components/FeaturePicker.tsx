@@ -465,7 +465,7 @@ export function FeatureBrowser({ onClose }: { onClose: () => void }) {
       )}
       <div className="split">
         <div className="options">
-          <div className="hint" style={{ padding: '0 4px 6px' }}>{list.length} entries</div>
+          <div className="hint" style={{ padding: '0 var(--sp-2) var(--sp-3)' }}>{list.length} entries</div>
           {list.map(f => (
             <button
               key={f.id}

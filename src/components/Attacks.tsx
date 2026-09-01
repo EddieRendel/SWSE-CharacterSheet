@@ -270,7 +270,7 @@ export function Attacks({
 
       {powers.length > 0 && (
         <>
-          <div className="row" style={{ margin: '12px 0 6px' }}>
+          <div className="row" style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>
             <h3>Force powers</h3>
             <div className="spacer" />
             {anySpent && (
@@ -335,7 +335,7 @@ export function Attacks({
 
       {fpAbilities.length > 0 && (
         <>
-          <h3 style={{ margin: '12px 0 6px' }}>
+          <h3 style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>
             Spends a Force Point <span className="faint">({fpAbilities.length})</span>
           </h3>
           <div className="chips">

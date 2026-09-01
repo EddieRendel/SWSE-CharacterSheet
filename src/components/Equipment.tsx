@@ -158,7 +158,7 @@ export function Equipment({
             <span className="row" style={{ gap: 'var(--sp-2)' }} title="Credits on hand">
               <button className="sm ghost" onClick={() => spendCredits(-100)} disabled={char.credits <= 0}>−100</button>
               <input
-                className="mono center" style={{ width: 88, padding: '2px 4px' }}
+                className="mono center" style={{ width: 88, padding: 'var(--sp-1) var(--sp-2)' }}
                 value={char.credits}
                 onChange={e => update(c => { c.credits = Math.max(0, parseInt(e.target.value, 10) || 0); })}
               />
@@ -297,7 +297,7 @@ export function Equipment({
                             {cat === 'gear' && (
                               <input
                                 className="mono center"
-                                style={{ width: 50, padding: '2px 4px' }}
+                                style={{ width: 50, padding: 'var(--sp-1) var(--sp-2)' }}
                                 value={entry.quantity}
                                 onChange={e => setQty(entry.uid, parseInt(e.target.value, 10))}
                               />
@@ -701,7 +701,7 @@ function ItemEditor({
 
       <ItemStatFields draft={draft} set={set} allowCategory={custom} />
 
-      <div className="row" style={{ margin: '16px 0 6px' }}>
+      <div className="row" style={{ margin: 'var(--sp-7) 0 var(--sp-3)' }}>
         <h3>Modifications</h3>
         <div className="spacer" />
         <button className="sm" onClick={() => setUpgrades(u => [...u, { id: uid(), name: '' }])}>

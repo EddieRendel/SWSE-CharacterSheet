@@ -587,7 +587,7 @@ export function Sheet({
                       Combined feats <span className="faint">({derived.combos.length})</span>
                       <span className="rule" />
                     </h3>
-                    <p className="hint" style={{ margin: '0 0 8px' }}>
+                    <p className="hint" style={{ margin: '0 0 var(--sp-4)' }}>
                       On because you hold both feats. They cost no slot and were never chosen —
                       change either feat and its Combined Feat goes with it.
                     </p>

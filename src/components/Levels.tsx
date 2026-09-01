@@ -100,7 +100,7 @@ export function Levels({
                           <div className="row" style={{ justifyContent: 'flex-end', gap: 'var(--sp-3)' }}>
                             <input
                               className="mono center"
-                              style={{ width: 56, padding: '2px 4px' }}
+                              style={{ width: 56, padding: 'var(--sp-1) var(--sp-2)' }}
                               value={entry.hitPoints ?? ''}
                               onChange={e => setHp(i, parseInt(e.target.value, 10))}
                             />
@@ -180,11 +180,11 @@ function ClassPicker({
     >
       <div className="split">
         <div className="options">
-          <div className="hint" style={{ padding: '0 4px 6px' }}>Base classes</div>
+          <div className="hint" style={{ padding: '0 var(--sp-2) var(--sp-3)' }}>Base classes</div>
           {entries.filter(e => !e.cls.prestige).map(e => (
             <ClassOption key={e.cls.id} e={e} selected={selected} setSelected={setSelected} />
           ))}
-          <div className="hint" style={{ padding: '10px 4px 6px' }}>Prestige classes</div>
+          <div className="hint" style={{ padding: 'var(--sp-5) var(--sp-2) var(--sp-3)' }}>Prestige classes</div>
           {entries.filter(e => e.cls.prestige).map(e => (
             <ClassOption key={e.cls.id} e={e} selected={selected} setSelected={setSelected} />
           ))}

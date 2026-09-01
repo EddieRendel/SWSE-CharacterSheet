@@ -79,7 +79,7 @@ export function Abilities({
                   <button className="sm" onClick={() => setBase(a, base - 1)} disabled={base <= 1}>−</button>
                   <input
                     className="mono center"
-                    style={{ width: 52, padding: '3px 4px' }}
+                    style={{ width: 52, padding: 'var(--sp-2) var(--sp-2)' }}
                     value={base}
                     onChange={e => setBase(a, parseInt(e.target.value, 10))}
                   />

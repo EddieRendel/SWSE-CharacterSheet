@@ -90,8 +90,8 @@ export function TurnActions({ char, derived }: { char: Character; derived: Deriv
 
   return (
     <div className="turn-actions">
-      <h3 style={{ margin: '12px 0 6px' }}>Actions in combat</h3>
-      <p className="hint" style={{ margin: '0 0 8px' }}>
+      <h3 style={{ margin: 'var(--sp-6) 0 var(--sp-3)' }}>Actions in combat</h3>
+      <p className="hint" style={{ margin: '0 0 var(--sp-4)' }}>
         What a turn holds, as the book has it. None of this depends on your character.
       </p>
       {/* Wrapping, not a `.seg`: six labels run past the width of a phone, and `.seg` hides
