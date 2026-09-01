@@ -1,4 +1,36 @@
 /**
+ * Inter, self-hosted. The stylesheet had named it in the body stack since the beginning but
+ * nothing ever loaded it, so every machine without a local copy — which is most of them —
+ * has been rendering the app in whatever system-ui resolves to, a different face per OS from
+ * the one it was designed against.
+ *
+ * One variable file per subset rather than one per weight: the app uses 400, 500, 600 and 700
+ * and this covers the range in 48K. latin-ext carries the accented characters a player name
+ * might want and is only fetched if the page actually uses one. Imported from src/ rather
+ * than public/ so Vite fingerprints them and resolves the base path, which is not / here.
+ */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./assets/fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/**
  * Every colour in the app, in one place, so a theme is a block that redefines some of these
  * and nothing else. Nothing below this block should hold a literal colour — the exception is
  * `@media print`, which is deliberately fixed: paper is white whatever theme you are wearing.
@@ -898,8 +930,13 @@ button.linklike:hover { color: var(--accent); background: none; }
 button.linklike.block { display: block; width: 100%; }
 
 /* ---------- compact attack rows ---------- */
+/* An attack leads with the roll, because that is what you reach for first. The damage is
+   the consequence, so it sits below at reading size. The left edge says which kind of thing
+   the row is without spending a word on it. */
 .attack-row {
+  display: flex; align-items: center; gap: var(--sp-6);
   background: var(--bg-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--border-2);
   border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5);
 }
 .attack-row:hover { border-color: var(--border-2); }
@@ -1482,10 +1519,6 @@ button.linklike.block { display: block; width: 100%; }
   color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-3);
 }
 
-/* An attack leads with the roll, because that is what you reach for first. The damage is
-   the consequence, so it sits below at reading size. The left edge says which kind of thing
-   the row is without spending a word on it. */
-.attack-row { display: flex; align-items: center; gap: var(--sp-6); border-left: 3px solid var(--border-2); }
 .attack-row.melee { border-left-color: var(--sheet-accent); }
 .attack-row.ranged { border-left-color: var(--blue); }
 /* Green, with the Force powers everywhere else on the sheet. */

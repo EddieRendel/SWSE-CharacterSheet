@@ -1,0 +1,29 @@
+{
+  "//": [
+    "The guard this file exists for is the naming convention — see the shared-vocabulary block at the top of the pieces section in src/index.css.",
+    "stylelint-config-standard's formatting opinions are deliberately not adopted: index.css sets compact one-line rules on purpose, and reformatting ~1700 lines to one declaration each would cost its readability and gain nothing.",
+    "declaration-block-no-duplicate-properties allows consecutive duplicates with different values, because `height: 100%; height: 100dvh` and the min(88vh)/min(88dvh) pairs are deliberate fallbacks for engines without dvh. Collapsing them would silently drop the fallback."
+  ],
+  "rules": {
+    "selector-class-pattern": [
+      "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+      { "message": "Class names are kebab-case: either a shared shape (badge, row, chip) or <section>-<thing> (sheet-frame, attack-roll-key). See the shared-vocabulary block in index.css." }
+    ],
+    "custom-property-pattern": [
+      "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+      { "message": "Custom properties are kebab-case (--sp-4, --fs-num-lg, --sheet-accent-rgb)" }
+    ],
+    "keyframes-name-pattern": [
+      "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+      { "message": "Keyframe names are kebab-case" }
+    ],
+    "no-duplicate-selectors": true,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      { "ignore": ["consecutive-duplicates-with-different-values"] }
+    ],
+    "block-no-empty": true,
+    "no-invalid-position-at-import-rule": true,
+    "no-descending-specificity": null
+  }
+}
