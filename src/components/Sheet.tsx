@@ -371,7 +371,7 @@ export function Sheet({
       </section>
 
       {/* Tier two: what the galaxy rolls against. A set, framed as a set. */}
-      <section className="frame lit-blue">
+      <section className="frame">
         <div className="frame-body defenses">
           <DefCell
             label="Reflex" title="Reflex Defense" value={derived.defenses.reflex}
