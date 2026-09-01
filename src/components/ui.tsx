@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { Character, FeatCombo, Feature, FeatureRef, ResolvedItem } from '../types';
 import { BOOK_NAMES, CLASSES, specName, featureName, featureIcon, portraitUrl, classIcon, combosForFeature } from '../data';
 import { combosForFeatureState, isSameHalf } from '../rules/engine';
@@ -227,6 +227,37 @@ export function Modal({
   const [pulled, setPulled] = useState(0);
   const pullFrom = useRef<{ y: number; at: number } | null>(null);
 
+  const pull = {
+    onPointerDown: (e: ReactPointerEvent) => {
+      // Only a finger pulls the sheet down. Asked of the event rather than the device: a
+      // tablet with a mouse plugged in still reports `(pointer: coarse)`, and dragging across
+      // a header to select its title should not throw the dialog away.
+      if (e.pointerType !== 'touch') return;
+      // Nor from the close button or anything else in the header with a job of its own.
+      if ((e.target as HTMLElement).closest('button')) return;
+      pullFrom.current = { y: e.clientY, at: performance.now() };
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    },
+    onPointerMove: (e: ReactPointerEvent) => {
+      if (pullFrom.current) setPulled(Math.max(0, e.clientY - pullFrom.current.y));
+    },
+    onPointerUp: (e: ReactPointerEvent) => {
+      const from = pullFrom.current;
+      pullFrom.current = null;
+      if (!from) return;
+      const dy = Math.max(0, e.clientY - from.y);
+      const speed = dy / Math.max(1, performance.now() - from.at);
+      const height = dialog.current?.getBoundingClientRect().height ?? 0;
+      // Far enough, or thrown hard enough having gone at least some way. Speed alone would
+      // let a twitch — a few pixels in a few milliseconds — read as a fling and drop the
+      // dialog out from under the player.
+      const flicked = speed > DISMISS_SPEED && dy > DISMISS_MIN_FLICK;
+      if (dy > height * DISMISS_FRACTION || flicked) onClose();
+      else setPulled(0);
+    },
+    onPointerCancel: () => { pullFrom.current = null; setPulled(0); },
+  };
+
   useEffect(() => {
     // Only when nothing inside has claimed focus already: on a pointer device the pickers
     // autofocus their search field, and stealing that back would undo it. See pointer.ts.
@@ -294,35 +325,13 @@ export function Modal({
           }
         }}
       >
-        {/* The grab handle. Shown only where the dialog is a bottom sheet — see index.css;
-            above that breakpoint it is display:none and takes no pointer events. */}
-        <div
-          className="modal-grab"
-          aria-hidden="true"
-          onPointerDown={e => {
-            pullFrom.current = { y: e.clientY, at: performance.now() };
-            e.currentTarget.setPointerCapture(e.pointerId);
-          }}
-          onPointerMove={e => {
-            if (pullFrom.current) setPulled(Math.max(0, e.clientY - pullFrom.current.y));
-          }}
-          onPointerUp={e => {
-            const from = pullFrom.current;
-            pullFrom.current = null;
-            if (!from) return;
-            const dy = Math.max(0, e.clientY - from.y);
-            const speed = dy / Math.max(1, performance.now() - from.at);
-            const height = dialog.current?.getBoundingClientRect().height ?? 0;
-            // Far enough, or thrown hard enough having gone at least some way. Speed alone
-            // would let a twitch on the handle — a few pixels in a few milliseconds — read
-            // as a fling and drop the dialog out from under the player.
-            const flicked = speed > DISMISS_SPEED && dy > DISMISS_MIN_FLICK;
-            if (dy > height * DISMISS_FRACTION || flicked) onClose();
-            else setPulled(0);
-          }}
-          onPointerCancel={() => { pullFrom.current = null; setPulled(0); }}
-        />
-        <header>
+        {/* The grab handle, and the header beside it, both pull the sheet down: a 20px bar
+            is a thin thing to find with a thumb, and a drag that started anywhere else fell
+            through to the browser, which took it for a pull-to-refresh and reloaded the page.
+            Shown only where the dialog is a bottom sheet — see index.css; above that
+            breakpoint the handle is display:none and takes no pointer events at all. */}
+        <div className="modal-grab" aria-hidden="true" {...pull} />
+        <header {...pull}>
           <h2 id={titleId} style={{ fontSize: 'var(--fs-md)' }}>{title}</h2>
           <div className="spacer" />
           <button className="ghost" aria-label="Close" onClick={onClose}>✕</button>

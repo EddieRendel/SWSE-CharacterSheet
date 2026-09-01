@@ -120,7 +120,7 @@ export function Abilities({
               return (
                 <div key={level} className="item">
                   <span className="badge accent nowrap">Level {level}</span>
-                  <div className="grow row" style={{ flexWrap: 'wrap' }}>
+                  <div className="grow row abil-choices">
                     {ABILITY_IDS.map(a => (
                       <button
                         key={a}

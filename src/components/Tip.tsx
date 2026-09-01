@@ -5,6 +5,7 @@ import type { Feature, ResolvedItem } from '../types';
 import { FEATURES, BOOK_NAMES, featureName } from '../data';
 import { signed } from '../rules/engine';
 import { focusIsBeingRestored, useDismissLayer } from '../dismiss';
+
 import { descriptorsOf, itemStatRows, talentSources, upgradeEffects } from './labels';
 
 const GAP = 8;
@@ -30,6 +31,17 @@ export function Tip({
   const [placement, setPlacement] = useState<Placement>('bottom');
   const anchor = useRef<HTMLSpanElement>(null);
   const card = useRef<HTMLDivElement>(null);
+
+  /** Whether the tap that reached this anchor had a job of its own to do. */
+  const wrapsControl = () =>
+    !!anchor.current?.querySelector('button, a[href], input, select, textarea');
+
+  // What kind of thing produced the press we are in the middle of. `(pointer: coarse)`
+  // cannot answer this: it describes the primary pointing device, not the one that sent the
+  // event. A laptop with a touchscreen is `fine`, so a tap on it would be taken for a mouse;
+  // a tablet with a mouse plugged in is `coarse`, so the mouse would be taken for a finger.
+  // Cleared on blur, so a tap does not go on colouring a later keyboard visit.
+  const pressedWith = useRef<string | null>(null);
 
   // Measure the card, then try each side in turn and take the first it fits on whole.
   // A tall card hovered from the middle of the page has no room above or below, so it
@@ -70,19 +82,45 @@ export function Tip({
     const sideways = Math.max(room.right, room.left) >= c.width * 0.8;
     if (sideways) {
       const p: Placement = room.right >= room.left ? 'right' : 'left';
+      // Beside the anchor, but never wider than the room it is going into. The test above
+      // accepts a side with 80% of the width, so on a narrow screen the last fifth of a card
+      // used to hang off the edge — clipped by `overflow: hidden` into a card with its text
+      // cut down the middle, which is worse than a card that is simply narrower.
+      const width = Math.min(c.width, room[p]);
       setPlacement(p);
-      setStyle({ ...spots[p], top: GAP, maxHeight: vh - GAP * 2, opacity: 1 });
+      setStyle({
+        left: p === 'right' ? a.right + GAP : Math.max(GAP, a.left - width - GAP),
+        top: GAP,
+        maxWidth: width,
+        maxHeight: vh - GAP * 2,
+        opacity: 1,
+      });
     } else {
       const p: Placement = room.bottom >= room.top ? 'bottom' : 'top';
       setPlacement(p);
       setStyle({
         left: centredX(),
         top: p === 'bottom' ? a.bottom + GAP : GAP,
+        maxWidth: vw - GAP * 2,
         maxHeight: Math.max(room[p], 120),
         opacity: 1,
       });
     }
   }, [open, content]);
+
+  // A card opened by tapping a bare anchor has no blur to close it — a span cannot hold
+  // focus — so the next press anywhere outside does. Not gated on the kind of device: a
+  // press outside is a fair reason to put the card away whatever sent it, and a hovered card
+  // comes straight back when the pointer re-enters. Capture, so a handler inside cannot
+  // swallow it first.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!anchor.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [open]);
 
   // A tooltip pinned to a stale position is worse than none, so dismiss on any move.
   useLayoutEffect(() => {
@@ -109,12 +147,32 @@ export function Tip({
       <span
         ref={anchor}
         className={`tip-anchor${className ? ` ${className}` : ''}`}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => { setOpen(false); setStyle(HIDDEN); }}
-        // Focus is the keyboard's way of asking for the card, but not when it is only
-        // being handed back by a dialog that closed — see `restoreFocus` in dismiss.ts.
-        onFocus={() => { if (!focusIsBeingRestored()) setOpen(true); }}
-        onBlur={() => setOpen(false)}
+        // Pointer events rather than mouse ones, because these carry `pointerType` and the
+        // mouse pair does not. A tap emits an emulated enter on its way to its click, and
+        // acting on that would open the card and let the click toggle it straight back shut.
+        // Hover is for what really hovers; touch is driven from the tap alone, below.
+        onPointerEnter={e => { if (e.pointerType !== 'touch') setOpen(true); }}
+        onPointerLeave={e => { if (e.pointerType !== 'touch') { setOpen(false); setStyle(HIDDEN); } }}
+        onPointerDown={e => { pressedWith.current = e.pointerType; }}
+        // Focus is the keyboard's way of asking for the card, and three things it is not:
+        // focus handed back by a dialog that closed (see `restoreFocus` in dismiss.ts), the
+        // by-product of a tap landing on a control, and the by-product of a mouse click,
+        // which has hover for this already. `:focus-visible` is the browser's own answer to
+        // "was this asked for by keyboard", and the press check backs it up on engines that
+        // set it more freely after a tap.
+        onFocus={e => {
+          if (focusIsBeingRestored()) return;
+          if (pressedWith.current === 'touch') return;
+          if (!e.target.matches(':focus-visible')) return;
+          setOpen(true);
+        }}
+        // An anchor with no control in it has no other job, so a tap on it is the only way to
+        // ask for the working behind a number — and a span cannot take focus to ask with.
+        // Tapping it again, or anywhere else, puts it away.
+        onClick={() => {
+          if (pressedWith.current === 'touch' && !wrapsControl()) setOpen(o => !o);
+        }}
+        onBlur={() => { setOpen(false); pressedWith.current = null; }}
       >
         {children}
       </span>
