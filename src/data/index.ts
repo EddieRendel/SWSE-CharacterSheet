@@ -1,6 +1,6 @@
 import type {
   Feature, TalentTree, CharacterClass, Species, Skill, EquipmentItem, AbilityId, FeatureRef,
-  DroidSystem, DroidDegree, DroidSize, FeatCombo,
+  DroidSystem, DroidDegree, DroidSize, FeatCombo, TurnAction, TurnActionKind,
 } from '../types';
 
 import featuresJson from './features.json';
@@ -181,6 +181,20 @@ export const RULES = rulesJson as unknown as {
     sizeMultiplier: Record<string, number>;
     heavyLoadPenalty: number;
     heavyLoadSkills: string[];
+  };
+  /**
+   * What anyone gets to do in a turn, for the reference the Actions tab opens.
+   *
+   * `book` is stated once for the block: every word of it is one chapter of one book, and
+   * repeating the citation on twenty entries would be noise. The page still rides on each,
+   * which is what makes a quotation checkable without the book in hand.
+   */
+  actions: {
+    book: string;
+    /** How a turn is spent, which is true whichever kind you are reading. */
+    description: string[];
+    kinds: TurnActionKind[];
+    list: TurnAction[];
   };
 };
 

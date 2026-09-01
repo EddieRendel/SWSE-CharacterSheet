@@ -101,6 +101,55 @@ console.log('\n▸ Wookiee species modifiers');
 }
 
 // ---------------------------------------------------------------------------
+console.log('\n▸ Species traits are gathered for the sheet');
+// ---------------------------------------------------------------------------
+{
+  // A Wookiee Jedi: every Wookiee trait is one, and the specialization each was granted
+  // with rides along — Weapon Familiarity is for the bowcaster and reads that way on the sheet.
+  const wookieeJedi = make(x => {
+    x.speciesId = 'wookiee';
+    x.levels = [{ classId: 'jedi' }];
+  });
+  const dW = computeCharacter(wookieeJedi);
+  check('Wookiee traits', dW.speciesTraits.map(t => t.spec ? `${t.id}:${t.spec}` : t.id),
+    ['expert-climber', 'extraordinary-recuperation', 'fearsome-reputation', 'rage',
+      'weapon-familiarity-rifles:bowcaster']);
+  // Jedi 1 grants the Lightsaber trait as a class feature. It is a `trait` like the ones
+  // above, so a list picked by feature type rather than by the slot that granted it would
+  // have swept it up — it is not something the species did.
+  check('a class feature is not a species trait',
+    [dW.features.some(f => f.id === 'lightsaber'), dW.speciesTraits.some(t => t.id === 'lightsaber')],
+    [true, false]);
+
+  // Trandoshans get Toughness, which is a feat. It belongs under Feats on the sheet and
+  // must not also be listed as a trait, or a character holds one thing in two places.
+  const trandoshan = make(x => {
+    x.speciesId = 'trandoshan';
+    x.levels = [{ classId: 'soldier' }];
+  });
+  const dT = computeCharacter(trandoshan);
+  check('a species-granted feat stays a feat',
+    [dT.feats.some(f => f.id === 'toughness'), dT.speciesTraits.some(t => t.id === 'toughness')],
+    [true, false]);
+
+  // A Near-Human's chosen trait and cosmetic variations come through species-trait slots
+  // of their own, so they belong here with the rest.
+  const nearHuman = make(x => {
+    x.speciesId = 'near-human';
+    x.levels = [{ classId: 'soldier' }];
+    x.nearHuman = { trait: NEAR_HUMAN.mechanical[0], sacrifice: 'feat', cosmetic: [NEAR_HUMAN.cosmetic[0]] };
+  });
+  const dN = computeCharacter(nearHuman);
+  check('a Near-Human\'s chosen and cosmetic traits are species traits',
+    dN.speciesTraits.map(t => t.id),
+    [NEAR_HUMAN.mechanical[0], NEAR_HUMAN.cosmetic[0]]);
+
+  // A Human has none at all, and an empty list is what the sheet drops the group on.
+  check('a Human has no species traits',
+    computeCharacter(make(x => { x.speciesId = 'human'; x.levels = [{ classId: 'soldier' }]; })).speciesTraits.length, 0);
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n▸ Multiclass: Jedi 7 / Jedi Knight 3');
 // ---------------------------------------------------------------------------
 {
@@ -3601,6 +3650,95 @@ console.log('\n▸ Combined Feats');
   check('nor the wrong group',
     completesACombo(qd, 'weapon-proficiency', 'pistols', qdD.features), false);
   check('but lightsabers is', completesACombo(qd, 'weapon-proficiency', 'lightsabers', qdD.features), true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Actions in combat');
+// ---------------------------------------------------------------------------
+{
+  // rules.json reaches the app through an `as unknown as` cast, so the compiler checks none
+  // of this: a misspelt key is `undefined` at runtime and a clean build. These assertions are
+  // the only guard on the block, not a second one.
+  const { book, description: turn, kinds, list } = RULES.actions;
+  const kindIds = new Set(kinds.map(k => k.id));
+  const every = [{ id: 'the turn itself', description: turn }, ...kinds, ...list];
+
+  check('the six kinds, in the order the buttons take from them',
+    kinds.map(k => k.id),
+    ['standard', 'move', 'swift', 'full-round', 'free', 'reaction']);
+  check('every action carries its rules text',
+    list.filter(a => !a.description?.length).map(a => a.id), []);
+  check('every action names at least one kind',
+    list.filter(a => !a.kinds?.length).map(a => a.id), []);
+  // A kind that does not exist is an action no button can ever reach.
+  check('and every kind it names is one of the six',
+    list.flatMap(a => a.kinds).filter(k => !kindIds.has(k)), []);
+  check('no action lists one kind twice',
+    list.filter(a => new Set(a.kinds).size !== a.kinds.length).map(a => a.id), []);
+  // Both arrays render with the id as the React key.
+  check('no two actions share an id',
+    list.map(a => a.id).filter((id, i, all) => all.indexOf(id) !== i), []);
+  check('and no kind id collides with an action id',
+    kinds.map(k => k.id).filter(id => list.some(a => a.id === id)), []);
+
+  // The question this is on the sheet to answer is how much a turn holds, so the framing is
+  // not optional on any kind: an entry list says what a Standard Action can be and never that
+  // you get one, alongside a move and a swift. An earlier form of this check passed a kind
+  // that had entries *or* text, which is how four of them shipped with no framing at all.
+  check('every kind says how much of it a turn holds',
+    kinds.filter(k => !k.description.length).map(k => k.id), []);
+  check('and the turn states its own allowance and trades once, above them',
+    turn.length > 0, true);
+  // Free Actions and Reactions have no entries — the book describes the kind and stops — so
+  // an empty list is only allowed where the kind's own text carries the whole rule.
+  check('a kind with no entries is one whose text stands alone',
+    kinds.filter(k => !list.some(a => a.kinds.includes(k.id))).map(k => k.id), ['free', 'reaction']);
+
+  check('the book they are quoted from is one the app can name', BOOK_NAMES[book] !== undefined, true);
+
+  // `cost` drives the one colour the palette leaves free, at a strength per kind. Out of
+  // range it either washes out to invisible or overshoots the accent it is tinting with.
+  check('every kind says what share of a turn it spends',
+    kinds.filter(k => !Number.isInteger(k.cost) || k.cost < 0 || k.cost > 4).map(k => k.id), []);
+  check('and the ladder runs from the whole turn down to none of it',
+    kinds.map(k => `${k.id}:${k.cost}`),
+    ['standard:3', 'move:2', 'swift:1', 'full-round:4', 'free:0', 'reaction:0']);
+
+  // rules.json is the single definition of the size modifiers, so Grapple's table is named
+  // rather than transcribed a second time under it — and the name has to resolve.
+  check('a named size-modifier table is one this file defines',
+    list.map(a => a.sizeModifiers).filter((id): id is string => !!id)
+      .filter(id => !(id in RULES.sizeModifiers)), []);
+  check('and Grapple names it rather than restating the nine numbers',
+    list.find(a => a.id === 'grapple')?.sizeModifiers, 'grapple');
+  // The prose must not quietly grow its own copy back: the entry says the modifiers "are as
+  // follows" and then leaves off, with the table coming from sizeModifiers.grapple.
+  check('and its text carries no size table of its own',
+    list.find(a => a.id === 'grapple')!.description.filter(l => /Colossal|Gargantuan/.test(l)), []);
+
+  // The feats and talents an entry names are ids, so they open the real rules dialog. An id
+  // that does not resolve is a chip that renders nothing and says nothing about why.
+  check('every feature an action names is one the app has',
+    list.flatMap(a => a.features ?? []).filter(id => !FEATURES[id]), []);
+  check('and none is listed twice under one action',
+    list.filter(a => a.features && new Set(a.features).size !== a.features.length).map(a => a.id), []);
+  // Only feats and talents are named in this text; a trait or a Force power here would mean a
+  // transcription pointed at the wrong id — `martial-arts-i` and `martial-arts-i-trait` differ
+  // by a suffix, and the trait is a species entry that no character chooses.
+  check('and every one is a feat or a talent',
+    list.flatMap(a => a.features ?? []).filter(id => FEATURES[id]
+      && FEATURES[id].type !== 'feat' && FEATURES[id].type !== 'talent'), []);
+
+  // RulesText hands each line to dangerouslySetInnerHTML. This is the first data in the repo
+  // typed straight into that path rather than arriving through the importer: the sources use
+  // <strong> and <em> and nothing else, and anything further shows as literal markup.
+  const MARKUP = /<(?!\/?(strong|em)>)[^>]*>/;
+  check('the text uses only the inline markup the renderer supports',
+    every.filter(e => e.description.some(l => MARKUP.test(l))).map(e => e.id), []);
+  // One paragraph per string. A stray newline from a paste runs two of them into one <p>,
+  // which reads as a single wall and loses the break the book put there.
+  check('each paragraph is its own string, trimmed',
+    every.filter(e => e.description.some(l => /[\r\n]/.test(l) || l.trim() !== l)).map(e => e.id), []);
 }
 
 // ---------------------------------------------------------------------------

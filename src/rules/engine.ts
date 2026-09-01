@@ -453,6 +453,14 @@ export interface Derived {
   trainedSkillsAllowed: number;
   classSkills: Set<string>;
   features: FeatureRef[];
+  /**
+   * The traits your species is born with. Read off the slots that granted them rather than
+   * by feature type, because a class feature is a `trait` too — and narrowed to that type
+   * again, because a handful of species hand over a feat or a talent (a Trandoshan's
+   * Toughness, a Zabrak's Heightened Awareness) which belongs under Feats or Talents and
+   * would otherwise be listed twice.
+   */
+  speciesTraits: FeatureRef[];
   feats: FeatureRef[];
   talents: FeatureRef[];
   forcePowers: FeatureRef[];
@@ -586,6 +594,12 @@ export function computeCharacter(char: Character): Derived {
 
   const featureOf = (r: FeatureRef): Feature | undefined => FEATURES[r.id];
   const ofType = (t: Feature['type']) => features.filter(r => featureOf(r)?.type === t);
+
+  // A Near-Human's chosen trait and cosmetic variations are granted through species-trait
+  // slots of their own, so they are gathered here with the rest of them.
+  const speciesTraits = resolveSlotRefs(char, slots)
+    .filter(r => r.slot.kind === 'species-trait' && featureOf(r.ref)?.type === 'trait')
+    .map(r => r.ref);
 
   // ---- class levels ----
   const counts: Record<string, number> = {};
@@ -869,6 +883,7 @@ export function computeCharacter(char: Character): Derived {
     forcePoints, destinyPoints: char.destinyPoints,
     skills, trainedSkillsAllowed, classSkills,
     features,
+    speciesTraits,
     feats: ofType('feat'),
     talents: ofType('talent'),
     forcePowers: ofType('force-power'),

@@ -10,6 +10,7 @@ import {
 import type { AttackOptions, AttackProfile } from '../rules/attacks';
 import { Panel, Modal, ItemDetail } from './ui';
 import { Tip, FeatureTip, FeatureTipBody, ItemTipBody, TipRows } from './Tip';
+import { TurnActions } from './TurnActions';
 import { FEATURES } from '../data';
 
 /** A toggle is only shown when the character actually has the feat behind it. */
@@ -347,6 +348,10 @@ export function Attacks({
         </>
       )}
 
+      {/* Last: everything above is what this character can do, and this is what anyone gets
+          in a turn. The character rides along only so a feat opened from an entry is read
+          against them. */}
+      <TurnActions char={char} derived={derived} />
     </>
   );
 
