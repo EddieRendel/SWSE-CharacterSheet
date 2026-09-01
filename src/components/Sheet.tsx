@@ -595,7 +595,7 @@ export function Sheet({
                       {derived.combos.map(combo => (
                         <div key={combo.id} className="combo on">
                           <div className="row" style={{ gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-2)' }}>
-                            <span className="name grow">{combo.name}</span>
+                            <span className="combo-name grow">{combo.name}</span>
                             {combo.sources.map(source => (
                               <span key={source.book} className="badge">
                                 {BOOK_NAMES[source.book] ?? source.book}

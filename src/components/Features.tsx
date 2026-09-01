@@ -184,7 +184,7 @@ export function Features({
                           </button>
                         ) : (
                           <>
-                            <div className="name warn">Choose a {KIND_LABEL[slot.kind]?.toLowerCase() ?? slot.kind}</div>
+                            <div className="item-name warn">Choose a {KIND_LABEL[slot.kind]?.toLowerCase() ?? slot.kind}</div>
                             <div className="item-meta">{slot.label}</div>
                           </>
                         )}

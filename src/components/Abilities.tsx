@@ -71,7 +71,7 @@ export function Abilities({
               <div key={a} className="stat" style={{ padding: 'var(--sp-6)' }}>
                 <div className="stat-label">{RULES.abilities[a].name}</div>
                 <div className="stat-value" style={{ color: 'var(--accent)' }}>{total}</div>
-                <div className="sub mono" style={{ fontSize: 'var(--fs-md)', color: 'var(--text)' }}>
+                <div className="mono" style={{ fontSize: 'var(--fs-md)', color: 'var(--text)' }}>
                   {signed(abilityMod(total))}
                 </div>
 

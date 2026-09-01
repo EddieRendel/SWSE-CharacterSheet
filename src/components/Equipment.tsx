@@ -275,10 +275,10 @@ export function Equipment({
                             {item.modified && !item.custom && (
                               <span className="badge green" style={{ marginLeft: 'var(--sp-3)' }}>modified</span>
                             )}
-                            {item.group && <div className="meta faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}{item.thrown ? ' · thrown' : ''}</div>}
-                            {item.armorType && <div className="meta faint">{item.armorType} armor</div>}
+                            {item.group && <div className="faint">{WEAPON_GROUPS[item.group] ?? item.group}{item.twoHanded ? ' · two-handed' : ''}{item.thrown ? ' · thrown' : ''}</div>}
+                            {item.armorType && <div className="faint">{item.armorType} armor</div>}
                             {!!item.upgrades?.length && (
-                              <div className="meta faint">
+                              <div className="faint">
                                 {item.upgrades.map(u => u.name.trim() || 'modification').join(' · ')}
                               </div>
                             )}
@@ -427,7 +427,7 @@ function ItemBrowser({
                   without adding either one first, and clicking opens the whole entry. */}
               <Tip className="grow block" content={<ItemTipBody item={item} />}>
                 <button type="button" className="linklike block" onClick={() => onView(item)}>
-                  <div className="name breakdown">{item.name}</div>
+                  <div className="item-name breakdown">{item.name}</div>
                   {meta && <div className="item-meta">{meta}</div>}
                 </button>
               </Tip>
