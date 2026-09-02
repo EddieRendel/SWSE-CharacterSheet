@@ -63,8 +63,59 @@ function applySupplement(
   return { features, trees };
 }
 
+/** The word the books print against the flag the app carries it as. */
+const DESCRIPTOR_KEYS: Record<string, 'darkSide' | 'lightSide' | 'lightsaberForm' | 'telekinetic' | 'mindAffecting'> = {
+  'dark side': 'darkSide',
+  'light side': 'lightSide',
+  'lightsaber form': 'lightsaberForm',
+  telekinetic: 'telekinetic',
+  'mind-affecting': 'mindAffecting',
+};
+
+/** A line that is nothing but the bracket: "[Dark Side]", "[Lightsaber Form, Telekinetic]". */
+const DESCRIPTOR_LINE = /^\[([^\]]+)\]\.?$/;
+
+/**
+ * A power's descriptors, read out of its own rules text.
+ *
+ * The books print them as a bracketed line above the stat block, and the compendium keeps
+ * that line, so the tag is derived rather than stored. It has to be: only sixteen powers
+ * arrived carrying flags, all of them set by the bootstrap script that has since been
+ * deleted, and every power imported since — 49 of them, which is nearly everything outside
+ * the core book — printed its descriptors in the description with no tag on the option. A
+ * player picking powers saw Force Storm and Force Scream untagged beside Dark Rage.
+ *
+ * A line only counts when it is *only* the bracket. Talents and Force secrets name the
+ * descriptors in prose — "a Force Power with the [Dark Side] descriptor", and Corrupted
+ * Power, which *gives* a power that descriptor — and reading those would tag the feature
+ * that talks about the descriptor rather than the one that has it. Tempered Aggression
+ * mentions its own descriptor in a Vaapad clause the same way; its bracket line above says
+ * the same thing, so nothing is lost by ignoring the sentence.
+ *
+ * What the data already flags is kept whatever the text says. Seven powers — Force
+ * Lightning, Mind Trick, Force Slam, Force Thrust, Negate Energy, Barrier of Blades and
+ * Fluid Riposte — come from a source whose text drops the line, and they were tagged by
+ * hand. This runs before the supplement merge, so a patch there still has the last word.
+ */
+function readDescriptors(features: Record<string, Feature>) {
+  for (const [id, feature] of Object.entries(features)) {
+    const found = new Set<string>();
+    for (const line of feature.description ?? []) {
+      const match = line.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().match(DESCRIPTOR_LINE);
+      if (!match) continue;
+      for (const word of match[1].split(',')) {
+        const key = DESCRIPTOR_KEYS[word.trim().toLowerCase()];
+        if (key) found.add(key);
+      }
+    }
+    if (!found.size) continue;
+    features[id] = { ...feature, ...Object.fromEntries([...found].map(k => [k, true])) };
+  }
+  return features;
+}
+
 const merged = applySupplement(
-  { ...(featuresJson as unknown as Record<string, Feature>) },
+  readDescriptors({ ...(featuresJson as unknown as Record<string, Feature>) }),
   { ...(treesJson as unknown as Record<string, TalentTree>) },
 );
 

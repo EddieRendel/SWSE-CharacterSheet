@@ -59,7 +59,8 @@ export interface Requirements {
 
 export type FeatureType =
   | 'feat' | 'talent' | 'trait'
-  | 'force-power' | 'force-secret' | 'force-technique' | 'starship-maneuver';
+  | 'force-power' | 'force-secret' | 'force-technique' | 'force-regimen'
+  | 'starship-maneuver';
 
 /**
  * A Combined Feat: a pair of feats that does something extra for anyone holding both.

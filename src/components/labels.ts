@@ -40,6 +40,7 @@ export const REQ_TAGS: Record<ReqKind, { label: string; cls: string } | null> = 
   'force-power': { label: 'Force power', cls: 'green' },
   'force-technique': { label: 'Force technique', cls: 'green' },
   'force-secret': { label: 'Force secret', cls: 'green' },
+  'force-regimen': { label: 'Force regimen', cls: 'green' },
   'starship-maneuver': { label: 'maneuver', cls: 'accent' },
   ability: { label: 'ability score', cls: 'accent' },
   skill: { label: 'skill', cls: 'accent' },

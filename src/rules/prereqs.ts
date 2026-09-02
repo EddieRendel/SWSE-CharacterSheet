@@ -323,7 +323,8 @@ export function canSelect(
 
   // Droids have no connection to the Force.
   if (derived.isDroid && (DROID_FORBIDDEN.has(featureId) || f.type === 'force-power'
-      || f.type === 'force-technique' || f.type === 'force-secret')) {
+      || f.type === 'force-technique' || f.type === 'force-secret'
+      || f.type === 'force-regimen')) {
     return {
       met: false, duplicate: false, needsSpec: false, viableSpecs: [],
       checks: [{ text: 'Droids have no connection to the Force', met: false, kind: 'other' }],

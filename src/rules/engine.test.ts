@@ -475,14 +475,43 @@ console.log('\n▸ Force power descriptors');
   const named = (key: keyof typeof powers[0]) =>
     powers.filter(p => p[key]).map(p => p.name).sort();
 
-  check('dark side powers', named('darkSide'), ['Dark Rage', 'Force Lightning']);
-  check('light side powers', named('lightSide'), ['Sever Force', 'Vital Transfer']);
-  check('lightsaber form powers', named('lightsaberForm').length, 5);
-  check('telekinetic powers', named('telekinetic').length, 7);
-  check('mind-affecting powers', named('mindAffecting'), ['Mind Trick']);
+  check('dark side powers', named('darkSide').length, 15);
+  check('light side powers', named('lightSide').length, 7);
+  check('lightsaber form powers', named('lightsaberForm').length, 24);
+  check('telekinetic powers', named('telekinetic').length, 19);
+  check('mind-affecting powers', named('mindAffecting').length, 7);
+
+  // Descriptors are read from the bracketed line the books print above the stat block —
+  // only sixteen powers came out of the data with a flag on them, all core or Jedi Academy
+  // Training Manual, so before this every other book's powers were offered untagged.
+  check('a power outside the core book is tagged',
+    [FEATURES['force-storm'].darkSide, FEATURES['hawk-bat-swoop'].lightsaberForm], [true, true]);
+  check('a line naming two descriptors gives both',
+    [FEATURES['draw-closer'].lightsaberForm, FEATURES['draw-closer'].telekinetic], [true, true]);
+  check('and so does a line that brackets each of them',
+    [FEATURES['enlighten'].lightSide, FEATURES['enlighten'].mindAffecting], [true, true]);
+
+  // The seven the compendium's text leaves the line off — they were tagged by hand, and
+  // deriving must not take that away.
+  check('a power whose text drops the line keeps its flag',
+    [FEATURES['force-lightning'].darkSide, FEATURES['mind-trick'].mindAffecting,
+      FEATURES['negate-energy'].telekinetic, FEATURES['barrier-of-blades'].lightsaberForm],
+    [true, true, true, true]);
+
+  // Naming a descriptor in prose is not having one. Corrupted Power *gives* a power the
+  // dark side descriptor, and a shelf of talents key off powers that have one.
+  check('a Force secret that confers a descriptor is not tagged with it',
+    [FEATURES['corrupted-power'].darkSide, FEATURES['pure-power'].lightSide], [undefined, undefined]);
+  check('nor is a talent that keys off one',
+    [FEATURES['embrace-the-dark-side'].darkSide, FEATURES['steel-mind'].mindAffecting],
+    [undefined, undefined]);
+  const DESCRIPTORS = ['darkSide', 'lightSide', 'lightsaberForm', 'telekinetic', 'mindAffecting'] as const;
+  check('no talent is tagged at all',
+    Object.values(FEATURES).filter(f => f.type === 'talent' && DESCRIPTORS.some(k => f[k]))
+      .map(f => f.name), []);
 
   // Every descriptor present anywhere in the data must be one the UI knows how to show.
-  const RENDERED = ['darkSide', 'lightSide', 'lightsaberForm', 'telekinetic', 'mindAffecting'];
+  const RENDERED = [...DESCRIPTORS];
   const KNOWN_FIELDS = new Set([
     'id', 'name', 'book', 'type', 'description', 'prerequisites', 'benefit', 'special', 'normal',
     'requirements', 'grants', 'multiple', 'maxCount', 'specType', 'allowedSpecs', 'incomplete',
@@ -508,6 +537,173 @@ console.log('\n▸ Force power descriptors');
     x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'force-training' }];
   });
   check('Force Lightning is selectable', canSelect('force-lightning', jedi, computeCharacter(jedi)).met, true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Force techniques require the power they modify');
+// ---------------------------------------------------------------------------
+{
+  const techniques = Object.values(FEATURES).filter(f => f.type === 'force-technique');
+  const power = (id: string) => {
+    const reqs = FEATURES[id].requirements?.features ?? [];
+    return reqs.length === 1 ? reqs[0].id : undefined;
+  };
+
+  // Every technique states which power it changes — "When you use the Dark Rage Force
+  // Power…" — and the requirement is that power, so the picker can say whether the suite
+  // holds it. See the note in supplement.json for why these are data and not derived.
+  check('every technique that modifies a power requires it',
+    techniques.filter(t => !power(t.id)).map(t => t.name).sort(),
+    ['Force Point Recovery', 'Force Power Mastery', 'Improved Force Trance',
+      'Improved Move Light Object', 'Improved Sense Force', 'Improved Sense Surroundings',
+      'Improved Telepathy', 'Language Absorption']);
+  check('and every one it names is a Force power',
+    techniques.map(t => power(t.id)).filter(Boolean)
+      .every(id => FEATURES[id!]?.type === 'force-power'), true);
+
+  // The three whose title does not name the power, and the one whose text mentions a
+  // second power — Improved Force Storm fills the storm with Force Lightning, and requires
+  // Force Storm.
+  check('Detoxify Poison and Cure Disease modify Vital Transfer',
+    [power('detoxify-poison'), power('cure-disease')], ['vital-transfer', 'vital-transfer']);
+  check('Dominate Mind modifies Mind Trick', power('dominate-mind'), 'mind-trick');
+  check('Improved Force Storm modifies Force Storm', power('improved-force-storm'), 'force-storm');
+
+  // Force Power Mastery names no power because it chooses one; that check is per-selection.
+  check('Force Power Mastery still checks the power it picks',
+    FEATURES['force-power-mastery'].requirements?.matchingForcePower, true);
+
+  // What a player actually sees: the technique is offered greyed until the power is in
+  // the suite, with the power itself named as the reason.
+  const knight = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 10, dex: 12, con: 12, int: 10, wis: 16, cha: 12 });
+    x.levels = [{ classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' },
+      { classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' },
+      { classId: 'jedi-knight' }];
+    x.trainedSkills = ['use-the-force'];
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'force-training' }];
+  });
+  const withoutPower = computeCharacter(knight);
+  const locked = canSelect('improved-dark-rage', knight, withoutPower);
+  check('a technique is locked without its power', locked.met, false);
+  check('and the power is what it names',
+    locked.checks.map(c => `${c.text} (${c.kind})`), ['Dark Rage (force-power)']);
+
+  const raging = structuredClone(knight);
+  raging.selections.push({
+    key: 'force-power:feat:1:0', choiceId: 'force-power', featureId: 'dark-rage',
+  });
+  check('and open once the power is in the suite',
+    canSelect('improved-dark-rage', raging, computeCharacter(raging)).met, true);
+
+  // A technique keyed off a Use the Force skill aspect is open to anyone, as before.
+  check('a skill-aspect technique is not gated',
+    canSelect('improved-telepathy', knight, withoutPower).met, true);
+}
+
+// ---------------------------------------------------------------------------
+console.log('\n▸ Force Regimen Mastery teaches 1 + Wis modifier regimens');
+// ---------------------------------------------------------------------------
+{
+  const regimenSlots = (c: Character) =>
+    computeCharacter(c).slots.filter(s => s.kind === 'force-regimen');
+
+  // The feat has been in the data since the first import and granted nothing: there were
+  // no regimens anywhere in the rules data and no slot to put one in, so taking it spent a
+  // feat and changed nothing on the sheet. The twelve from the Jedi Academy Training Manual
+  // are in supplement.json now, and the feat grants on Force Training's terms.
+  const REGIMENS = Object.values(FEATURES).filter(f => f.type === 'force-regimen');
+  check('twelve regimens are in the data', REGIMENS.length, 12);
+  check('both groups are there',
+    [REGIMENS.some(r => r.name === 'Quiet the Mind'),
+      REGIMENS.some(r => r.name === "Vo'ren's 5th Cadence")], [true, true]);
+
+  // Vo'ren's cadences are worked through in order, and every list in the app is ordered by
+  // name — so they are named 1st to 5th rather than the book's First to Fifth, which sorts
+  // Fifth, First, Fourth, Second, Third. This asserts the order a player actually sees.
+  check('the cadences list in the order they are performed',
+    REGIMENS.map(r => r.name).filter(n => n.includes('Cadence')).sort((a, b) => a.localeCompare(b)),
+    ["Vo'ren's 1st Cadence", "Vo'ren's 2nd Cadence", "Vo'ren's 3rd Cadence",
+      "Vo'ren's 4th Cadence", "Vo'ren's 5th Cadence"]);
+  check('every one states its check',
+    REGIMENS.every(r => r.description.some(l => /Make a Use the Force check/.test(l))), true);
+
+  // Jedi 1, Wisdom 14 (+2), the feat taken with the level 1 feat slot.
+  const jedi = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 10, dex: 12, con: 12, int: 10, wis: 14, cha: 12 });
+    x.levels = [{ classId: 'jedi' }];
+    x.trainedSkills = ['use-the-force'];
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'force-regimen-mastery' }];
+  });
+  check('Wisdom +2 teaches 3 regimens', regimenSlots(jedi).length, 3);
+
+  const noFeat = structuredClone(jedi);
+  noFeat.selections = [];
+  check('no regimens without the feat', regimenSlots(noFeat).length, 0);
+
+  // "(minimum 1)", and the Wisdom clause the feat states outright.
+  const dullWits = structuredClone(jedi);
+  dullWits.baseAbilities.wis = 8;
+  check('minimum of 1 regimen at negative Wis', regimenSlots(dullWits).length, 1);
+  const wiser = structuredClone(jedi);
+  wiser.baseAbilities.wis = 16;
+  check('raising Wisdom teaches another', regimenSlots(wiser).length, 4);
+
+  // "You can take this Feat more than once."
+  const twice = structuredClone(jedi);
+  twice.levels = Array(3).fill(null).map(() => ({ classId: 'jedi', hitPoints: 6 }));
+  twice.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'force-regimen-mastery' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'force-regimen-mastery' },
+  ];
+  check('two copies teach 6', regimenSlots(twice).length, 6);
+
+  // Force Training and Force Regimen Mastery are counted separately, and neither fills the
+  // other's slots — the same character can hold both.
+  const both = structuredClone(jedi);
+  both.levels = Array(3).fill(null).map(() => ({ classId: 'jedi', hitPoints: 6 }));
+  both.selections = [
+    { key: 'feat:1', choiceId: 'feat', featureId: 'force-training' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'force-regimen-mastery' },
+  ];
+  const dBoth = computeCharacter(both);
+  check('powers and regimens are separate slots',
+    [dBoth.slots.filter(s => s.kind === 'force-power').length,
+      dBoth.slots.filter(s => s.kind === 'force-regimen').length], [3, 3]);
+
+  // Keys hang off the granting feat's slot, not the level, so a saved character keeps its
+  // choices when levels are added underneath.
+  const chosen = structuredClone(jedi);
+  const slot = regimenSlots(chosen)[0];
+  check('the slot is keyed to the feat that granted it',
+    slot.key, 'force-regimen:feat:1:0');
+  chosen.selections.push({ key: slot.key, choiceId: 'force-regimen', featureId: 'quiet-the-mind' });
+  const dChosen = computeCharacter(chosen);
+  check('a chosen regimen is held', dChosen.forceRegimens.map(r => r.id), ['quiet-the-mind']);
+  check('and is selectable in the first place',
+    canSelect('quiet-the-mind', jedi, computeCharacter(jedi)).met, true);
+
+  const levelled = structuredClone(chosen);
+  levelled.levels = [...levelled.levels, { classId: 'jedi', hitPoints: 6 }];
+  check('and survives a level being added',
+    computeCharacter(levelled).forceRegimens.map(r => r.id), ['quiet-the-mind']);
+
+  // Regimen Aptitude — the talent that was as stranded as the feat — asks for it.
+  check('Regimen Aptitude requires the feat',
+    FEATURES['regimen-aptitude'].requirements?.features?.map(f => f.id), ['force-regimen-mastery']);
+  check('and is open to a character who has it',
+    canSelect('regimen-aptitude', jedi, computeCharacter(jedi)).met, true);
+
+  // A droid has no connection to the Force, regimens included.
+  const droid = make(x => {
+    x.speciesId = 'droid';
+    setAbilities(x, { str: 12, dex: 12, con: 10, int: 12, wis: 12, cha: 8 });
+    x.levels = [{ classId: 'scoundrel' }];
+  });
+  check('a droid cannot perform a regimen',
+    canSelect('quiet-the-mind', droid, computeCharacter(droid)).met, false);
 }
 
 // ---------------------------------------------------------------------------
@@ -903,7 +1099,8 @@ console.log('\n▸ every prerequisite names something a character can actually g
   for (const id of [...NEAR_HUMAN.mechanical, ...NEAR_HUMAN.cosmetic]) grantable.add(id);
 
   // Anything with a slot of its own can be chosen without being granted.
-  const CHOOSABLE = new Set(['feat', 'talent', 'force-power', 'force-technique', 'force-secret']);
+  const CHOOSABLE = new Set([
+    'feat', 'talent', 'force-power', 'force-technique', 'force-secret', 'force-regimen']);
 
   // Telekinetic Vigilance requires the Intercept starship maneuver, which is right by the
   // book. Maneuvers have a type, a slot kind, a picker filter and a derived list, but no

@@ -18,6 +18,7 @@ const TYPE_FOR_KIND: Record<string, Feature['type']> = {
   talent: 'talent',
   'force-technique': 'force-technique',
   'force-secret': 'force-secret',
+  'force-regimen': 'force-regimen',
   'starship-maneuver': 'starship-maneuver',
   'force-power': 'force-power',
 };
@@ -444,6 +445,7 @@ export function FeatureBrowser({ onClose }: { onClose: () => void }) {
           <option value="force-power">Force powers</option>
           <option value="force-technique">Force techniques</option>
           <option value="force-secret">Force secrets</option>
+          <option value="force-regimen">Force regimens</option>
           <option value="starship-maneuver">Starship maneuvers</option>
           <option value="trait">Traits</option>
         </select>
