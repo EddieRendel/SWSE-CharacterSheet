@@ -540,66 +540,19 @@ console.log('\n▸ Force power descriptors');
 }
 
 // ---------------------------------------------------------------------------
-console.log('\n▸ Force techniques require the power they modify');
+console.log('\n▸ Force techniques stand on their own');
 // ---------------------------------------------------------------------------
 {
+  // A technique reads "When you use the Dark Rage Force Power ...", and it is tempting to
+  // make the power a prerequisite on that basis. The books print no Prerequisite line on a
+  // technique and the rules impose none: you may take Improved Force Lightning without
+  // Force Lightning, to no effect, and blocking that would stop a legal character. The one
+  // check that belongs here is Force Power Mastery's, which is on the power it chooses.
   const techniques = Object.values(FEATURES).filter(f => f.type === 'force-technique');
-  const power = (id: string) => {
-    const reqs = FEATURES[id].requirements?.features ?? [];
-    return reqs.length === 1 ? reqs[0].id : undefined;
-  };
-
-  // Every technique states which power it changes — "When you use the Dark Rage Force
-  // Power…" — and the requirement is that power, so the picker can say whether the suite
-  // holds it. See the note in supplement.json for why these are data and not derived.
-  check('every technique that modifies a power requires it',
-    techniques.filter(t => !power(t.id)).map(t => t.name).sort(),
-    ['Force Point Recovery', 'Force Power Mastery', 'Improved Force Trance',
-      'Improved Move Light Object', 'Improved Sense Force', 'Improved Sense Surroundings',
-      'Improved Telepathy', 'Language Absorption']);
-  check('and every one it names is a Force power',
-    techniques.map(t => power(t.id)).filter(Boolean)
-      .every(id => FEATURES[id!]?.type === 'force-power'), true);
-
-  // The three whose title does not name the power, and the one whose text mentions a
-  // second power — Improved Force Storm fills the storm with Force Lightning, and requires
-  // Force Storm.
-  check('Detoxify Poison and Cure Disease modify Vital Transfer',
-    [power('detoxify-poison'), power('cure-disease')], ['vital-transfer', 'vital-transfer']);
-  check('Dominate Mind modifies Mind Trick', power('dominate-mind'), 'mind-trick');
-  check('Improved Force Storm modifies Force Storm', power('improved-force-storm'), 'force-storm');
-
-  // Force Power Mastery names no power because it chooses one; that check is per-selection.
+  check('no technique requires a Force power',
+    techniques.filter(t => t.requirements?.features?.length).map(t => t.name), []);
   check('Force Power Mastery still checks the power it picks',
     FEATURES['force-power-mastery'].requirements?.matchingForcePower, true);
-
-  // What a player actually sees: the technique is offered greyed until the power is in
-  // the suite, with the power itself named as the reason.
-  const knight = make(x => {
-    x.speciesId = 'human';
-    setAbilities(x, { str: 10, dex: 12, con: 12, int: 10, wis: 16, cha: 12 });
-    x.levels = [{ classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' },
-      { classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' }, { classId: 'jedi' },
-      { classId: 'jedi-knight' }];
-    x.trainedSkills = ['use-the-force'];
-    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'force-training' }];
-  });
-  const withoutPower = computeCharacter(knight);
-  const locked = canSelect('improved-dark-rage', knight, withoutPower);
-  check('a technique is locked without its power', locked.met, false);
-  check('and the power is what it names',
-    locked.checks.map(c => `${c.text} (${c.kind})`), ['Dark Rage (force-power)']);
-
-  const raging = structuredClone(knight);
-  raging.selections.push({
-    key: 'force-power:feat:1:0', choiceId: 'force-power', featureId: 'dark-rage',
-  });
-  check('and open once the power is in the suite',
-    canSelect('improved-dark-rage', raging, computeCharacter(raging)).met, true);
-
-  // A technique keyed off a Use the Force skill aspect is open to anyone, as before.
-  check('a skill-aspect technique is not gated',
-    canSelect('improved-telepathy', knight, withoutPower).met, true);
 }
 
 // ---------------------------------------------------------------------------
