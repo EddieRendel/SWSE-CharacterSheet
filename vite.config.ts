@@ -28,7 +28,16 @@ export default defineConfig({
   //
   // Not 6000, which is X11's: Chrome, Firefox and Safari all refuse it as an unsafe port,
   // so the server would start and no browser would ever reach it.
+  //
+  // `host` is pinned to the IPv4 loopback because the default binds to whatever `localhost`
+  // resolves to first, and on this Node that is `::1` alone: the server answers on
+  // http://localhost:6006 and http://[::1]:6006 while http://127.0.0.1:6006 is refused
+  // outright, which reads as "the port is closed" in a browser opened on the literal
+  // address. Bound here, a browser asking for `localhost` still falls back to this address,
+  // so both spellings work. Still loopback only — nothing is exposed to the network, which
+  // `--host` is for.
   server: {
+    host: '127.0.0.1',
     port: 6006,
     strictPort: true,
   },
