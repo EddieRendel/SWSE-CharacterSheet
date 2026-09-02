@@ -114,6 +114,7 @@ export function Sheet({
     ['Force powers', derived.forcePowers],
     ['Force techniques', derived.forceTechniques],
     ['Force secrets', derived.forceSecrets],
+    ['Force regimens', derived.forceRegimens],
     ['Starship maneuvers', derived.starshipManeuvers],
   ] as const).filter(([, items]) => items.length > 0);
 

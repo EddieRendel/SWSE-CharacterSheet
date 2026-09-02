@@ -19,7 +19,8 @@ export const abilityIncreaseLevels = (level: number): number[] =>
 export type SlotKind =
   | 'starting-feat' | 'class-feature' | 'species-trait'
   | 'talent' | 'bonus' | 'feat' | 'species-feat'
-  | 'force-power' | 'force-technique' | 'force-secret' | 'starship-maneuver';
+  | 'force-power' | 'force-technique' | 'force-secret' | 'force-regimen'
+  | 'starship-maneuver';
 
 /** The options for a talent slot, split by the tree they come from. */
 export interface SlotTreeGroup {
@@ -53,6 +54,8 @@ export interface SlotContext {
   droidTree?: string;
   /** One entry per Force Training feat taken, each granting `count` Force powers. */
   forceTraining?: { sourceKey: string; level: number; count: number }[];
+  /** One entry per Force Regimen Mastery feat taken, each teaching `count` regimens. */
+  forceRegimens?: { sourceKey: string; level: number; count: number }[];
   /** One entry per Adaptable Talent feat taken, each banking one extra talent. */
   adaptableTalents?: { sourceKey: string; level: number }[];
 }
@@ -256,6 +259,21 @@ export function buildSlots(char: Character, ctx: SlotContext = {}): Slot[] {
         kind: 'force-power',
         label: `Force power ${n + 1} of ${ft.count}`,
         level: ft.level,
+        pool: null,
+        auto: false,
+      });
+    }
+  }
+
+  // Force Regimen Mastery teaches regimens on the same terms Force Training grants powers,
+  // and its keys are built the same way for the same reason.
+  for (const fr of ctx.forceRegimens ?? []) {
+    for (let n = 0; n < fr.count; n++) {
+      slots.push({
+        key: `force-regimen:${fr.sourceKey}:${n}`,
+        kind: 'force-regimen',
+        label: `Force regimen ${n + 1} of ${fr.count}`,
+        level: fr.level,
         pool: null,
         auto: false,
       });
@@ -466,6 +484,7 @@ export interface Derived {
   forcePowers: FeatureRef[];
   forceTechniques: FeatureRef[];
   forceSecrets: FeatureRef[];
+  forceRegimens: FeatureRef[];
   starshipManeuvers: FeatureRef[];
   /** Feat combos both halves of which are held — granted outright, never chosen. */
   combos: FeatCombo[];
@@ -579,6 +598,13 @@ export function computeCharacter(char: Character): Derived {
     .filter(r => r.ref.id === 'force-training')
     .map(r => ({ sourceKey: r.slot.key, level: r.slot.level, count: powersPerTraining }));
 
+  // Force Regimen Mastery words its grant exactly as Force Training does — "a number of
+  // Force Regimens equal to 1 + your Wisdom modifier (minimum 1)" — including the clause
+  // that re-grants on a permanent Wisdom increase, so it reads the same count.
+  const forceRegimens = baseRefs
+    .filter(r => r.ref.id === 'force-regimen-mastery')
+    .map(r => ({ sourceKey: r.slot.key, level: r.slot.level, count: powersPerTraining }));
+
   const adaptableTalents = baseRefs
     .filter(r => r.ref.id === 'adaptable-talent')
     .map(r => ({ sourceKey: r.slot.key, level: r.slot.level }));
@@ -587,7 +613,8 @@ export function computeCharacter(char: Character): Derived {
     ? droidDegree(char.droid?.degree ?? null)?.tree
     : undefined;
 
-  const slots = buildSlots(char, { forceSensitive, forceTraining, adaptableTalents, droidTree });
+  const slots = buildSlots(char,
+    { forceSensitive, forceTraining, forceRegimens, adaptableTalents, droidTree });
   const features = resolveFeatures(char, slots);
   const byKey = new Map(char.selections.map(s => [s.key, s]));
   const unfilledSlots = slots.filter(s => !s.auto && !byKey.get(s.key)?.featureId);
@@ -889,6 +916,7 @@ export function computeCharacter(char: Character): Derived {
     forcePowers: ofType('force-power'),
     forceTechniques: ofType('force-technique'),
     forceSecrets: ofType('force-secret'),
+    forceRegimens: ofType('force-regimen'),
     starshipManeuvers: ofType('starship-maneuver'),
     combos: activeCombos(char, features),
     equippedArmor, armorProficient, armorPenalty,

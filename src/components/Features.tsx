@@ -52,6 +52,7 @@ const KIND_LABEL: Record<string, string> = {
   'force-power': 'Force power',
   'force-technique': 'Force technique',
   'force-secret': 'Force secret',
+  'force-regimen': 'Force regimen',
   'starship-maneuver': 'Starship maneuver',
 };
 
