@@ -75,7 +75,12 @@ it contributes; `buildAttack` reads it generically and the picker on the Actions
 whatever the character holds. It is TypeScript rather than JSON so a typo in `scope` or `kind`
 fails the build instead of becoming a switch that can never fire. Entries that the books say
 do not stack — Mighty Swing, the Rapid Strikes, Rapid Shot, Burst Fire, Deadeye, Zero Range —
-share a `pool`, and the largest of whatever is on wins. `npm run audit:modifiers` lists the
+share a `pool`. The largest of whatever is on wins and **the rest contribute nothing at all**,
+penalty included: Improved Rapid Strike is not a bonus on top of Rapid Strike, it is the other
+option, so charging both their attack penalties would be paying twice for one set of dice.
+A scale of `class-level` means the level of the class that granted the feature, not the
+character's — for a Soldier 6/Gunslinger 2 that is 2 — and where the sheet cannot tell which
+class it came from the contribution is left off and said out loud, never guessed. `npm run audit:modifiers` lists the
 features whose text changes a roll and which the table does not cover; run it after an import,
 and note that it deliberately over-matches. A rule the prose leaves genuinely ambiguous is left
 out rather than guessed at — it still surfaces as "not applied automatically" on the attack row,

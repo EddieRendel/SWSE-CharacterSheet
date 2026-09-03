@@ -37,8 +37,15 @@ import type { AbilityId } from '../types';
  * the "not applied automatically" note on the attack row, which is the safe direction.
  */
 
-/** A quantity read off the character rather than written down. */
-export type Scale = 'half-level' | 'level' | 'str-mod' | 'dex-mod';
+/**
+ * A quantity read off the character rather than written down.
+ *
+ * The class-level pair is not the character's level: the books say "your class level", and
+ * for a Soldier 6/Gunslinger 2 that is 2, not 8. Where the sheet cannot tell which class a
+ * feature came from, the contribution is left off rather than guessed at.
+ */
+export type Scale =
+  | 'half-level' | 'level' | 'class-level' | 'half-class-level' | 'str-mod' | 'dex-mod';
 
 /** What a modifier contributes once it applies. A tier is the same shape, with a label. */
 export interface ModifierEffect {
@@ -71,6 +78,8 @@ export interface Modifier extends ModifierEffect {
   notGroups?: string[];
   /** Only these weapons by name, where the book names the weapon rather than its group. */
   weaponIds?: string[];
+  /** Only weapons dealing this kind of damage — Ion Mastery's "when attacking with Ion weapons". */
+  damageTypes?: string[];
   /**
    * Chosen with a weapon, so it is only held for that one. The specialization is matched
    * against the weapon's group and its own id, because the books write these both ways:
@@ -109,13 +118,6 @@ export interface Modifier extends ModifierEffect {
   tiers?: (ModifierEffect & { label: string })[];
 }
 
-/**
- * Multiclassing makes "your class level" ambiguous, and the character sheet does not record
- * which class a talent was taken from. Everything scaled by class level says so.
- */
-const CLASS_LEVEL = 'Scaled by your character level. Where you have multiclassed, the book '
-  + 'means the level of the class this came from — use the lower figure.';
-
 export const MODIFIERS: Modifier[] = [
   // ---------------------------------------------------------------------------
   // Applied with no switch: nothing about them is a choice or a circumstance.
@@ -126,7 +128,7 @@ export const MODIFIERS: Modifier[] = [
     always: true, groups: ['simple-weapons'], weaponDice: 1,
     hint: '+1 die of damage with Simple Weapons (melee)' },
   { id: 'trusty-sidearm', label: 'Trusty Sidearm', kind: 'ranged', scope: 'ranged',
-    always: true, groups: ['pistols'], damageScale: 'half-level', note: CLASS_LEVEL,
+    always: true, groups: ['pistols'], damageScale: 'half-class-level',
     hint: 'Half your class level on damage, wielding a pistol' },
 
   // ---------------------------------------------------------------------------
@@ -276,7 +278,8 @@ export const MODIFIERS: Modifier[] = [
     needs: 'stunSetting', attack: 1, weaponDice: 1,
     hint: 'A weapon set to stun — a stun baton counts, and it is a melee weapon' },
   { id: 'ion-mastery', label: 'Ion Mastery', kind: 'ranged', scope: 'ranged',
-    attack: 1, weaponDice: 1, hint: 'Attacking with an ion weapon' },
+    damageTypes: ['ion'], always: true, attack: 1, weaponDice: 1,
+    hint: 'Ion weapons only, and it needs no switch — the weapon is the whole condition' },
   { id: 'shien', label: 'Shien', kind: 'ranged', scope: 'ranged', attack: 5,
     hint: 'Redirecting a deflected blaster bolt, with the Redirect Shot talent' },
   { id: 'prime-shot', label: 'Prime Shot', kind: 'ranged', scope: 'ranged',
@@ -338,10 +341,10 @@ export const MODIFIERS: Modifier[] = [
   { id: 'dark-scourge', label: 'Dark Scourge', kind: 'circumstance', scope: 'any',
     attack: 1, hint: 'Against a Jedi' },
   { id: 'hunters-target', label: "Hunter's Target", kind: 'circumstance', scope: 'any',
-    damageScale: 'level', note: CLASS_LEVEL,
+    damageScale: 'class-level',
     hint: 'Against the opponent you designated this encounter' },
   { id: 'familiar-foe', label: 'Familiar Foe', kind: 'circumstance', scope: 'any',
-    attackScale: 'half-level', note: CLASS_LEVEL,
+    attackScale: 'half-class-level',
     hint: 'Species trait: you spent a full-round action observing this opponent' },
   { id: 'destructive-ambusher', label: 'Destructive Ambusher', kind: 'circumstance', scope: 'any',
     weaponDice: 1, hint: 'Against your prime target' },

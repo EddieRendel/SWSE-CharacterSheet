@@ -103,6 +103,8 @@ interface Switch {
 const SCALE_WORDS: Record<NonNullable<ModifierEffect['damageScale']>, string> = {
   'half-level': 'half your level',
   'level': 'your level',
+  'class-level': 'your class level',
+  'half-class-level': 'half your class level',
   'str-mod': 'Strength again',
   'dex-mod': 'Dexterity again',
 };

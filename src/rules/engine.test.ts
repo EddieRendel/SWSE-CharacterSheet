@@ -2395,7 +2395,10 @@ console.log('\n▸ Attacks');
     ...opts, modifiers: { 'mighty-swing': 1, 'rapid-strike': 1, 'improved-rapid-strike': 1 },
   });
   check('only the largest of the three applies', piled.damageDice, '3d4');
-  check('and every penalty still stands, since each was accepted', piled.attack, 8 + 3 - 2 - 5);
+  // The one that loses the pool costs nothing either. Improved Rapid Strike is not a bonus
+  // on top of Rapid Strike, it is the other option — "-5 to your attack roll to gain +2
+  // dice" — so paying Rapid Strike's -2 as well would be paying twice for one set of dice.
+  check('and the ones it beat cost nothing', piled.attack, 8 + 3 - 5);
   check('the clash is explained', piled.notes.some(n => n.includes('do not stack')), true);
 
   // A thrown lightsaber is a ranged attack, so the melee three stay behind.
@@ -2405,6 +2408,70 @@ console.log('\n▸ Attacks');
       buildAttack(allThree, dall, hurled, {
         ...opts, modifiers: { 'mighty-swing': 1, 'rapid-strike': 1, 'improved-rapid-strike': 1 },
       }).damageDice, EQUIPMENT['lightsaber'].damage);
+  }
+
+// ---- a second round of review ----
+  // "a bonus on damage rolls equal to one-half your class level" is the Gunslinger's level,
+  // not the character's: a Soldier 6/Gunslinger 2 gets +1, not +4.
+  {
+    const pistoleer = (levels: string[]) => make(x => {
+      x.speciesId = 'human';
+      setAbilities(x, { str: 14, dex: 16, con: 12, int: 10, wis: 10, cha: 10 });
+      x.levels = levels.map((classId, i) => ({ classId, hitPoints: i === 0 ? undefined : 6 }));
+    });
+    const pure = pistoleer(Array(8).fill('gunslinger'));
+    const dpure = computeCharacter(pure);
+    if (hasFeature(dpure.features, 'trusty-sidearm')) {
+      const half = Math.floor(dpure.level / 2);
+      check('a single-classed Gunslinger scales by their own level',
+        buildAttack(pure, dpure, EQUIPMENT['blaster-pistol'], opts).damageBonus,
+        half + half);
+
+      const mixed = pistoleer([...Array(6).fill('soldier'), ...Array(2).fill('gunslinger')]);
+      const dmix = computeCharacter(mixed);
+      const shot = buildAttack(mixed, dmix, EQUIPMENT['blaster-pistol'], opts);
+      // Gunslinger 2 → +1, on top of the half character level everyone gets.
+      check('a multiclassed one scales by the class that granted it',
+        shot.damageBonus, Math.floor(dmix.level / 2) + 1);
+      check('and the breakdown says so, rather than showing the character level',
+        shot.damageParts.some(p => p.label === 'Trusty Sidearm' && p.value === 1), true);
+    }
+  }
+
+  // Multiattack Proficiency reduces "the penalty on your attack rolls" whenever you make
+  // multiple attacks. A weapon in each hand is multiple attacks with no Double Attack in
+  // sight, so the relief has to reach the two-weapon penalty too.
+  {
+    const armed = soldier([{
+      key: computeCharacter(soldier()).slots.filter(sl => sl.kind === 'talent')[0].key,
+      choiceId: 'talent', featureId: 'multiattack-proficiency-rifles',
+    }]);
+    const darmed = computeCharacter(armed);
+    const bare = soldier();
+    const dbare = computeCharacter(bare);
+    const twoOf = (ch: Character, dv: Derived) =>
+      buildAttack(ch, dv, EQUIPMENT['blaster-rifle'], { ...opts, twoWeapon: true });
+    check('two weapons alone costs the full 10', twoOf(bare, dbare).attack, 8 + 2 - 10);
+    check('and Multiattack Proficiency buys 2 of it back even with no Double Attack',
+      twoOf(armed, darmed).attack, 8 + 2 - 10 + 2);
+    check('the ×2 badge reports the same penalty the roll took',
+      twoOf(armed, darmed).fullAttack?.penalty, -8);
+  }
+
+  // "When attacking with Ion weapons" — the weapon is the condition, so it applies to an
+  // ion pistol on its own and never to the blaster beside it.
+  {
+    const techie = soldier([{
+      key: computeCharacter(soldier()).slots.filter(sl => sl.kind === 'talent')[0].key,
+      choiceId: 'talent', featureId: 'ion-mastery',
+    }]);
+    const dt = computeCharacter(techie);
+    const ion = buildAttack(techie, dt, EQUIPMENT['ion-pistol'], opts);
+    const blaster = buildAttack(techie, dt, EQUIPMENT['blaster-rifle'], opts);
+    check('Ion Mastery reaches an ion weapon', ion.attack, 8 + 2 + 1);
+    check('and adds a die to it', ion.damageDice, '4d6');
+    check('but leaves the blaster in the other holster alone',
+      [blaster.attack, blaster.damageDice], [8 + 2, EQUIPMENT['blaster-rifle'].damage]);
   }
 
   // ---- what the table does that the old hand-written branches did ----

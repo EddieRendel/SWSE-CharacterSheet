@@ -1,6 +1,6 @@
 import type { Character, EquipmentItem, Feature, ResolvedItem } from '../types';
 import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
-import { countFeature, hasFeature, carriedItems, signed } from './engine';
+import { countFeature, hasFeature, carriedItems, signed, resolveSlotRefs } from './engine';
 import type { Derived } from './engine';
 import { MODIFIERS } from './modifiers';
 import type { Modifier, ModifierEffect, Scale } from './modifiers';
@@ -228,15 +228,31 @@ const situationHolds = (need: NonNullable<Modifier['needs']>, opts: AttackOption
   }
 };
 
-/** A quantity the table names rather than writes down. */
-const scaled = (scale: Scale, derived: Derived): number => {
+/**
+ * A quantity the table names rather than writes down. Null means the character sheet cannot
+ * work it out — only the class-level scales can say that — and the caller leaves the whole
+ * contribution off rather than showing a figure it does not stand behind.
+ */
+const scaled = (
+  scale: Scale, char: Character, derived: Derived, id: string,
+): number | null => {
   switch (scale) {
     case 'half-level': return Math.floor(derived.level / 2);
     case 'level': return derived.level;
     case 'str-mod': return derived.mods.str;
     case 'dex-mod': return derived.mods.dex;
+    case 'class-level': return classLevelOf(char, derived, id);
+    case 'half-class-level': {
+      const n = classLevelOf(char, derived, id);
+      return n === null ? null : Math.floor(n / 2);
+    }
   }
 };
+
+/** Said once per feature that could not be scaled, rather than once per attack. */
+const unknownClassLevel = (label: string) =>
+  `${label} scales with the level of the class that granted it, which a multiclassed sheet `
+  + `cannot tell. It is left off the totals — add it yourself.`;
 
 /** Whether the weapon in hand is the kind this modifier is written for. */
 function weaponAllows(mod: Modifier, weapon: ResolvedItem, ctx: {
@@ -245,6 +261,11 @@ function weaponAllows(mod: Modifier, weapon: ResolvedItem, ctx: {
   if (mod.groups && !mod.groups.includes(weapon.group ?? '')) return false;
   if (mod.notGroups?.includes(weapon.group ?? '')) return false;
   if (mod.weaponIds && !mod.weaponIds.includes(weapon.id)) return false;
+  // The data writes an ion blaster's type as "energy (ion)", so this reads for the word
+  // rather than matching the whole string.
+  if (mod.damageTypes && !mod.damageTypes.some(d => (weapon.damageType ?? '').toLowerCase().includes(d))) {
+    return false;
+  }
   switch (mod.weapon) {
     case undefined: return true;
     case 'proficient': return ctx.proficient;
@@ -315,8 +336,54 @@ function activeModifiers(
   return out.filter(a => !a.mod.withModifier || on.has(a.mod.withModifier));
 }
 
+/**
+ * Drop the losers of every non-stacking pool, whole.
+ *
+ * This runs before anything is applied, and that is the point. Improved Rapid Strike is not
+ * a bonus on top of Rapid Strike, it is the other option — "you can take a -5 penalty to
+ * your attack roll to gain +2 dice", and it "does not stack with the Rapid Strike Feat".
+ * Switching both on used to keep both penalties and only the larger dice, so a player paid
+ * −7 for the +2 dice that cost −5. A modifier that loses its pool now contributes nothing at
+ * all: no dice, no penalty, no damage.
+ */
+function resolvePools(active: Applied[], notes: string[]): Applied[] {
+  const pools = new Map<string, Applied[]>();
+  for (const a of active) {
+    if (!a.mod.pool) continue;
+    pools.set(a.mod.pool, [...(pools.get(a.mod.pool) ?? []), a]);
+  }
+
+  const dropped = new Set<Applied>();
+  for (const entries of pools.values()) {
+    if (entries.length < 2) continue;
+    const dice = (a: Applied) => (a.effect.weaponDice ?? 0) * a.count;
+    const kept = [...entries].sort((x, y) => dice(y) - dice(x))[0];
+    for (const a of entries) if (a !== kept) dropped.add(a);
+    notes.push(`${entries.map(a => a.label).join(', ')} do not stack — using ${kept.label}, `
+      + `and the rest cost you nothing.`);
+  }
+  return active.filter(a => !dropped.has(a));
+}
+
+/**
+ * The level of the class a feature came from, for the ones the books scale that way.
+ *
+ * Null when it cannot be told: a feat or a species trait belongs to no class, and a
+ * multiclassed character's "one-half your class level" is then genuinely unknown. A single
+ * class is the exception — there is only one level it could mean. Reading character level
+ * for everyone put +4 on a Soldier 6/Gunslinger 2's Trusty Sidearm where the book gives +1,
+ * and a note underneath does not unsay a number that is already in the total.
+ */
+function classLevelOf(char: Character, derived: Derived, id: string): number | null {
+  const slot = resolveSlotRefs(char, derived.slots).find(r => r.ref.id === id)?.slot;
+  if (slot?.classId) {
+    return derived.classLevels.find(c => c.cls.id === slot.classId)?.levels ?? null;
+  }
+  return derived.classLevels.length === 1 ? derived.level : null;
+}
+
 export function buildAttack(
-  _char: Character,
+  char: Character,
   derived: Derived,
   weapon: ResolvedItem,
   opts: AttackOptions,
@@ -350,9 +417,9 @@ export function buildAttack(
 
   // Everything the table says reaches this weapon, resolved once. What follows only reads
   // it: the arithmetic no longer knows any feature by name.
-  const active = activeModifiers(derived, weapon, opts, {
+  const active = resolvePools(activeModifiers(derived, weapon, opts, {
     melee, fired, stunMode, proficient, lightsaber, light,
-  });
+  }), notes);
 
   // ---- attack ----
   const attackParts: Part[] = [
@@ -395,7 +462,11 @@ export function buildAttack(
   for (const a of active) {
     if (a.mod.relieves || a.mod.floorsAttack !== undefined) continue;
     let value = (a.effect.attack ?? 0) * a.count;
-    if (a.effect.attackScale) value += scaled(a.effect.attackScale, derived);
+    if (a.effect.attackScale) {
+      const n = scaled(a.effect.attackScale, char, derived, a.mod.id);
+      if (n === null) { notes.push(unknownClassLevel(a.mod.label)); continue; }
+      value += n;
+    }
     // A feat written for a stronger or nimbler character costs more when you fall short.
     const h = a.mod.harsher;
     if (h && derived.abilities[h.ability] < h.min && !(h.unlessWeapon === 'light' && light)) {
@@ -445,13 +516,18 @@ export function buildAttack(
 
     if (extra) attackParts.push({ label: 'full attack', value: extra });
 
-    // Multiattack Proficiency and its kin "reduce the penalty on your attack rolls", so they
-    // buy those −5s down and stop at nothing: a character holding more relief than penalty
-    // pays nothing rather than collecting a bonus. Kept as a row of its own beside the
-    // penalty it answers, so the breakdown shows the trade rather than a netted figure.
+    // Multiattack Proficiency and its kin "reduce the penalty on your attack rolls" whenever
+    // you make multiple attacks, so they buy down everything that costs you for making them:
+    // the −5s above and the two-weapon penalty alike. A weapon in each hand is multiple
+    // attacks even with no Double Attack behind it, and scoping the relief to the −5s alone
+    // left a Near-Human with Additional Arms paying the full −10.
+    //
+    // It stops at nothing: a character holding more relief than penalty pays nothing rather
+    // than collecting a bonus. Kept as a row of its own beside the penalties it answers, so
+    // the breakdown shows the trade rather than a netted figure.
     const relievers = active.filter(a => a.mod.relieves === 'fullAttack');
     const relief = relievers.reduce((n, a) => n + (a.effect.attack ?? 0) * a.count, 0);
-    const used = Math.min(relief, -extra);
+    const used = Math.max(0, Math.min(relief, -(twoWeapon + extra)));
     if (used > 0) attackParts.push({ label: relievers.map(a => a.mod.label).join(', '), value: used });
 
     fullAttack = { attacks, penalty: twoWeapon + extra + used };
@@ -528,35 +604,27 @@ export function buildAttack(
   }
 
   // ---- what the table contributes to damage ----
-  // Dice of the weapon's own size are collected rather than added as they are found: the
-  // books tie several of them together — "do not stack with the extra damage provided by
-  // the Rapid Strike feat" — and a pool is where that is settled. Entries outside a pool
-  // stack freely, which is what Attack Combo says in as many words.
-  const pools = new Map<string, { label: string; dice: number }[]>();
-  const loose: { label: string; dice: number }[] = [];
+  // Every entry still standing has already won its pool, so these simply add up: what the
+  // books hold apart was held apart before any of it was applied.
+  const chosen: { label: string; dice: number }[] = [];
 
   for (const a of active) {
     if (a.mod.relieves) continue;
     let value = (a.effect.damage ?? 0) * a.count;
-    if (a.effect.damageScale) value += scaled(a.effect.damageScale, derived);
+    if (a.effect.damageScale) {
+      const n = scaled(a.effect.damageScale, char, derived, a.mod.id);
+      if (n === null) {
+        const note = unknownClassLevel(a.mod.label);
+        if (!notes.includes(note)) notes.push(note);
+        continue;
+      }
+      value += n;
+    }
     if (value) damageParts.push({ label: a.label, value });
     if (a.effect.extraDice) extraDice.push({ label: a.mod.label, dice: a.effect.extraDice });
 
     const dice = (a.effect.weaponDice ?? 0) * a.count;
-    if (!dice) continue;
-    if (!a.mod.pool) { loose.push({ label: a.label, dice }); continue; }
-    const pool = pools.get(a.mod.pool) ?? [];
-    pool.push({ label: a.label, dice });
-    pools.set(a.mod.pool, pool);
-  }
-
-  const chosen = [...loose];
-  for (const entries of pools.values()) {
-    const ranked = [...entries].sort((x, y) => y.dice - x.dice);
-    chosen.push(ranked[0]);
-    if (ranked.length > 1) {
-      notes.push(`${entries.map(e => e.label).join(', ')} do not stack — using ${ranked[0].label}.`);
-    }
+    if (dice) chosen.push({ label: a.label, dice });
   }
 
   const diceParts: { label: string; dice: string }[] = [
