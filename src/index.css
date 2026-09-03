@@ -1694,6 +1694,76 @@ button.linklike.block { display: block; width: 100%; }
   color: var(--text-faint); font-weight: 700; margin-bottom: var(--sp-3);
 }
 
+
+/* A chip in the Modifiers band: a modifier that is switched on. Only the first few are
+   named — see BAND_CHIPS — so the band stays a line or two whether the character holds
+   three modifiers or thirty.
+
+   The name never wraps. A pill two lines tall reads as two chips, and a long one like
+   "Multiattack Proficiency (advanced melee weapons)" would take the row to itself; an
+   ellipsis costs a word and the hover card has the whole of it. */
+.mod-chip { padding-right: var(--sp-3); max-width: 15rem; }
+.mod-chip .badge { margin: 0; }
+.mod-chip .breakdown {
+  display: block; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mod-chip .tip-anchor { min-width: 0; }
+/* The overflow chip is a way in to the picker, so it reads as a control rather than a state. */
+.mod-more { cursor: pointer; color: var(--text-dim); }
+@media (hover: hover) {
+  .mod-more:hover { border-color: var(--accent-dim); color: var(--accent); }
+}
+
+/* A count on a button that is not part of a segmented control still needs the gap the
+   segmented one gets, or it fuses onto the label: "Add modifier17". */
+.count { opacity: 0.6; margin-left: var(--sp-3); }
+
+/* One row of the modifier picker. The row is the hit target, not the name inside it —
+   a name is a poor thing to aim a finger at. */
+.mod-row {
+  display: flex; align-items: flex-start; gap: var(--sp-2);
+  border-bottom: 1px solid var(--border); padding: 0 var(--sp-2);
+}
+.mod-row:last-child { border-bottom: none; }
+.mod-row.on { background: rgba(var(--sheet-accent-rgb), 0.07); }
+
+.mod-pick {
+  flex: 1; min-width: 0;
+  display: grid; grid-template-columns: 1fr auto; gap: 0 var(--sp-4);
+  background: none; border: none; border-radius: var(--radius-sm);
+  padding: var(--sp-3) var(--sp-3); text-align: left; cursor: pointer;
+}
+/* Guarded on touch: a tap latches :hover onto whatever it lands on, and an unguarded rule
+   would leave a row the finger merely passed over looking exactly like the chosen one. */
+@media (hover: hover) {
+  .mod-pick:hover:not(:disabled) { background: var(--hover-bg); }
+}
+.mod-name {
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  color: var(--text); font-weight: var(--fw-medium);
+}
+.mod-row.on .mod-name { color: var(--sheet-accent); }
+.mod-detail { color: var(--text-dim); font-size: var(--fs-sm); text-align: right; white-space: nowrap; }
+.mod-hint {
+  grid-column: 1 / -1; color: var(--text-faint); font-size: var(--fs-tiny); line-height: 1.4;
+}
+/* The book's own words, on hover or tap, without spending a row on them. A column of its
+   own, held open even on the rows that have no feature behind them — Two-handed is a grip,
+   not a talent — so the names and the numbers still line up down the dialog. */
+.mod-book {
+  flex: 0 0 3.25rem; align-self: flex-start; padding-top: var(--sp-4); text-align: right;
+  color: var(--text-faint); font-size: var(--fs-micro);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* Below this the two columns cannot both hold their content, so the numbers drop under
+   the name rather than squeezing it to one word per line. */
+@media (width <= 420px) {
+  .mod-pick { grid-template-columns: 1fr; gap: var(--sp-1); }
+  .mod-detail { text-align: left; }
+}
+
 .attack-row.melee { border-left-color: var(--sheet-accent); }
 .attack-row.ranged { border-left-color: var(--blue); }
 /* Green, with the Force powers everywhere else on the sheet. */

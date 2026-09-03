@@ -927,6 +927,77 @@ await step('a second tab follows the palette rather than keeping its own', async
   }
 });
 
+console.log('\n▸ Attack modifiers');
+await step('a modifier reaches the attack line through the picker', async () => {
+  // Seeded rather than built through the UI: the point is what Rapid Strike does to the
+  // numbers, and clicking eight levels of feat slots to reach it would test the builder.
+  const striker = {
+    id: 'strike-demo', name: 'Rax Vane', playerName: '', speciesId: 'human', portrait: null,
+    allowedBooks: null, nearHuman: { trait: null, sacrifice: null, cosmetic: [] },
+    droid: { degree: null, size: 'Medium', systems: [] },
+    baseAbilities: { str: 16, dex: 14, con: 12, int: 10, wis: 10, cha: 10 },
+    abilityIncreases: {},
+    levels: Array.from({ length: 8 }, (_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 })),
+    selections: [{ key: 'feat:1', choiceId: 'feat', featureId: 'rapid-strike' }],
+    trainedSkills: [], languages: [], customItems: [], credits: 0,
+    inventory: [{ uid: 'w1', itemId: 'club', quantity: 1, equipped: true }],
+    forcePointsSpent: 0, powersSpent: {}, destinyPoints: 0, destiny: '',
+    darkSideScore: 0, damage: 0, conditionIndex: 0, secondWindUsed: false,
+    traits: {
+      age: '', gender: '', height: '', weight: '', eyes: '', hair: '', skin: '',
+      homeworld: '', affiliation: '', appearance: '', personality: '', background: '',
+    },
+    notes: '', createdAt: 1, updatedAt: 1,
+  };
+  await page.evaluate(c => {
+    const key = 'swse-forge:characters:v1';
+    const all = JSON.parse(localStorage.getItem(key) ?? '[]');
+    localStorage.setItem(key, JSON.stringify([...all.filter(x => x.id !== c.id), c]));
+  }, striker);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.click('.item .item-name:has-text("Rax Vane")');
+  await page.click('.tabs button:has-text("Sheet")');
+
+  const panel = page.locator('.panel').filter({
+    has: page.locator('header button:has-text("Actions")'),
+  });
+  await panel.locator('header button:has-text("Actions")').click();
+
+  const club = panel.locator('.attack-row').filter({ hasText: 'Club' }).first();
+  const roll = () => club.locator('.attack-roll .breakdown').textContent();
+  const dice = () => club.locator('.attack-nums .breakdown').textContent();
+  const before = { roll: await roll(), dice: await dice() };
+  // Soldier 8, Strength 16: +8 base attack bonus and +3, on a 1d6 club.
+  if (before.roll !== '+11') throw new Error(`club starts at ${before.roll}, expected +11`);
+  if (!before.dice.startsWith('1d6')) throw new Error(`club rolls ${before.dice}, expected 1d6`);
+
+  // The band carries only what is on, so an untouched character shows none of them.
+  if (await panel.locator('.mod-chip').count()) throw new Error('a modifier was on before anything was switched');
+
+  await panel.locator('button:has-text("Add modifier")').click();
+  const modal = page.locator('.modal');
+  await modal.waitFor();
+  // Melee and Action are separate sections, and Rapid Strike belongs to the melee one.
+  const melee = modal.locator('.level-divider:has-text("Melee")');
+  if (!(await melee.count())) throw new Error('the picker has no Melee section');
+  await modal.locator('.mod-row:has-text("Rapid Strike") .mod-pick').first().click();
+  await modal.locator('footer button.primary:has-text("Done")').click();
+  await modal.waitFor({ state: 'detached' });
+
+  const chip = panel.locator('.mod-chip:has-text("Rapid Strike")');
+  if (!(await chip.count())) throw new Error('switching Rapid Strike on left no chip in the band');
+
+  // "-2 penalty on your attack roll, but deal +1 die of damage with a successful attack."
+  const after = { roll: await roll(), dice: await dice() };
+  if (after.roll !== '+9') throw new Error(`attack went to ${after.roll}, expected +9`);
+  if (!after.dice.startsWith('2d6')) throw new Error(`damage went to ${after.dice}, expected 2d6`);
+
+  // And the chip's own ✕ puts it back, without going through the picker again.
+  await chip.locator('button').click();
+  if ((await roll()) !== before.roll) throw new Error('turning it off did not restore the attack roll');
+  if (await panel.locator('.mod-chip').count()) throw new Error('the chip outlived the modifier');
+});
+
 console.log('\n▸ Choices made when a talent is taken');
 await step('a talent that grants a choice offers it, and records what was chosen', async () => {
   // Stolen Form reads "Choose one Talent from the Lightsaber Forms Talent Tree". It lives

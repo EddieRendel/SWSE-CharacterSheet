@@ -1,7 +1,12 @@
 import type { Character, EquipmentItem, Feature, ResolvedItem } from '../types';
 import { WEAPON_GROUPS, EQUIPMENT, FEATURES, RULES } from '../data';
-import { countFeature, hasFeature, carriedItems } from './engine';
+import { countFeature, hasFeature, carriedItems, signed } from './engine';
 import type { Derived } from './engine';
+import { MODIFIERS } from './modifiers';
+import type { Modifier, ModifierEffect, Scale } from './modifiers';
+
+export type { Modifier, ModifierEffect } from './modifiers';
+export { MODIFIERS } from './modifiers';
 
 /** Situational choices the player makes before rolling. */
 export interface AttackOptions {
@@ -24,80 +29,20 @@ export interface AttackOptions {
    * full attack, and it costs every attack roll this turn — see twoWeaponPenalty.
    */
   twoWeapon: boolean;
-  /** Rapid Shot: two shots as one attack. */
-  rapidShot: boolean;
-  /** Burst Fire: an autofire burst as one attack. */
-  burstFire: boolean;
   /**
-   * Situational bonuses, keyed by the feature that grants them.
-   * 0 means off; otherwise it is the 1-based tier chosen (always 1 for simple on/off).
+   * The modifiers the player has switched on, keyed by the feature that grants them.
+   * 0 means off; otherwise it is the 1-based tier chosen (always 1 for a simple on/off).
+   *
+   * Rapid Shot and Burst Fire live here too. They are feats you choose to use, not
+   * circumstances of the fight, and the fields above are only the latter.
    */
-  situational: Record<string, number>;
+  modifiers: Record<string, number>;
 }
-
-/**
- * Talents, feats and Force powers that grant a clearly-defined bonus to attack or damage
- * under a condition the app cannot know about. Each becomes a toggle when the character
- * has the feature. Adding another is one entry here.
- */
-export interface Situational {
-  id: string;
-  label: string;
-  hint: string;
-  scope: 'melee' | 'ranged' | 'any';
-  attack?: number;
-  damage?: number;
-  /** Extra dice rolled alongside the weapon's own, e.g. Battle Strike's 1d6. */
-  extraDice?: string;
-  /** Where the bonus varies, usually by a Use the Force check. */
-  tiers?: { label: string; attack?: number; damage?: number; extraDice?: string }[];
-}
-
-export const SITUATIONAL: Situational[] = [
-  {
-    id: 'dark-rage', label: 'Dark Rage', scope: 'melee',
-    hint: 'Force power: rage bonus to melee attack and damage, by Use the Force check',
-    tiers: [
-      { label: 'DC 15 (+2)', attack: 2, damage: 2 },
-      { label: 'DC 20 (+4)', attack: 4, damage: 4 },
-      { label: 'DC 25 (+6)', attack: 6, damage: 6 },
-    ],
-  },
-  {
-    id: 'battle-strike', label: 'Battle Strike', scope: 'any',
-    hint: 'Force power: +1 attack and extra damage dice, by Use the Force check',
-    tiers: [
-      { label: 'DC 15 (+1d6)', attack: 1, extraDice: '1d6' },
-      { label: 'DC 20 (+2d6)', attack: 1, extraDice: '2d6' },
-      { label: 'DC 25 (+3d6)', attack: 1, extraDice: '3d6' },
-    ],
-  },
-  { id: 'rage', label: 'Rage', scope: 'melee', attack: 2, damage: 2,
-    hint: 'Species trait: +2 to melee attack and damage while raging' },
-  { id: 'skirmisher', label: 'Skirmisher', scope: 'any', attack: 1,
-    hint: 'Moved at least 2 squares and ended somewhere new' },
-  { id: 'powerful-charge', label: 'Powerful Charge', scope: 'melee', attack: 2,
-    hint: 'Charging — also deals extra damage equal to half your level' },
-  { id: 'flurry', label: 'Flurry', scope: 'melee', attack: 2,
-    hint: 'Light weapons or lightsabers only; costs 5 Reflex Defense' },
-  { id: 'cunning-attack', label: 'Cunning Attack', scope: 'any', attack: 2,
-    hint: 'Target flat-footed or denied its Dexterity bonus' },
-  { id: 'sniper-shot', label: 'Sniper Shot', scope: 'ranged', attack: 2,
-    hint: 'Proficient weapons only; costs 5 Reflex Defense' },
-  { id: 'deadly-sniper', label: 'Deadly Sniper', scope: 'ranged', attack: 2,
-    hint: 'Target unaware of you — first attack each turn' },
-  { id: 'cornered', label: 'Cornered', scope: 'any', attack: 2,
-    hint: 'Threatened and unable to withdraw' },
-  { id: 'justice-seeker', label: 'Justice Seeker', scope: 'any', damage: 2,
-    hint: 'Target damaged an ally since the end of your last turn' },
-  { id: 'droid-hunter', label: 'Droid Hunter', scope: 'any', damage: 2,
-    hint: 'Against droid enemies' },
-];
 
 export const defaultAttackOptions = (): AttackOptions => ({
   powerAttack: 0, twoHanded: false, pointBlank: false, aim: false,
   flatFooted: false, fullAttack: false, twoWeapon: false, stunSetting: false,
-  rapidShot: false, burstFire: false, situational: {},
+  modifiers: {},
 });
 
 /** Dual Weapon Mastery I also reaches characters as a species trait. */
@@ -248,14 +193,127 @@ const hasWeaponFeature = (
 /**
  * Everything the character has that touches attacks with this weapon but which the
  * app does not model automatically — surfaced so nothing silently goes missing.
+ *
+ * The list used to be written out by hand, which meant every entry added to the modifier
+ * table had to be remembered here as well or the row went on claiming a feat was ignored
+ * after it had started applying. It is read off the table now, plus the handful of ids the
+ * maths above still names itself.
  */
 const AUTOMATIC = new Set([
+  ...MODIFIERS.map(m => m.id),
   'weapon-focus', 'greater-weapon-focus', 'weapon-specialization', 'greater-weapon-specialization',
-  'melee-smash', 'point-blank-shot', 'careful-shot', 'deadeye', 'sneak-attack', 'power-attack',
-  'double-attack', 'triple-attack', 'rapid-shot', 'burst-fire', 'weapon-proficiency',
+  'sneak-attack', 'power-attack', 'double-attack', 'triple-attack', 'weapon-proficiency',
   'exotic-weapon-proficiency', 'dual-weapon-mastery-i', 'dual-weapon-mastery-ii', 'dual-weapon-mastery-iii',
-  'weapon-finesse', 'ataru',
+  'weapon-finesse', 'ataru', 'wookiee-grip', 'martial-arts-i', 'martial-arts-ii', 'martial-arts-iii',
 ]);
+
+/** A modifier that reaches this weapon, with its tier already chosen. */
+interface Applied {
+  mod: Modifier;
+  /** The label shown in the breakdown — the modifier's, with the tier named where it has one. */
+  label: string;
+  effect: ModifierEffect;
+  /** How many copies are held, for the ones that stack with themselves. */
+  count: number;
+}
+
+/** The situations a modifier can wait on, which the player sets rather than the table. */
+const situationHolds = (need: NonNullable<Modifier['needs']>, opts: AttackOptions, stunMode: boolean) => {
+  switch (need) {
+    case 'pointBlank': return opts.pointBlank;
+    case 'aim': return opts.aim;
+    case 'flatFooted': return opts.flatFooted;
+    case 'fullAttack': return opts.fullAttack || opts.twoWeapon;
+    case 'stunSetting': return stunMode;
+  }
+};
+
+/** A quantity the table names rather than writes down. */
+const scaled = (scale: Scale, derived: Derived): number => {
+  switch (scale) {
+    case 'half-level': return Math.floor(derived.level / 2);
+    case 'level': return derived.level;
+    case 'str-mod': return derived.mods.str;
+    case 'dex-mod': return derived.mods.dex;
+  }
+};
+
+/** Whether the weapon in hand is the kind this modifier is written for. */
+function weaponAllows(mod: Modifier, weapon: ResolvedItem, ctx: {
+  proficient: boolean; lightsaber: boolean; light: boolean;
+}): boolean {
+  if (mod.groups && !mod.groups.includes(weapon.group ?? '')) return false;
+  if (mod.notGroups?.includes(weapon.group ?? '')) return false;
+  if (mod.weaponIds && !mod.weaponIds.includes(weapon.id)) return false;
+  switch (mod.weapon) {
+    case undefined: return true;
+    case 'proficient': return ctx.proficient;
+    case 'light': return ctx.light;
+    case 'light-or-lightsaber': return ctx.light || ctx.lightsaber;
+    case 'lightsaber': return ctx.lightsaber;
+    // A copy the player has made their own — armored gauntlets, a species' natural
+    // weapon — stands in for the catalogue entry, so match on what it was built from.
+    case 'unarmed': return weapon.id === 'unarmed';
+  }
+}
+
+/**
+ * Which modifiers reach this weapon, given what the character holds and what the player
+ * has switched on. The order of the tests is the order they are cheapest to fail in, and
+ * every one of them is a field in the table rather than a branch on an id.
+ */
+function activeModifiers(
+  derived: Derived, weapon: ResolvedItem, opts: AttackOptions,
+  ctx: {
+    melee: boolean; fired: boolean; stunMode: boolean;
+    proficient: boolean; lightsaber: boolean; light: boolean;
+  },
+): Applied[] {
+  const have = derived.features;
+  const group = weapon.group ?? '';
+  // Dreadful Rage is not a bonus on top of Rage, it is Rage read at a higher number, so
+  // the entry it stands in for is dropped before anything else is considered.
+  const superseded = new Set(
+    MODIFIERS.filter(m => m.replaces && hasFeature(have, m.id)).map(m => m.replaces as string),
+  );
+
+  const out: Applied[] = [];
+  for (const mod of MODIFIERS) {
+    if (superseded.has(mod.id)) continue;
+
+    const count = mod.perSpec
+      ? countFeature(have, mod.id, group) + countFeature(have, mod.id, weapon.id)
+      : countFeature(have, mod.id);
+    if (!count) continue;
+
+    if (mod.scope === 'melee' && !ctx.melee) continue;
+    if (mod.scope === 'ranged' && ctx.melee) continue;
+    if (mod.scope === 'fired' && !ctx.fired) continue;
+    if (!weaponAllows(mod, weapon, ctx)) continue;
+
+    const tier = opts.modifiers?.[mod.id] ?? 0;
+    if (!mod.always && !(mod.needs ? situationHolds(mod.needs, opts, ctx.stunMode) : true)) continue;
+    // A switch of its own is only skipped for the ones that have none: the automatic
+    // entries, and the ones that ride on a situation the player has already set.
+    if (!mod.always && !mod.needs && !tier) continue;
+    if (mod.tiers && !tier) continue;
+
+    const effect = mod.tiers ? mod.tiers[tier - 1] : mod;
+    if (!effect) continue;
+
+    out.push({
+      mod,
+      label: mod.tiers ? `${mod.label} (${mod.tiers[tier - 1].label})` : mod.label,
+      effect,
+      count: mod.repeats ? count : 1,
+    });
+  }
+
+  // One that only applies alongside another — Trigger Work cancelling Rapid Shot's
+  // penalty — is settled last, once it is known what else got through.
+  const on = new Set(out.map(a => a.mod.id));
+  return out.filter(a => !a.mod.withModifier || on.has(a.mod.withModifier));
+}
 
 export function buildAttack(
   _char: Character,
@@ -281,9 +339,20 @@ export function buildAttack(
   // Weapon Finesse swaps Dexterity for Strength on attack rolls with a light melee weapon
   // or a lightsaber. The feat says "may", so take whichever modifier is actually higher.
   const lightsaber = group === 'lightsabers';
-  const finesse = melee && hasFeature(have, 'weapon-finesse')
-    && (lightsaber || isLightWeapon(weapon, derived.size));
+  const light = isLightWeapon(weapon, derived.size);
+  const finesse = melee && hasFeature(have, 'weapon-finesse') && (lightsaber || light);
   const finesseAttack = finesse && derived.mods.dex > derived.mods.str;
+
+  // Switching a weapon to its stun setting, or back, is a swift action. Most keep the same
+  // dice; a few hit harder on stun, which is what stunDamage records. Settled here rather
+  // than beside the damage, because a modifier can wait on it.
+  const stunMode = !!opts.stunSetting && weapon.stun === true;
+
+  // Everything the table says reaches this weapon, resolved once. What follows only reads
+  // it: the arithmetic no longer knows any feature by name.
+  const active = activeModifiers(derived, weapon, opts, {
+    melee, fired, stunMode, proficient, lightsaber, light,
+  });
 
   // ---- attack ----
   const attackParts: Part[] = [
@@ -306,24 +375,48 @@ export function buildAttack(
   if (power) attackParts.push({ label: 'Power Attack', value: -power });
   if (power && !hasFeature(have, 'power-attack')) notes.push('You do not have the Power Attack feat.');
 
-  if (!melee && opts.pointBlank && hasFeature(have, 'point-blank-shot')) {
-    attackParts.push({ label: 'Point Blank Shot', value: 1 });
-  }
-  if (!melee && opts.aim && hasFeature(have, 'careful-shot')) {
-    attackParts.push({ label: 'Careful Shot', value: 1 });
-  }
   // Rapid Shot fires two shots as one attack and Burst Fire needs a weapon that can lay
-  // down autofire; neither is a thing a hurled spear can do, so a thrown weapon is ranged
-  // for everything except these two.
-  if (fired && opts.rapidShot && hasFeature(have, 'rapid-shot')) {
-    attackParts.push({ label: 'Rapid Shot', value: -2 });
-  }
-  if (fired && opts.burstFire && hasFeature(have, 'burst-fire')) {
-    attackParts.push({ label: 'Burst Fire', value: -5 });
-  }
-  if (thrown && ((opts.rapidShot && hasFeature(have, 'rapid-shot'))
-    || (opts.burstFire && hasFeature(have, 'burst-fire')))) {
+  // down autofire; neither is a thing a hurled spear can do, so the table scopes them to
+  // `fired` and a thrown weapon is ranged for everything else.
+  if (thrown && (opts.modifiers['rapid-shot'] || opts.modifiers['burst-fire'])
+    && (hasFeature(have, 'rapid-shot') || hasFeature(have, 'burst-fire'))) {
     notes.push('Rapid Shot fires two shots and Burst Fire needs autofire, so neither reaches a weapon you throw.');
+  }
+
+  // ---- what the table contributes to the attack roll ----
+  // Two passes, because Trigger Work and Controlled Burst are written against what another
+  // modifier already cost — "you take no penalty when using the Rapid Shot feat" — and that
+  // figure is not settled until the harsher clause below has had its say.
+  //
+  // The ones that buy down the full-attack penalty are held back for the block after next:
+  // they are relief against a penalty, and applied here they would read as a bonus on a
+  // character who never took the action.
+  const attackOf = new Map<string, number>();
+  for (const a of active) {
+    if (a.mod.relieves || a.mod.floorsAttack !== undefined) continue;
+    let value = (a.effect.attack ?? 0) * a.count;
+    if (a.effect.attackScale) value += scaled(a.effect.attackScale, derived);
+    // A feat written for a stronger or nimbler character costs more when you fall short.
+    const h = a.mod.harsher;
+    if (h && derived.abilities[h.ability] < h.min && !(h.unlessWeapon === 'light' && light)) {
+      value = h.attack;
+      notes.push(`${a.mod.label} costs ${signed(h.attack)} rather than ${signed(a.effect.attack ?? 0)} `
+        + `without ${RULES.abilities[h.ability].name} ${h.min}.`);
+    }
+    attackOf.set(a.mod.id, value);
+    if (value) attackParts.push({ label: a.label, value });
+    if (a.mod.note && !notes.includes(a.mod.note)) notes.push(a.mod.note);
+  }
+
+  // `withModifier` already guarantees the one being floored is switched on, so the figure
+  // is there to read. Kept as its own row rather than folded into the driver's, so the
+  // breakdown still shows the penalty and what cancelled it.
+  for (const a of active) {
+    if (a.mod.floorsAttack === undefined) continue;
+    const paid = attackOf.get(a.mod.withModifier ?? '') ?? 0;
+    const relief = a.mod.floorsAttack - paid;
+    if (relief > 0) attackParts.push({ label: a.label, value: relief });
+    if (a.mod.note && !notes.includes(a.mod.note)) notes.push(a.mod.note);
   }
 
   // ---- full attack: Double and Triple Attack each add an attack and -5 to all rolls,
@@ -349,18 +442,23 @@ export function buildAttack(
 
     if (hasFeature(have, 'double-attack', group)) { attacks += 1; extra -= 5; }
     if (hasFeature(have, 'triple-attack', group)) { attacks += 1; extra -= 5; }
+
     if (extra) attackParts.push({ label: 'full attack', value: extra });
 
-    fullAttack = { attacks, penalty: twoWeapon + extra };
+    // Multiattack Proficiency and its kin "reduce the penalty on your attack rolls", so they
+    // buy those −5s down and stop at nothing: a character holding more relief than penalty
+    // pays nothing rather than collecting a bonus. Kept as a row of its own beside the
+    // penalty it answers, so the breakdown shows the trade rather than a netted figure.
+    const relievers = active.filter(a => a.mod.relieves === 'fullAttack');
+    const relief = relievers.reduce((n, a) => n + (a.effect.attack ?? 0) * a.count, 0);
+    const used = Math.min(relief, -extra);
+    if (used > 0) attackParts.push({ label: relievers.map(a => a.mod.label).join(', '), value: used });
+
+    fullAttack = { attacks, penalty: twoWeapon + extra + used };
     if (attacks === 1) notes.push('Double Attack with this weapon group would grant a second attack.');
   }
 
-  // Situational modifiers are applied further down, once damage parts exist.
-
   // ---- damage ----
-  // Switching a weapon to its stun setting, or back, is a swift action. Most keep the same
-  // dice; a few hit harder on stun, which is what stunDamage records.
-  const stunMode = !!opts.stunSetting && weapon.stun === true;
   const weaponDice = (stunMode ? weapon.stunDamage ?? weapon.damage : weapon.damage);
 
   const extraDice: { label: string; dice: string }[] = [];
@@ -406,7 +504,6 @@ export function buildAttack(
   }
   if (hasWeaponFeature(have, 'weapon-specialization', weapon, melee)) damageParts.push({ label: 'Weapon Specialization', value: 2 });
   if (hasWeaponFeature(have, 'greater-weapon-specialization', weapon, melee)) damageParts.push({ label: 'Greater Weapon Specialization', value: 2 });
-  if (melee && hasFeature(have, 'melee-smash')) damageParts.push({ label: 'Melee Smash', value: 1 });
   // Dropping a bonus is the kind of thing that has to be said out loud — the whole point of
   // holding the tree copies separately is that they are melee-only.
   if (!melee) {
@@ -429,41 +526,47 @@ export function buildAttack(
       notes.push('Power Attack adds twice the number subtracted when the weapon is held in two hands. It never applies to damage against an object or vehicle.');
     }
   }
-  if (!melee && opts.pointBlank && hasFeature(have, 'point-blank-shot')) {
-    damageParts.push({ label: 'Point Blank Shot', value: 1 });
+
+  // ---- what the table contributes to damage ----
+  // Dice of the weapon's own size are collected rather than added as they are found: the
+  // books tie several of them together — "do not stack with the extra damage provided by
+  // the Rapid Strike feat" — and a pool is where that is settled. Entries outside a pool
+  // stack freely, which is what Attack Combo says in as many words.
+  const pools = new Map<string, { label: string; dice: number }[]>();
+  const loose: { label: string; dice: number }[] = [];
+
+  for (const a of active) {
+    if (a.mod.relieves) continue;
+    let value = (a.effect.damage ?? 0) * a.count;
+    if (a.effect.damageScale) value += scaled(a.effect.damageScale, derived);
+    if (value) damageParts.push({ label: a.label, value });
+    if (a.effect.extraDice) extraDice.push({ label: a.mod.label, dice: a.effect.extraDice });
+
+    const dice = (a.effect.weaponDice ?? 0) * a.count;
+    if (!dice) continue;
+    if (!a.mod.pool) { loose.push({ label: a.label, dice }); continue; }
+    const pool = pools.get(a.mod.pool) ?? [];
+    pool.push({ label: a.label, dice });
+    pools.set(a.mod.pool, pool);
   }
 
-  // ---- extra dice: Rapid Shot, Burst Fire and Deadeye explicitly do not stack ----
-  const diceOptions: { label: string; dice: number }[] = [];
-  if (fired && opts.rapidShot && hasFeature(have, 'rapid-shot')) diceOptions.push({ label: 'Rapid Shot', dice: 1 });
-  if (fired && opts.burstFire && hasFeature(have, 'burst-fire')) diceOptions.push({ label: 'Burst Fire', dice: 2 });
-  if (!melee && opts.aim && hasFeature(have, 'deadeye')) diceOptions.push({ label: 'Deadeye', dice: 1 });
-  const best = diceOptions.sort((a, b) => b.dice - a.dice)[0];
-  if (diceOptions.length > 1) {
-    notes.push(`${diceOptions.map(d => d.label).join(', ')} do not stack — using ${best.label}.`);
+  const chosen = [...loose];
+  for (const entries of pools.values()) {
+    const ranked = [...entries].sort((x, y) => y.dice - x.dice);
+    chosen.push(ranked[0]);
+    if (ranked.length > 1) {
+      notes.push(`${entries.map(e => e.label).join(', ')} do not stack — using ${ranked[0].label}.`);
+    }
   }
 
   const diceParts: { label: string; dice: string }[] = [
     { label: stunMode ? `${weapon.name} (stun)` : weapon.name, dice: weaponDice ?? '—' },
   ];
-  let damageDice = addWeaponDice(weaponDice, best?.dice ?? 0);
-  if (best) {
-    const die = weaponDice?.match(/d(\d+)/)?.[1];
-    diceParts.push({ label: best.label, dice: `+${best.dice}d${die ?? '?'}` });
-  }
-  // ---- situational bonuses the player has switched on ----
-  for (const mod of SITUATIONAL) {
-    const tier = opts.situational?.[mod.id] ?? 0;
-    if (!tier || !hasFeature(have, mod.id)) continue;
-    if (mod.scope === 'melee' && !melee) continue;
-    if (mod.scope === 'ranged' && melee) continue;
-    const effect = mod.tiers ? mod.tiers[tier - 1] : mod;
-    if (!effect) continue;
-    const label = mod.tiers ? `${mod.label} (${mod.tiers[tier - 1].label})` : mod.label;
-    if (effect.attack) attackParts.push({ label, value: effect.attack });
-    if (effect.damage) damageParts.push({ label, value: effect.damage });
-    if (effect.extraDice) extraDice.push({ label: mod.label, dice: effect.extraDice });
-  }
+  // Every one of them rolls the weapon's own die, so they are added together and each is
+  // still named on its own row — a total of 5d8 that says which feat brought which pair.
+  const die = weaponDice?.match(/d(\d+)/)?.[1];
+  let damageDice = addWeaponDice(weaponDice, chosen.reduce((n, c) => n + c.dice, 0));
+  for (const c of chosen) diceParts.push({ label: c.label, dice: `+${c.dice}d${die ?? '?'}` });
 
   // ---- modifications fitted to this particular weapon ----
   // A crystal, an attunement, whatever the player recorded against their own copy. Each

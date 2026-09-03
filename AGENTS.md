@@ -5,6 +5,7 @@ client-only, no backend and no network calls. Characters live in the browser's l
 
 ```
 src/rules/       the game rules — engine.ts (derived stats), prereqs.ts, attacks.ts, specs.ts
+src/rules/modifiers.ts     the attack and damage modifier table — see below
 src/rules/engine.test.ts   hand-written assertions, run with `npm run test:rules`
 src/data/*.json  generated from the Foundry compendium and the Omegadex index — not hand-edited
 src/data/supplement.json   hand-written corrections merged over the generated data
@@ -67,6 +68,18 @@ selectable. Prefer asserting on the specific character that motivated the change
 keyed on a feature id in `prereqs.ts` or `attacks.ts` is nearly always the wrong shape; the same
 fix usually belongs in `supplement.json` as a `specType`, `allowedSpecs` or `requirements` patch.
 Flag new id-specific branches in the rules code.
+
+**A feat that changes an attack or damage roll is an entry in `modifiers.ts`, not an `if`.**
+The table carries the scope, the weapon it is written for, the situation it waits on and what
+it contributes; `buildAttack` reads it generically and the picker on the Actions tab offers
+whatever the character holds. It is TypeScript rather than JSON so a typo in `scope` or `kind`
+fails the build instead of becoming a switch that can never fire. Entries that the books say
+do not stack — Mighty Swing, the Rapid Strikes, Rapid Shot, Burst Fire, Deadeye, Zero Range —
+share a `pool`, and the largest of whatever is on wins. `npm run audit:modifiers` lists the
+features whose text changes a roll and which the table does not cover; run it after an import,
+and note that it deliberately over-matches. A rule the prose leaves genuinely ambiguous is left
+out rather than guessed at — it still surfaces as "not applied automatically" on the attack row,
+which is the safe direction.
 
 **A `matchingSpec` requirement needs a specialization to match against.** It is checked against
 the specialization being chosen right now, so a feature carrying one while offering no
