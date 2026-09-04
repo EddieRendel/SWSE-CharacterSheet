@@ -11,6 +11,7 @@
     "test:rules": "tsx src/rules/engine.test.ts",
     "test:e2e": "node e2e.mjs",
     "audit:provenance": "node tools-audit-provenance.mjs",
+    "audit:modifiers": "node tools-audit-modifiers.mjs",
     "import:excel": "node tools-import-excel.mjs",
     "wire:trees": "node tools-wire-talent-trees.mjs",
     "fetch:icons": "node tools-fetch-icons.mjs",

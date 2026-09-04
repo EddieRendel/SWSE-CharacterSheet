@@ -8,7 +8,7 @@ import { checkClassRequirements, canSelect, checkRequirements, lapsedSelections 
 import { specOptionsFor, SPEC_LABELS } from './specs';
 import {
   buildAttack, buildAttacks, buildPowers, buildForcePointAbilities, forcePointDice,
-  defaultAttackOptions, unarmedDamage, SITUATIONAL,
+  defaultAttackOptions, unarmedDamage, MODIFIERS,
 } from './attacks';
 import { talentSources, readDescription, restatesDescription, prerequisiteText, wordCoverage } from '../components/labels';
 import { newCharacter, migrate } from '../storage';
@@ -2329,9 +2329,206 @@ console.log('\n▸ Attacks');
     { key: 'feat:3', choiceId: 'feat', featureId: 'burst-fire' },
   ]);
   const ds = computeCharacter(shooter);
-  const both = buildAttack(shooter, ds, EQUIPMENT['blaster-rifle'], { ...opts, rapidShot: true, burstFire: true });
+  const both = buildAttack(shooter, ds, EQUIPMENT['blaster-rifle'], { ...opts, modifiers: { 'rapid-shot': 1, 'burst-fire': 1 } });
   check('the larger die bonus wins', both.damageDice, '5d8');
   check('and the clash is explained', both.notes.some(n => n.includes('do not stack')), true);
+
+// ---- Mighty Swing and the Rapid Strikes: the melee half of the extra-dice family ----
+  // Reported as a bug: none of these appeared in the Actions tab at all, because the old
+  // code could only express a flat bonus or a fixed dice string, and these add dice of the
+  // weapon's own size in exchange for an attack penalty.
+  const swinger = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'mighty-swing' }]);
+  const dsw = computeCharacter(swinger);
+  const swung = buildAttack(swinger, dsw, EQUIPMENT['club'], { ...opts, modifiers: { 'mighty-swing': 1 } });
+  check('Mighty Swing adds a die of the weapon’s own size', swung.damageDice, '2d6');
+  check('and the breakdown names it', swung.diceParts.some(p => p.label === 'Mighty Swing'), true);
+  check('Mighty Swing costs nothing on the attack roll', swung.attack, 8 + 3);
+  check('and does nothing until it is switched on',
+    buildAttack(swinger, dsw, EQUIPMENT['club'], opts).damageDice, '1d6');
+  check('Mighty Swing does not reach a ranged weapon',
+    buildAttack(swinger, dsw, EQUIPMENT['blaster-rifle'], { ...opts, modifiers: { 'mighty-swing': 1 } })
+      .damageDice, '3d8');
+
+  const striker = soldier([
+    { key: 'feat:1', choiceId: 'feat', featureId: 'rapid-strike' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'improved-rapid-strike' },
+  ]);
+  const dstrike = computeCharacter(striker);
+  const rapid = buildAttack(striker, dstrike, EQUIPMENT['club'], { ...opts, modifiers: { 'rapid-strike': 1 } });
+  check('Rapid Strike trades 2 points of attack', rapid.attack, 8 + 3 - 2);
+  check('for a die of damage', rapid.damageDice, '2d6');
+
+  // "If you do not have a Dexterity score of 13 or higher, increase the penalty to attacks
+  // to -5 when using this Feat with non-Light Weapons." A club is Medium, so it is not light;
+  // a knife is Tiny, so it is.
+  const heavy = make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str: 16, dex: 12, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 }));
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'rapid-strike' }];
+  });
+  const dh = computeCharacter(heavy);
+  const clumsy = buildAttack(heavy, dh, EQUIPMENT['club'], { ...opts, modifiers: { 'rapid-strike': 1 } });
+  check('below Dexterity 13 a non-light weapon costs 5 instead of 2', clumsy.attack, 8 + 3 - 5);
+  check('and the sheet says why', clumsy.notes.some(n => n.includes('Dexterity 13')), true);
+  check('a light weapon still costs only 2',
+    buildAttack(heavy, dh, EQUIPMENT['knife'], { ...opts, modifiers: { 'rapid-strike': 1 } }).attack,
+    8 + 3 - 2);
+
+  // Improved Rapid Strike is written for "a Light Melee Weapon or Lightsaber" only.
+  const improved = buildAttack(striker, dstrike, EQUIPMENT['knife'], { ...opts, modifiers: { 'improved-rapid-strike': 1 } });
+  check('Improved Rapid Strike trades 5 for two dice', [improved.attack, improved.damageDice],
+    [8 + 3 - 5, '3d4']);
+  check('and does not reach a weapon that is neither light nor a lightsaber',
+    buildAttack(striker, dstrike, EQUIPMENT['club'], { ...opts, modifiers: { 'improved-rapid-strike': 1 } })
+      .damageDice, '1d6');
+
+  // "This does not stack with the Rapid Strike Feat or extra damage provided by any source
+  // that does not stack with the Rapid Strike Feat (Such as Mighty Swing)."
+  const allThree = soldier([
+    { key: 'feat:1', choiceId: 'feat', featureId: 'mighty-swing' },
+    { key: 'feat:3', choiceId: 'feat', featureId: 'rapid-strike' },
+    { key: 'feat:6', choiceId: 'feat', featureId: 'improved-rapid-strike' },
+  ]);
+  const dall = computeCharacter(allThree);
+  const piled = buildAttack(allThree, dall, EQUIPMENT['knife'], {
+    ...opts, modifiers: { 'mighty-swing': 1, 'rapid-strike': 1, 'improved-rapid-strike': 1 },
+  });
+  check('only the largest of the three applies', piled.damageDice, '3d4');
+  // The one that loses the pool costs nothing either. Improved Rapid Strike is not a bonus
+  // on top of Rapid Strike, it is the other option — "-5 to your attack roll to gain +2
+  // dice" — so paying Rapid Strike's -2 as well would be paying twice for one set of dice.
+  check('and the ones it beat cost nothing', piled.attack, 8 + 3 - 5);
+  check('the clash is explained', piled.notes.some(n => n.includes('do not stack')), true);
+
+  // A thrown lightsaber is a ranged attack, so the melee three stay behind.
+  {
+    const hurled = { ...EQUIPMENT['lightsaber'], thrown: true };
+    check('none of the three reach a weapon you throw',
+      buildAttack(allThree, dall, hurled, {
+        ...opts, modifiers: { 'mighty-swing': 1, 'rapid-strike': 1, 'improved-rapid-strike': 1 },
+      }).damageDice, EQUIPMENT['lightsaber'].damage);
+  }
+
+// ---- a second round of review ----
+  // "a bonus on damage rolls equal to one-half your class level" is the Gunslinger's level,
+  // not the character's: a Soldier 6/Gunslinger 2 gets +1, not +4.
+  {
+    const pistoleer = (levels: string[]) => make(x => {
+      x.speciesId = 'human';
+      setAbilities(x, { str: 14, dex: 16, con: 12, int: 10, wis: 10, cha: 10 });
+      x.levels = levels.map((classId, i) => ({ classId, hitPoints: i === 0 ? undefined : 6 }));
+    });
+    const pure = pistoleer(Array(8).fill('gunslinger'));
+    const dpure = computeCharacter(pure);
+    if (hasFeature(dpure.features, 'trusty-sidearm')) {
+      const half = Math.floor(dpure.level / 2);
+      check('a single-classed Gunslinger scales by their own level',
+        buildAttack(pure, dpure, EQUIPMENT['blaster-pistol'], opts).damageBonus,
+        half + half);
+
+      const mixed = pistoleer([...Array(6).fill('soldier'), ...Array(2).fill('gunslinger')]);
+      const dmix = computeCharacter(mixed);
+      const shot = buildAttack(mixed, dmix, EQUIPMENT['blaster-pistol'], opts);
+      // Gunslinger 2 → +1, on top of the half character level everyone gets.
+      check('a multiclassed one scales by the class that granted it',
+        shot.damageBonus, Math.floor(dmix.level / 2) + 1);
+      check('and the breakdown says so, rather than showing the character level',
+        shot.damageParts.some(p => p.label === 'Trusty Sidearm' && p.value === 1), true);
+    }
+  }
+
+  // Multiattack Proficiency reduces "the penalty on your attack rolls" whenever you make
+  // multiple attacks. A weapon in each hand is multiple attacks with no Double Attack in
+  // sight, so the relief has to reach the two-weapon penalty too.
+  {
+    const armed = soldier([{
+      key: computeCharacter(soldier()).slots.filter(sl => sl.kind === 'talent')[0].key,
+      choiceId: 'talent', featureId: 'multiattack-proficiency-rifles',
+    }]);
+    const darmed = computeCharacter(armed);
+    const bare = soldier();
+    const dbare = computeCharacter(bare);
+    const twoOf = (ch: Character, dv: Derived) =>
+      buildAttack(ch, dv, EQUIPMENT['blaster-rifle'], { ...opts, twoWeapon: true });
+    check('two weapons alone costs the full 10', twoOf(bare, dbare).attack, 8 + 2 - 10);
+    check('and Multiattack Proficiency buys 2 of it back even with no Double Attack',
+      twoOf(armed, darmed).attack, 8 + 2 - 10 + 2);
+    check('the ×2 badge reports the same penalty the roll took',
+      twoOf(armed, darmed).fullAttack?.penalty, -8);
+  }
+
+  // "When attacking with Ion weapons" — the weapon is the condition, so it applies to an
+  // ion pistol on its own and never to the blaster beside it.
+  {
+    const techie = soldier([{
+      key: computeCharacter(soldier()).slots.filter(sl => sl.kind === 'talent')[0].key,
+      choiceId: 'talent', featureId: 'ion-mastery',
+    }]);
+    const dt = computeCharacter(techie);
+    const ion = buildAttack(techie, dt, EQUIPMENT['ion-pistol'], opts);
+    const blaster = buildAttack(techie, dt, EQUIPMENT['blaster-rifle'], opts);
+    check('Ion Mastery reaches an ion weapon', ion.attack, 8 + 2 + 1);
+    check('and adds a die to it', ion.damageDice, '4d6');
+    check('but leaves the blaster in the other holster alone',
+      [blaster.attack, blaster.damageDice], [8 + 2, EQUIPMENT['blaster-rifle'].damage]);
+  }
+
+  // ---- what the table does that the old hand-written branches did ----
+  // Multiattack Proficiency "reduces the penalty on your attack rolls" and never turns it
+  // into a bonus, so a character with more relief than penalty simply pays nothing.
+  const talentSlotKeys = computeCharacter(soldier()).slots
+    .filter(sl => sl.kind === 'talent').map(sl => sl.key);
+  const multiattacker = (n: number) => soldier([
+    { key: 'feat:1', choiceId: 'feat', featureId: 'double-attack', spec: 'rifles' },
+    ...Array(n).fill(null).map((_, i) => ({
+      key: talentSlotKeys[i], choiceId: 'talent', featureId: 'multiattack-proficiency-rifles',
+    })),
+  ]);
+  const one = multiattacker(1);
+  check('Multiattack Proficiency buys down the full-attack penalty',
+    buildAttack(one, computeCharacter(one), EQUIPMENT['blaster-rifle'], { ...opts, fullAttack: true }).attack,
+    8 + 2 - 5 + 2);
+  const many = multiattacker(4);
+  check('and stops at zero rather than becoming a bonus',
+    buildAttack(many, computeCharacter(many), EQUIPMENT['blaster-rifle'], { ...opts, fullAttack: true }).attack,
+    8 + 2);
+  check('and does nothing outside a full attack',
+    buildAttack(many, computeCharacter(many), EQUIPMENT['blaster-rifle'], opts).attack, 8 + 2);
+
+  // Dreadful Rage is Rage read at a higher number, not a bonus stacked on top of it:
+  // "your Rage bonus on melee attack rolls and melee damage rolls increases to +5."
+  const ragers = make(x => {
+    x.speciesId = 'wookiee';
+    setAbilities(x, { str: 16, dex: 14, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 }));
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'dreadful-rage' }];
+  });
+  const drage = computeCharacter(ragers);
+  if (hasFeature(drage.features, 'rage') && hasFeature(drage.features, 'dreadful-rage')) {
+    const angry = buildAttack(ragers, drage, EQUIPMENT['club'], {
+      ...opts, modifiers: { rage: 1, 'dreadful-rage': 1 },
+    });
+    check('Dreadful Rage replaces Rage rather than adding to it',
+      angry.attackParts.filter(p => p.label.includes('Rage')).map(p => p.value), [5]);
+  }
+
+  // Melee Smash has no condition attached, so it needs no switch — the table says `always`.
+  const smasher = soldier([{ key: talentSlotKeys[0], choiceId: 'talent', featureId: 'melee-smash' }]);
+  const dsm = computeCharacter(smasher);
+  check('Melee Smash applies without being switched on',
+    buildAttack(smasher, dsm, EQUIPMENT['club'], opts).damageBonus, 4 + 3 + 1);
+  check('and not to a ranged weapon',
+    buildAttack(smasher, dsm, EQUIPMENT['blaster-rifle'], opts).damageBonus, 4);
+
+  // Point Blank Shot rides the shared "point blank" situation rather than a switch of its
+  // own, and still lands on both halves of the attack.
+  const pbs = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'point-blank-shot' }]);
+  const dpbs = computeCharacter(pbs);
+  const close = buildAttack(pbs, dpbs, EQUIPMENT['blaster-rifle'], { ...opts, pointBlank: true });
+  check('Point Blank Shot adds to attack and damage', [close.attack, close.damageBonus], [8 + 2 + 1, 4 + 1]);
+  check('and only within point blank range',
+    buildAttack(pbs, dpbs, EQUIPMENT['blaster-rifle'], opts).attack, 8 + 2);
 
   // Full attack: Double Attack adds an attack and -5 to every roll.
   const doubler = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'double-attack', spec: 'rifles' }]);
@@ -2341,6 +2538,83 @@ console.log('\n▸ Attacks');
   check('at -5 to all of them', fa.attack, 8 + 2 - 5);
   check('and only when taking a full attack',
     buildAttack(doubler, dd2, EQUIPMENT['blaster-rifle'], opts).attack, 8 + 2);
+
+// ---- corrections found in review ----
+  // Burst Fire carries the same two clauses Rapid Shot does, and had neither: "using a
+  // ranged weapon with Autofire capability, and that you are Proficient with… If you do
+  // not have a Strength of 13 or higher, increase the penalty on attacks to -10."
+  const gunner = (str: number) => make(x => {
+    x.speciesId = 'human';
+    setAbilities(x, { str, dex: 14, con: 12, int: 10, wis: 10, cha: 10 });
+    x.levels = Array(8).fill(null).map((_, i) => ({ classId: 'soldier', hitPoints: i === 0 ? undefined : 6 }));
+    x.selections = [{ key: 'feat:1', choiceId: 'feat', featureId: 'burst-fire' }];
+  });
+  const strong = gunner(16), weak = gunner(8);
+  const burst = (ch: Character, item = EQUIPMENT['blaster-rifle']) =>
+    buildAttack(ch, computeCharacter(ch), item, { ...opts, modifiers: { 'burst-fire': 1 } });
+  check('Burst Fire costs 5 at Strength 13 or better', burst(strong).attack, 8 + 2 - 5);
+  check('and 10 below it', burst(weak).attack, 8 + 2 - 5 - 5);
+  check('and reaches nothing you are not proficient with',
+    burst(strong, EQUIPMENT['bowcaster']).damageDice, EQUIPMENT['bowcaster'].damage);
+
+  // "You take no penalty on your attack roll when using the Rapid Shot feat" is a target,
+  // not an offset: it has to cancel the deeper penalty a weak character pays too.
+  const trigger = (str: number) => {
+    const ch = gunner(str);
+    ch.selections = [
+      { key: 'feat:1', choiceId: 'feat', featureId: 'rapid-shot' },
+      { key: computeCharacter(ch).slots.filter(sl => sl.kind === 'talent')[0].key,
+        choiceId: 'talent', featureId: 'trigger-work' },
+    ];
+    return buildAttack(ch, computeCharacter(ch), EQUIPMENT['blaster-rifle'],
+      { ...opts, modifiers: { 'rapid-shot': 1 } });
+  };
+  check('Trigger Work cancels Rapid Shot outright', trigger(16).attack, 8 + 2);
+  check('and still cancels it when low Strength made it worse', trigger(8).attack, 8 + 2);
+  check('while the extra die stays', trigger(8).damageDice, '4d8');
+
+  // The seventh Multiattack Proficiency. Its imported text is the stub "reduce Atk penalty
+  // by 2", which is how it went missing while its six siblings were modelled.
+  check('every Multiattack Proficiency with a weapon group is in the table',
+    Object.values(FEATURES)
+      .filter(f => /^multiattack-proficiency-/.test(f.id))
+      .filter(f => !MODIFIERS.some(m => m.id === f.id))
+      .map(f => f.id), []);
+
+  // Flurry is "When wielding only Light weapons or Lightsabers"; a club is neither.
+  const flurried = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'flurry' }]);
+  const dfl = computeCharacter(flurried);
+  const withFlurry = (item: typeof EQUIPMENT[string]) =>
+    buildAttack(flurried, dfl, item, { ...opts, modifiers: { flurry: 1 } }).attack;
+  check('Flurry reaches a light weapon', withFlurry(EQUIPMENT['knife']), 8 + 3 + 2);
+  check('and a lightsaber', withFlurry(EQUIPMENT['lightsaber']), 8 + 3 - 5 + 2);
+  check('but not a club', withFlurry(EQUIPMENT['club']), 8 + 3);
+
+  // "This Feat does not apply to Heavy Weapons."
+  const closeIn = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'zero-range' }]);
+  const dzr = computeCharacter(closeIn);
+  check('Zero Range reaches a rifle',
+    buildAttack(closeIn, dzr, EQUIPMENT['blaster-rifle'], { ...opts, modifiers: { 'zero-range': 1 } }).damageDice,
+    '4d8');
+  check('and leaves heavy weapons alone',
+    buildAttack(closeIn, dzr, EQUIPMENT['blaster-cannon'], { ...opts, modifiers: { 'zero-range': 1 } }).damageDice,
+    EQUIPMENT['blaster-cannon'].damage);
+
+  // "+2 competence bonus on attack rolls made with the Short Lightsaber (or Guard Shoto)" —
+  // the short blade, not the one-handed lightsaber held alongside it.
+  const duellist = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'shoto-focus' }]);
+  const dsh = computeCharacter(duellist);
+  const shotoAttack = (item: typeof EQUIPMENT[string]) =>
+    buildAttack(duellist, dsh, item, { ...opts, modifiers: { 'shoto-focus': 1 } }).attack;
+  check('Shoto Focus is for the short blade', shotoAttack(EQUIPMENT['short-lightsaber']), 8 + 3 - 5 + 2);
+  check('not the lightsaber in the other hand', shotoAttack(EQUIPMENT['lightsaber']), 8 + 3 - 5);
+
+  // "If your melee attack hits, you deal additional damage equal to one-half your level."
+  const charger = soldier([{ key: 'feat:1', choiceId: 'feat', featureId: 'powerful-charge' }]);
+  const dch = computeCharacter(charger);
+  const charged = buildAttack(charger, dch, EQUIPMENT['club'], { ...opts, modifiers: { 'powerful-charge': 1 } });
+  check('Powerful Charge adds to the attack roll', charged.attack, 8 + 3 + 2);
+  check('and half your level again to the damage', charged.damageBonus, 4 + 3 + 4);
 
   // Fighting with a weapon in each hand: -10 to every roll, bought down by Dual Weapon
   // Mastery, and only ever as part of a full attack.
@@ -2554,29 +2828,29 @@ console.log('\n▸ Attacks');
     buildAttacks(oneDrawn, computeCharacter(oneDrawn), opts).map(a => a.weapon.id).sort(),
     ['club', 'unarmed']);
 
-  // ---- situational modifiers from talents, traits and Force powers ----
+  // ---- table-driven modifiers from talents, traits and Force powers ----
   const raging = soldier([
     { key: 'feat:1', choiceId: 'feat', featureId: 'cornered' },
   ]);
   raging.speciesId = 'wookiee';   // Wookiees have the Rage trait
   const dr = computeCharacter(raging);
   const rageBlade = (tier: number) =>
-    buildAttack(raging, dr, EQUIPMENT['club'], { ...opts, situational: { rage: tier } });
+    buildAttack(raging, dr, EQUIPMENT['club'], { ...opts, modifiers: { rage: tier } });
   check('Rage is off by default', rageBlade(0).attack, buildAttack(raging, dr, EQUIPMENT['club'], opts).attack);
   check('Rage adds +2 to melee attack', rageBlade(1).attack - rageBlade(0).attack, 2);
   check('and +2 to melee damage', rageBlade(1).damageBonus - rageBlade(0).damageBonus, 2);
   check('but nothing to a ranged weapon',
-    buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], { ...opts, situational: { rage: 1 } }).attack,
+    buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], { ...opts, modifiers: { rage: 1 } }).attack,
     buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], opts).attack);
 
   // Cornered applies to any weapon.
   check('Cornered helps a ranged weapon too',
-    buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], { ...opts, situational: { cornered: 1 } }).attack
+    buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], { ...opts, modifiers: { cornered: 1 } }).attack
     - buildAttack(raging, dr, EQUIPMENT['blaster-rifle'], opts).attack, 2);
 
   // A modifier the character does not have must never apply.
   check('a modifier you lack does nothing',
-    buildAttack(c, d, EQUIPMENT['club'], { ...opts, situational: { 'dark-rage': 3 } }).attack,
+    buildAttack(c, d, EQUIPMENT['club'], { ...opts, modifiers: { 'dark-rage': 3 } }).attack,
     buildAttack(c, d, EQUIPMENT['club'], opts).attack);
 
   // Tiered Force powers: Dark Rage scales +2/+4/+6.
@@ -2591,19 +2865,32 @@ console.log('\n▸ Attacks');
   const dsith = computeCharacter(sith);
   const base = buildAttack(sith, dsith, EQUIPMENT['club'], opts);
   for (const [tier, bonus] of [[1, 2], [2, 4], [3, 6]] as const) {
-    const t = buildAttack(sith, dsith, EQUIPMENT['club'], { ...opts, situational: { 'dark-rage': tier } });
+    const t = buildAttack(sith, dsith, EQUIPMENT['club'], { ...opts, modifiers: { 'dark-rage': tier } });
     check(`Dark Rage tier ${tier} gives +${bonus}`, [t.attack - base.attack, t.damageBonus - base.damageBonus], [bonus, bonus]);
   }
 
   // Battle Strike adds a flat +1 and extra dice that are rolled separately.
-  const bs = buildAttack(sith, dsith, EQUIPMENT['club'], { ...opts, situational: { 'battle-strike': 2 } });
+  const bs = buildAttack(sith, dsith, EQUIPMENT['club'], { ...opts, modifiers: { 'battle-strike': 2 } });
   check('Battle Strike adds +1 to the attack', bs.attack - base.attack, 1);
   check('and its dice are listed separately', bs.damageDice.includes('2d6'), true);
   check('named in the dice breakdown', bs.diceParts.some(p => p.label === 'Battle Strike'), true);
 
-  // Every situational entry must name a feature that exists.
-  check('every situational modifier maps to a real feature',
-    SITUATIONAL.filter(m => !FEATURES[m.id]).map(m => m.id), []);
+  // Every entry must name a feature that exists, or it is a switch that can never do
+  // anything: the picker only offers what the character holds, and nobody holds a typo.
+  check('every modifier maps to a real feature',
+    MODIFIERS.filter(m => !FEATURES[m.id]).map(m => m.id), []);
+  // A tier is chosen by index, so an entry carrying tiers must carry at least one.
+  check('every tiered modifier has tiers to choose from',
+    MODIFIERS.filter(m => m.tiers && !m.tiers.length).map(m => m.id), []);
+  // Two entries sharing an id would leave the second unreachable — the resolver and the
+  // picker both key on it.
+  check('modifier ids are unique',
+    MODIFIERS.map(m => m.id).filter((id, i, all) => all.indexOf(id) !== i), []);
+  // The one it stands in for has to exist, or the replacement silently supersedes nothing.
+  check('every replacement names an entry it replaces',
+    MODIFIERS.filter(m => m.replaces && !MODIFIERS.some(o => o.id === m.replaces)).map(m => m.id), []);
+  check('every dependent modifier names one that exists',
+    MODIFIERS.filter(m => m.withModifier && !MODIFIERS.some(o => o.id === m.withModifier)).map(m => m.id), []);
 
   // ---- unarmed strike is always available and steps up with Martial Arts ----
   const bare = make(x => {
@@ -2930,19 +3217,19 @@ console.log('\n▸ Equipment customized copy by copy');
   check('the character does hold both fire-mode feats',
     [hasFeature(dArmed.features, 'rapid-shot'), hasFeature(dArmed.features, 'burst-fire')], [true, true]);
   check('Rapid Shot adds no dice to a thrown weapon',
-    armedSpear({ rapidShot: true }).damageDice, spearWith({}).damageDice);
+    armedSpear({ modifiers: { 'rapid-shot': 1 } }).damageDice, spearWith({}).damageDice);
   check('nor does it cost the attack roll',
-    armedSpear({ rapidShot: true }).attack, armedSpear({}).attack);
+    armedSpear({ modifiers: { 'rapid-shot': 1 } }).attack, armedSpear({}).attack);
   check('Burst Fire adds none either',
-    armedSpear({ burstFire: true }).damageDice, spearWith({}).damageDice);
+    armedSpear({ modifiers: { 'burst-fire': 1 } }).damageDice, spearWith({}).damageDice);
   check('and the profile says why rather than going quiet',
-    armedSpear({ burstFire: true }).notes.some(n => n.includes('weapon you throw')), true);
+    armedSpear({ modifiers: { 'burst-fire': 1 } }).notes.some(n => n.includes('weapon you throw')), true);
   // The same feats still work on something that is actually fired.
   const rifleman = trooper([carrying('blaster-rifle')]);
   rifleman.selections = gunslinger;
   const dRifleman = computeCharacter(rifleman);
   check('a fired weapon still gets its extra dice',
-    buildAttacks(rifleman, dRifleman, { ...opts, rapidShot: true })
+    buildAttacks(rifleman, dRifleman, { ...opts, modifiers: { 'rapid-shot': 1 } })
       .find(a => a.weapon.id === 'blaster-rifle')!.damageDice,
     '4d8');
 
